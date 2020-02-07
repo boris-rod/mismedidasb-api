@@ -1,9 +1,12 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using MismeAPI.Data.Entities;
+using MismeAPI.Data.Entities.Enums;
 using MismeAPI.Data.Repository;
 using MismeAPI.Data.UoW;
 using MismeAPI.Filters;
@@ -14,6 +17,10 @@ using MismeAPI.Services;
 using MismeAPI.Services.Impls;
 using Newtonsoft.Json;
 using Serilog;
+using System;
+using System.Security.Cryptography;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace MismeAPI
 {
@@ -87,6 +94,35 @@ namespace MismeAPI
             {
                 endpoints.MapControllers();
             });
+        }
+
+        private async Task CreateAdminUserAsync(IServiceProvider serviceProvider)
+        {
+            var _uow = serviceProvider.GetRequiredService<IUnitOfWork>();
+            var admin = await _uow.UserRepository.FindBy(u => u.Email == "admin@mismedidas.com").FirstOrDefaultAsync();
+
+            if (admin == null)
+            {
+                using (var hashAlgorithm = new SHA256CryptoServiceProvider())
+                {
+                    var byteValue = Encoding.UTF8.GetBytes("P@ssw0rd");
+                    var byteHash = hashAlgorithm.ComputeHash(byteValue);
+
+                    admin = new User()
+                    {
+                        FullName = "Mismedidas Admin",
+                        Email = "admin@mismedidas.com",
+                        Password = Convert.ToBase64String(byteHash),
+                        CreatedAt = DateTime.UtcNow,
+                        ModifiedAt = DateTime.UtcNow,
+                        Role = RoleEnum.ADMIN,
+                        Status = StatusEnum.ACTIVE,
+                        Username = "mismedidas"
+                    };
+                    await _uow.UserRepository.AddAsync(admin);
+                    await _uow.CommitAsync();
+                }
+            }
         }
     }
 }
