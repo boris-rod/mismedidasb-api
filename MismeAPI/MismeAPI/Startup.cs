@@ -39,6 +39,7 @@ namespace MismeAPI
 
             services.ConfigureDbContext(Configuration);
             services.ConfigureSwagger();
+            services.ConfigureTokenAuth(Configuration);
             services.ConfigureCompression();
             services.ConfigureCors();
 

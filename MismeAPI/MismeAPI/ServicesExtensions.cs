@@ -4,12 +4,14 @@ using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MismeAPI.Data;
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 using Pomelo.EntityFrameworkCore.MySql.Storage;
 using System;
 using System.IO;
+using System.Text;
 
 namespace MismeAPI
 {
@@ -79,6 +81,31 @@ namespace MismeAPI
         public static void ConfigureCors(this IServiceCollection services)
         {
             services.AddCors();
+        }
+
+        public static void ConfigureTokenAuth(this IServiceCollection services, IConfiguration config)
+        {
+            var key = Encoding.UTF8.GetBytes(config.GetSection("BearerTokens")["Key"]);
+            services.AddAuthentication(x =>
+            {
+                x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(x =>
+            {
+                x.RequireHttpsMetadata = false;
+                x.SaveToken = true;
+                x.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidAudience = config.GetSection("BearerTokens")["Audience"],
+                    ValidateAudience = true,
+                    ValidIssuer = config.GetSection("BearerTokens")["Issuer"],
+                    ValidateIssuer = true,
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateLifetime = true
+                };
+            });
         }
     }
 }

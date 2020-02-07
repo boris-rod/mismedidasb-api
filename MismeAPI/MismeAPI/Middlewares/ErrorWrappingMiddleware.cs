@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Http;
 using MismeAPI.BasicResponses;
+using MismeAPI.Common.Exceptions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace MismeAPI.Middlewares
@@ -18,18 +20,39 @@ namespace MismeAPI.Middlewares
         }
 
         private string Message { get; set; }
-        private int CustomStatusCode { get; set; }
 
         public async Task Invoke(HttpContext context)
         {
             Message = "";
-            CustomStatusCode = 0;
             try
             {
                 await _next.Invoke(context);
             }
-
-            ///add other exceptions
+            catch (NotAllowedException ex)
+            {
+                context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                Message = ex.Message;
+            }
+            catch (NotFoundException ex)
+            {
+                context.Response.StatusCode = (int)HttpStatusCode.NotFound;
+                Message = String.IsNullOrWhiteSpace(ex.Entity) ? ex.Message : ex.Entity + ex.Message;
+            }
+            catch (InvalidDataException ex)
+            {
+                context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                Message = String.IsNullOrWhiteSpace(ex.Field) ? ex.Message : ex.Field + ex.Message;
+            }
+            catch (AlreadyExistsException ex)
+            {
+                context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                Message = ex.Message;
+            }
+            catch (UnauthorizedException ex)
+            {
+                context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                Message = ex.Message;
+            }
             catch (Exception ex)
             {
                 context.Response.StatusCode = 500;

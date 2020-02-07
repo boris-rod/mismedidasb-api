@@ -8,6 +8,7 @@ namespace MismeAPI.Data.UoW
     public interface IUnitOfWork : IDisposable
     {
         IGenericRepository<User> UserRepository { get; set; }
+        IGenericRepository<UserToken> UserTokenRepository { get; set; }
         IGenericRepository<PersonalData> PersonalDataRepository { get; set; }
         IGenericRepository<UserPersonalData> UserPersonalDataRepository { get; set; }
         IGenericRepository<Poll> PollRepository { get; set; }
