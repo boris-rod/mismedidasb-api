@@ -7,7 +7,9 @@ using MismeAPI.BasicResponses;
 using MismeAPI.Common.DTO.Request;
 using MismeAPI.Common.DTO.Response;
 using MismeAPI.Services;
+using MismeAPI.Utils;
 using System;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Security.Claims;
@@ -21,14 +23,14 @@ namespace APITaxi.API.Controllers
         private readonly IAccountService _accountService;
         private readonly IMapper _mapper;
         private IWebHostEnvironment _env;
-        //private readonly IEmailService _emailService;
+        private readonly IEmailService _emailService;
 
-        public AccountController(IAccountService accountService, IMapper mapper, /*IEmailService emailService,*/ IWebHostEnvironment env)
+        public AccountController(IAccountService accountService, IMapper mapper, IEmailService emailService, IWebHostEnvironment env)
         {
             _accountService = accountService ?? throw new ArgumentNullException(nameof(accountService));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _env = env ?? throw new ArgumentNullException(nameof(env));
-            //_emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
+            _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
         }
 
         /// <summary>
@@ -48,22 +50,20 @@ namespace APITaxi.API.Controllers
         {
             var user = await _accountService.SignUpAsync(register);
 
-            //var resource = _env.ContentRootPath
-            //           + Path.DirectorySeparatorChar.ToString()
-            //           + "Templates"
-            //           + Path.DirectorySeparatorChar.ToString()
-            //           + "AccountActivation.html";
-            //var reader = new StreamReader(resource);
-            //var emailBody = reader.ReadToEnd().ToActivationAccountEmail(user.VerificationCode.ToString());
-            //reader.Dispose();
+            var resource = _env.ContentRootPath
+                       + Path.DirectorySeparatorChar.ToString()
+                       + "Templates"
+                       + Path.DirectorySeparatorChar.ToString()
+                       + "AccountActivation.html";
+            var reader = new StreamReader(resource);
+            var emailBody = reader.ReadToEnd().ToActivationAccountEmail(user.VerificationCode.ToString());
+            reader.Dispose();
 
-            //var subject = "Activation Account";
+            var subject = "Activation Account";
 
-            // await _emailService.SendEmailResponseAsync(subject, emailBody, user.Email);
+            await _emailService.SendEmailResponseAsync(subject, emailBody, user.Email);
 
-            // return Created("", true);
-
-            return Ok(new ApiOkResponse(user.VerificationCode));
+            return Created("", true);
         }
 
         /// <summary>
@@ -260,7 +260,7 @@ namespace APITaxi.API.Controllers
         /// Activation Account request object. Include email and verification code.
         /// </param>
         [AllowAnonymous]
-        [HttpPost("activation-account")]
+        [HttpPost("activate-account")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Unauthorized)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]

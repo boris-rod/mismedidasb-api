@@ -158,6 +158,7 @@ namespace MismeAPI.Services.Impls
             {
                 Email = suRequest.Email,
                 FullName = suRequest.FullName,
+                Username = suRequest.Username,
                 Password = passwordHash,
                 CreatedAt = DateTime.UtcNow,
                 ModifiedAt = DateTime.UtcNow,
@@ -501,6 +502,7 @@ namespace MismeAPI.Services.Impls
                 throw new NotFoundException(ExceptionConstants.NOT_FOUND, "User");
             }
             user.Status = StatusEnum.ACTIVE;
+            user.VerificationCode = 0;
 
             await _uow.UserRepository.UpdateAsync(user, user.Id);
             await _uow.CommitAsync();

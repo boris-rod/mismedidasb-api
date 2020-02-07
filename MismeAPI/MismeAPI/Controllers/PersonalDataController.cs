@@ -76,7 +76,7 @@ namespace MismeAPI.Controllers
         /// <param name="userId">Selected user id. If null, then the logged in user is used.</param>
         [HttpGet("historical/{id}")]
         [Authorize]
-        [ProducesResponseType(typeof(PersonalDataResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(IEnumerable<PersonalDataResponse>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> GetHistoricalUserPersonalDataById([FromRoute]int id, int? userId)
         {

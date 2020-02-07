@@ -9,6 +9,11 @@ namespace MismeAPI.Utils
             return resource.Replace("#PASSWORD#", password);
         }
 
+        public static string ToActivationAccountEmail(this string resource, string code)
+        {
+            return resource.Replace("#CODE#", code);
+        }
+
         public static int GetUserIdFromToken(this ClaimsPrincipal user)
         {
             var claimsIdentity = user.Identity as ClaimsIdentity;
