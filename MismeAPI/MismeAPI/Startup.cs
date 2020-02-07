@@ -63,7 +63,7 @@ namespace MismeAPI
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IServiceProvider services)
         {
             app.UseCors(builder => builder
            .AllowAnyOrigin()
@@ -82,6 +82,7 @@ namespace MismeAPI
             {
                 app.UseHsts();
             }
+            CreateAdminUserAsync(services).Wait();
             app.UseHttpsRedirection();
 
             app.UseRouting();

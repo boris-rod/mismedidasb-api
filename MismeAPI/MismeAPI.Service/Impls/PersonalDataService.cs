@@ -1,5 +1,12 @@
-﻿using MismeAPI.Data.UoW;
+﻿using Microsoft.EntityFrameworkCore;
+using MismeAPI.Common;
+using MismeAPI.Common.Exceptions;
+using MismeAPI.Data.Entities;
+using MismeAPI.Data.UoW;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace MismeAPI.Service.Impls
 {
@@ -10,6 +17,47 @@ namespace MismeAPI.Service.Impls
         public PersonalDataService(IUnitOfWork uow)
         {
             _uow = uow ?? throw new ArgumentNullException(nameof(uow));
+        }
+
+        public async Task<PersonalData> GetPersonalDataByIdAsync(int id)
+        {
+            var result = await _uow.PersonalDataRepository.GetAll().Where(p => p.Id == id).FirstOrDefaultAsync();
+            if (result == null)
+            {
+                throw new NotFoundException(ExceptionConstants.NOT_FOUND, "Personal Data");
+            }
+            return result;
+        }
+
+        public async Task<IEnumerable<PersonalData>> GetPersonalDataVariablesAsync()
+        {
+            var result = await _uow.PersonalDataRepository.GetAllAsync();
+            return result.ToList();
+        }
+
+        public async Task<PersonalData> GetUserPersonalDataByIdAsync(int id, int userId)
+        {
+            var result = await _uow.UserPersonalDataRepository.GetAll()
+                .Where(pd => pd.UserId == userId && pd.PersonalDataId == id)
+                .Include(pd => pd.PersonalData)
+                .OrderByDescending(pd => pd.CreatedAt)
+                .FirstOrDefaultAsync();
+            if (result == null)
+            {
+                throw new NotFoundException(ExceptionConstants.NOT_FOUND, "Personal Data");
+            }
+            return result.PersonalData;
+        }
+
+        public async Task<IEnumerable<PersonalData>> GetHistoricalUserPersonalDataByIdAsync(int id, int userId)
+        {
+            var result = await _uow.UserPersonalDataRepository.GetAll()
+                .Where(pd => pd.UserId == userId && pd.PersonalDataId == id)
+                .Include(pd => pd.PersonalData)
+                .OrderBy(pd => pd.CreatedAt)
+                .Select(pd => pd.PersonalData)
+                .ToListAsync();
+            return result;
         }
     }
 }
