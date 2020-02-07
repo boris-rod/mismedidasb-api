@@ -10,6 +10,8 @@ using MismeAPI.Filters;
 using MismeAPI.Middlewares;
 using MismeAPI.Service;
 using MismeAPI.Service.Impls;
+using MismeAPI.Services;
+using MismeAPI.Services.Impls;
 using Newtonsoft.Json;
 using Serilog;
 
@@ -42,6 +44,7 @@ namespace MismeAPI
             services.ConfigureTokenAuth(Configuration);
             services.ConfigureCompression();
             services.ConfigureCors();
+            services.ConfigureDetection();
 
             services.AddHttpContextAccessor();
             services.AddAutoMapper(typeof(Startup));
@@ -49,6 +52,7 @@ namespace MismeAPI
             services.AddTransient<IUnitOfWork, UnitOfWork>();
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             services.AddTransient<IPersonalDataService, PersonalDataService>();
+            services.AddTransient<IAccountService, AccountService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

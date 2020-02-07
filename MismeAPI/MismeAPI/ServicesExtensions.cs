@@ -107,5 +107,10 @@ namespace MismeAPI
                 };
             });
         }
+
+        public static void ConfigureDetection(this IServiceCollection services)
+        {
+            services.AddDetection();
+        }
     }
 }

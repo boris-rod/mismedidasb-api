@@ -1,23 +1,18 @@
 ﻿using DeviceDetectorNET;
 using DeviceDetectorNET.Cache;
 using DeviceDetectorNET.Parser;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Localization;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.WindowsAzure.Storage.Blob;
 using MismeAPI.Common;
 using MismeAPI.Common.DTO.Request;
 using MismeAPI.Common.Exceptions;
 using MismeAPI.Data.Entities;
 using MismeAPI.Data.Entities.Enums;
 using MismeAPI.Data.UoW;
-using MismeAPI.Services;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.IO;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
@@ -25,7 +20,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Wangkanai.Detection;
 
-namespace APITaxi.Services.Impls
+namespace MismeAPI.Services.Impls
 {
     public class AccountService : IAccountService
     {
@@ -33,16 +28,13 @@ namespace APITaxi.Services.Impls
 
         private readonly IUnitOfWork _uow;
 
-        private readonly IStringLocalizer<IAccountService> _localizer;
         private readonly IDetection _detection;
-        private readonly CloudBlobClient _blobClient;
 
-        public AccountService(IConfiguration configuration, IUnitOfWork uow, IDetection detection, CloudBlobClient blobClient)
+        public AccountService(IConfiguration configuration, IUnitOfWork uow, IDetection detection)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _uow = uow ?? throw new ArgumentNullException(nameof(uow));
             _detection = detection ?? throw new ArgumentNullException(nameof(detection));
-            _blobClient = blobClient ?? throw new ArgumentNullException(nameof(blobClient));
         }
 
         public async Task<(User user, string accessToken, string refreshToken)> LoginAsync(LoginRequest loginRequest)
@@ -421,87 +413,66 @@ namespace APITaxi.Services.Impls
             await _uow.CommitAsync();
         }
 
-        public async Task<User> UploadAvatarAsync(IFormFile file, int userId)
-        {
-            var user = await _uow.UserRepository.FindBy(u => u.Id == userId).FirstOrDefaultAsync();
+        //public async Task<User> UploadAvatarAsync(IFormFile file, int userId)
+        //{
+        //    var user = await _uow.UserRepository.FindBy(u => u.Id == userId).FirstOrDefaultAsync();
 
-            if (user == null)
-            {
-                throw new NotFoundException(ExceptionConstants.NOT_FOUND, "User");
-            }
+        // if (user == null) { throw new NotFoundException(ExceptionConstants.NOT_FOUND, "User"); }
 
-            if (file == null)
-            {
-                throw new MismeAPI.Common.Exceptions.InvalidDataException(ExceptionConstants.INVALID_DATA, "File");
-            }
+        // if (file == null) { throw new
+        // MismeAPI.Common.Exceptions.InvalidDataException(ExceptionConstants.INVALID_DATA, "File"); }
 
-            if (file.Length == 0)
-            {
-                throw new MismeAPI.Common.Exceptions.InvalidDataException(ExceptionConstants.INVALID_DATA, "File");
-            }
-            if (file.Length > 2 * 1024 * 1024)
-            {
-                throw new MismeAPI.Common.Exceptions.InvalidDataException(ExceptionConstants.INVALID_DATA, "File");
-            }
-            var imagesRootPath = _configuration.GetSection("Blobs")["ImagesRootPath"];
-            var imagesContainer = _configuration.GetSection("Blobs")["ImagesContainer"];
+        // if (file.Length == 0) { throw new
+        // MismeAPI.Common.Exceptions.InvalidDataException(ExceptionConstants.INVALID_DATA, "File");
+        // } if (file.Length > 2 * 1024 * 1024) { throw new
+        // MismeAPI.Common.Exceptions.InvalidDataException(ExceptionConstants.INVALID_DATA, "File");
+        // } var imagesRootPath = _configuration.GetSection("Blobs")["ImagesRootPath"]; var
+        // imagesContainer = _configuration.GetSection("Blobs")["ImagesContainer"];
 
-            using (Stream stream = file.OpenReadStream())
-            {
-                using (var binaryReader = new BinaryReader(stream))
-                {
-                    var fileContent = binaryReader.ReadBytes((int)file.Length);
-                    var mime = file.ContentType;
-                    if (!mime.Equals("image/png") && !mime.Equals("image/jpg") && !mime.Equals("image/jpeg"))
-                    {
-                        throw new MismeAPI.Common.Exceptions.InvalidDataException(ExceptionConstants.INVALID_DATA, "File");
-                    }
+        // using (Stream stream = file.OpenReadStream()) { using (var binaryReader = new
+        // BinaryReader(stream)) { var fileContent = binaryReader.ReadBytes((int)file.Length); var
+        // mime = file.ContentType; if (!mime.Equals("image/png") && !mime.Equals("image/jpg") &&
+        // !mime.Equals("image/jpeg")) { throw new
+        // MismeAPI.Common.Exceptions.InvalidDataException(ExceptionConstants.INVALID_DATA, "File"); }
 
-                    string guid = Guid.NewGuid().ToString();
+        // string guid = Guid.NewGuid().ToString();
 
-                    if (!string.IsNullOrWhiteSpace(user.Avatar))
-                    {
-                        //delete the old one in order to avoid client cache problems
-                        var segments = new Uri(user.Avatar).Segments;
-                        var oldGuid = segments[segments.Length - 1];
-                        await RemoveOldImageFromBlobStorage(imagesContainer, oldGuid);
-                    }
+        // if (!string.IsNullOrWhiteSpace(user.Avatar)) { //delete the old one in order to avoid
+        // client cache problems var segments = new Uri(user.Avatar).Segments; var oldGuid =
+        // segments[segments.Length - 1]; await RemoveOldImageFromBlobStorage(imagesContainer,
+        // oldGuid); }
 
-                    //upload the new one and update user avatar's properties
-                    await UploadImageToBlobStorage(fileContent, imagesContainer, guid, mime);
-                    user.Avatar = string.Format("{0}/{1}", imagesRootPath, guid);
-                    user.AvatarMimeType = mime;
+        // //upload the new one and update user avatar's properties await
+        // UploadImageToBlobStorage(fileContent, imagesContainer, guid, mime); user.Avatar =
+        // string.Format("{0}/{1}", imagesRootPath, guid); user.AvatarMimeType = mime;
 
-                    await _uow.UserRepository.UpdateAsync(user, userId);
-                    await _uow.CommitAsync();
-                }
-            }
+        // await _uow.UserRepository.UpdateAsync(user, userId); await _uow.CommitAsync(); } }
 
-            return user;
-        }
+        //    return user;
+        //}
 
-        private async Task<string> UploadImageToBlobStorage(byte[] content, string imagesContainer, string fileId, string contentType)
-        {
-            // get a reference to our container
-            var container = _blobClient.GetContainerReference(imagesContainer);
+        //private async Task<string> UploadImageToBlobStorage(byte[] content, string imagesContainer, string fileId, string contentType)
+        //{
+        // get a reference to our container
+        //var container = _blobClient.GetContainerReference(imagesContainer);
 
-            // using the container reference, get a block blob reference and set its type
-            CloudBlockBlob blockBlob = container.GetBlockBlobReference(fileId);
-            blockBlob.Properties.ContentType = contentType;
+        //// using the container reference, get a block blob reference and set its type
+        //CloudBlockBlob blockBlob = container.GetBlockBlobReference(fileId);
+        //blockBlob.Properties.ContentType = contentType;
 
-            await blockBlob.UploadFromByteArrayAsync(content, 0, content.Length);
+        //await blockBlob.UploadFromByteArrayAsync(content, 0, content.Length);
 
-            return "";
-        }
+        //return "";
+        //}
 
-        private async Task RemoveOldImageFromBlobStorage(string imagesContainer, string fileId)
-        {
-            var container = _blobClient.GetContainerReference(imagesContainer);
+        //private async Task RemoveOldImageFromBlobStorage(string imagesContainer, string fileId)
+        //{
+        //var container = _blobClient.GetContainerReference(imagesContainer);
 
-            CloudBlockBlob blockBlob = container.GetBlockBlobReference(fileId);
+        //CloudBlockBlob blockBlob = container.GetBlockBlobReference(fileId);
 
-            await blockBlob.DeleteIfExistsAsync();
-        }
+        //await blockBlob.DeleteIfExistsAsync();
+        //}
 
         public async Task<string> ForgotPasswordAsync(string email)
         {
