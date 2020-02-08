@@ -1,4 +1,5 @@
-﻿using MismeAPI.Data.Entities;
+﻿using MismeAPI.Common.DTO.Request;
+using MismeAPI.Data.Entities;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -15,5 +16,7 @@ namespace MismeAPI.Service
         Task<IEnumerable<UserPersonalData>> GetHistoricalUserPersonalDataByIdAsync(int id, int userId);
 
         Task<IEnumerable<UserPersonalData>> GetUserCurrentPersonalDatasAsync(int userId);
+
+        Task<PersonalData> CreatePersonalDataAsync(int loggedUser, CreatePersonalDataRequest personalData);
     }
 }

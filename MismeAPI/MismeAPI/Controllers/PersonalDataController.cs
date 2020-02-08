@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MismeAPI.BasicResponses;
+using MismeAPI.Common.DTO.Request;
 using MismeAPI.Common.DTO.Response;
 using MismeAPI.Service;
 using MismeAPI.Utils;
@@ -99,6 +100,23 @@ namespace MismeAPI.Controllers
             var result = await _pDataService.GetUserCurrentPersonalDatasAsync(userId ?? loggedUser);
             var mapped = _mapper.Map<IEnumerable<UserPersonalDataResponse>>(result);
             return Ok(new ApiOkResponse(mapped));
+        }
+
+        /// <summary>
+        /// Create a new personal data variable. Only an admin can do this operation. Requires authentication.
+        /// </summary>
+        /// <param name="personalData">Personal data request object.</param>
+        [HttpPost]
+        [Authorize]
+        [ProducesResponseType((int)HttpStatusCode.Created)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
+        public async Task<IActionResult> Create([FromBody] CreatePersonalDataRequest personalData)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            var result = await _pDataService.CreatePersonalDataAsync(loggedUser, personalData);
+            var mapped = _mapper.Map<PersonalDataResponse>(result);
+            return Created("", new ApiOkResponse(mapped));
         }
     }
 }
