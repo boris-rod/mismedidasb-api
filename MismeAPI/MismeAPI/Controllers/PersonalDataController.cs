@@ -57,9 +57,9 @@ namespace MismeAPI.Controllers
         /// </summary>
         /// <param name="id">Personal data id.</param>
         /// <param name="userId">Selected user id. If null, then the logged in user is used.</param>
-        [HttpGet("current/{id}")]
+        [HttpGet("{id}/current")]
         [Authorize]
-        [ProducesResponseType(typeof(PersonalDataResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(UserPersonalDataResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> GetUserPersonalDataById([FromRoute]int id, int? userId)
         {
@@ -74,9 +74,9 @@ namespace MismeAPI.Controllers
         /// </summary>
         /// <param name="id">Personal data id.</param>
         /// <param name="userId">Selected user id. If null, then the logged in user is used.</param>
-        [HttpGet("historical/{id}")]
+        [HttpGet("{id}/historical")]
         [Authorize]
-        [ProducesResponseType(typeof(IEnumerable<PersonalDataResponse>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(IEnumerable<UserPersonalDataResponse>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> GetHistoricalUserPersonalDataById([FromRoute]int id, int? userId)
         {

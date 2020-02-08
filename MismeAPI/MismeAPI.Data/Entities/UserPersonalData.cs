@@ -9,6 +9,7 @@ namespace MismeAPI.Data.Entities
         public User User { get; set; }
         public int PersonalDataId { get; set; }
         public PersonalData PersonalData { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public string Value { get; set; }
+        public DateTime MeasuredAt { get; set; }
     }
 }

@@ -35,27 +35,28 @@ namespace MismeAPI.Service.Impls
             return result.ToList();
         }
 
-        public async Task<PersonalData> GetUserPersonalDataByIdAsync(int id, int userId)
+        public async Task<UserPersonalData> GetUserPersonalDataByIdAsync(int id, int userId)
         {
             var result = await _uow.UserPersonalDataRepository.GetAll()
                 .Where(pd => pd.UserId == userId && pd.PersonalDataId == id)
                 .Include(pd => pd.PersonalData)
-                .OrderByDescending(pd => pd.CreatedAt)
+                .Include(pd => pd.User)
+                .OrderByDescending(pd => pd.MeasuredAt)
                 .FirstOrDefaultAsync();
             if (result == null)
             {
                 throw new NotFoundException(ExceptionConstants.NOT_FOUND, "Personal Data");
             }
-            return result.PersonalData;
+            return result;
         }
 
-        public async Task<IEnumerable<PersonalData>> GetHistoricalUserPersonalDataByIdAsync(int id, int userId)
+        public async Task<IEnumerable<UserPersonalData>> GetHistoricalUserPersonalDataByIdAsync(int id, int userId)
         {
             var result = await _uow.UserPersonalDataRepository.GetAll()
                 .Where(pd => pd.UserId == userId && pd.PersonalDataId == id)
                 .Include(pd => pd.PersonalData)
-                .OrderBy(pd => pd.CreatedAt)
-                .Select(pd => pd.PersonalData)
+                .Include(pd => pd.User)
+                .OrderBy(pd => pd.MeasuredAt)
                 .ToListAsync();
             return result;
         }
