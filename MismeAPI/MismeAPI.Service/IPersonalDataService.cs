@@ -13,5 +13,7 @@ namespace MismeAPI.Service
         Task<UserPersonalData> GetUserPersonalDataByIdAsync(int id, int userId);
 
         Task<IEnumerable<UserPersonalData>> GetHistoricalUserPersonalDataByIdAsync(int id, int userId);
+
+        Task<IEnumerable<UserPersonalData>> GetUserCurrentPersonalDatasAsync(int userId);
     }
 }

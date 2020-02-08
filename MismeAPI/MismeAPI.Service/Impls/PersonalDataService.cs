@@ -60,5 +60,18 @@ namespace MismeAPI.Service.Impls
                 .ToListAsync();
             return result;
         }
+
+        public async Task<IEnumerable<UserPersonalData>> GetUserCurrentPersonalDatasAsync(int userId)
+        {
+            var result = await _uow.UserPersonalDataRepository.GetAll()
+              .Where(pd => pd.UserId == userId)
+              .Include(pd => pd.PersonalData)
+              .Include(pd => pd.User)
+              .GroupBy(e => e.PersonalDataId)
+              .Select(g => g.OrderByDescending(d => d.MeasuredAt)
+                      .FirstOrDefault())
+              .ToListAsync();
+            return result;
+        }
     }
 }

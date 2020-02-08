@@ -65,7 +65,7 @@ namespace MismeAPI.Controllers
         {
             var loggedUser = User.GetUserIdFromToken();
             var result = await _pDataService.GetUserPersonalDataByIdAsync(id, userId ?? loggedUser);
-            var mapped = _mapper.Map<PersonalDataResponse>(result);
+            var mapped = _mapper.Map<UserPersonalDataResponse>(result);
             return Ok(new ApiOkResponse(mapped));
         }
 
@@ -82,7 +82,22 @@ namespace MismeAPI.Controllers
         {
             var loggedUser = User.GetUserIdFromToken();
             var result = await _pDataService.GetHistoricalUserPersonalDataByIdAsync(id, userId ?? loggedUser);
-            var mapped = _mapper.Map<IEnumerable<PersonalDataResponse>>(result);
+            var mapped = _mapper.Map<IEnumerable<UserPersonalDataResponse>>(result);
+            return Ok(new ApiOkResponse(mapped));
+        }
+
+        /// <summary>
+        /// Get user's current personal datas. Requires authentication.
+        /// </summary>
+        /// <param name="userId">Selected user id. If null, then the logged in user is used.</param>
+        [HttpGet("current-datas")]
+        [Authorize]
+        [ProducesResponseType(typeof(IEnumerable<UserPersonalDataResponse>), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetUserCurrentPersonalDatas(int? userId)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            var result = await _pDataService.GetUserCurrentPersonalDatasAsync(userId ?? loggedUser);
+            var mapped = _mapper.Map<IEnumerable<UserPersonalDataResponse>>(result);
             return Ok(new ApiOkResponse(mapped));
         }
     }
