@@ -118,8 +118,7 @@ namespace MismeAPI
                         CreatedAt = DateTime.UtcNow,
                         ModifiedAt = DateTime.UtcNow,
                         Role = RoleEnum.ADMIN,
-                        Status = StatusEnum.ACTIVE,
-                        Username = "mismedidas"
+                        Status = StatusEnum.ACTIVE
                     };
                     await _uow.UserRepository.AddAsync(admin);
                     await _uow.CommitAsync();

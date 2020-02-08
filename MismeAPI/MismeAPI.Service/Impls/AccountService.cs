@@ -158,7 +158,6 @@ namespace MismeAPI.Services.Impls
             {
                 Email = suRequest.Email,
                 FullName = suRequest.FullName,
-                Username = suRequest.Username,
                 Password = passwordHash,
                 CreatedAt = DateTime.UtcNow,
                 ModifiedAt = DateTime.UtcNow,

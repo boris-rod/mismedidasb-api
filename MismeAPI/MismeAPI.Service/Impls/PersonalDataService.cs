@@ -105,5 +105,77 @@ namespace MismeAPI.Service.Impls
 
             return pd;
         }
+
+        public async Task<PersonalData> UpdatePersonalDataAsync(int loggedUser, UpdatePersonalDataRequest personalData)
+        {
+            // not found personal data?
+            var pd = await _uow.PersonalDataRepository.GetAll().Where(p => p.Id == personalData.Id).FirstOrDefaultAsync();
+            if (pd == null)
+            {
+                throw new NotFoundException(ExceptionConstants.NOT_FOUND, "Personal data");
+            }
+
+            // validate admin user
+            var user = await _uow.UserRepository.FindByAsync(u => u.Id == loggedUser && u.Role == RoleEnum.ADMIN);
+            if (user.Count == 0)
+            {
+                throw new NotAllowedException(ExceptionConstants.NOT_ALLOWED);
+            }
+            // validate codename, except itself
+            var existCodename = await _uow.PersonalDataRepository.FindByAsync(p => p.CodeName.ToLower() == personalData.CodeName.ToLower() && p.Id != personalData.Id);
+            if (existCodename.Count > 0)
+            {
+                throw new InvalidDataException(ExceptionConstants.INVALID_DATA, "Codename");
+            }
+
+            pd.CodeName = personalData.CodeName;
+            pd.MeasureUnit = personalData.MeasureUnit;
+            pd.ModifiedAt = DateTime.UtcNow;
+            pd.Name = personalData.Name;
+            pd.Order = personalData.Order;
+            pd.Type = (TypeEnum)personalData.Type;
+
+            _uow.PersonalDataRepository.Update(pd);
+            await _uow.CommitAsync();
+            return pd;
+        }
+
+        public async Task DeletePersonalDataAsync(int loggedUser, int id)
+        {
+            // not found personal data?
+            var pd = await _uow.PersonalDataRepository.GetAsync(id);
+            if (pd == null)
+            {
+                throw new NotFoundException(ExceptionConstants.NOT_FOUND, "Personal data");
+            }
+
+            // validate admin user
+            var user = await _uow.UserRepository.FindByAsync(u => u.Id == loggedUser && u.Role == RoleEnum.ADMIN);
+            if (user.Count == 0)
+            {
+                throw new NotAllowedException(ExceptionConstants.NOT_ALLOWED);
+            }
+
+            _uow.PersonalDataRepository.Delete(pd);
+            await _uow.CommitAsync();
+        }
+
+        public async Task<UserPersonalData> SetPersonalDataValueAsync(int loggedUser, int id, string value)
+        {
+            // not found personal data?
+            var pd = await _uow.PersonalDataRepository.GetAsync(id);
+            if (pd == null)
+            {
+                throw new NotFoundException(ExceptionConstants.NOT_FOUND, "Personal data");
+            }
+            var userPd = new UserPersonalData();
+            userPd.MeasuredAt = DateTime.UtcNow;
+            userPd.PersonalDataId = pd.Id;
+            userPd.UserId = loggedUser;
+            userPd.Value = value;
+            await _uow.UserPersonalDataRepository.AddAsync(userPd);
+            await _uow.CommitAsync();
+            return userPd;
+        }
     }
 }

@@ -18,5 +18,11 @@ namespace MismeAPI.Service
         Task<IEnumerable<UserPersonalData>> GetUserCurrentPersonalDatasAsync(int userId);
 
         Task<PersonalData> CreatePersonalDataAsync(int loggedUser, CreatePersonalDataRequest personalData);
+
+        Task<PersonalData> UpdatePersonalDataAsync(int loggedUser, UpdatePersonalDataRequest personalData);
+
+        Task DeletePersonalDataAsync(int loggedUser, int id);
+
+        Task<UserPersonalData> SetPersonalDataValueAsync(int loggedUser, int id, string value);
     }
 }

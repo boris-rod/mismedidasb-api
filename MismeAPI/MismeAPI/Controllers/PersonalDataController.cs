@@ -108,7 +108,7 @@ namespace MismeAPI.Controllers
         /// <param name="personalData">Personal data request object.</param>
         [HttpPost]
         [Authorize]
-        [ProducesResponseType((int)HttpStatusCode.Created)]
+        [ProducesResponseType(typeof(PersonalDataResponse), (int)HttpStatusCode.Created)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
         public async Task<IActionResult> Create([FromBody] CreatePersonalDataRequest personalData)
@@ -117,6 +117,58 @@ namespace MismeAPI.Controllers
             var result = await _pDataService.CreatePersonalDataAsync(loggedUser, personalData);
             var mapped = _mapper.Map<PersonalDataResponse>(result);
             return Created("", new ApiOkResponse(mapped));
+        }
+
+        /// <summary>
+        /// Update a personal data variable. Only an admin can do this operation. Requires authentication.
+        /// </summary>
+        /// <param name="personalData">Personal data request object.</param>
+        [HttpPut]
+        [Authorize]
+        [ProducesResponseType(typeof(PersonalDataResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
+        public async Task<IActionResult> Update([FromBody] UpdatePersonalDataRequest personalData)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            var result = await _pDataService.UpdatePersonalDataAsync(loggedUser, personalData);
+            var mapped = _mapper.Map<PersonalDataResponse>(result);
+            return Ok(new ApiOkResponse(mapped));
+        }
+
+        /// <summary>
+        /// Delete a personal data variable. Only an admin can do this operation. Requires authentication.
+        /// </summary>
+        /// <param name="id">Id of the personal data.</param>
+        [HttpDelete("{id}")]
+        [Authorize]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
+        public async Task<IActionResult> Delete([FromRoute]int id)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            await _pDataService.DeletePersonalDataAsync(loggedUser, id);
+            return Ok();
+        }
+
+        /// <summary>
+        /// Set a personal data value by the logged in user. Requires authentication.
+        /// </summary>
+        /// <param name="id">Id of the personal data.</param>
+        /// <param name="value">Value to set on the personal data variable.</param>
+        [HttpPatch("{id}")]
+        [Authorize]
+        [ProducesResponseType(typeof(UserPersonalDataResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
+        public async Task<IActionResult> SetValue([FromRoute] int id, [FromBody] string value)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            var result = await _pDataService.SetPersonalDataValueAsync(loggedUser, id, value);
+            var mapped = _mapper.Map<UserPersonalDataResponse>(result);
+            return Ok(new ApiOkResponse(mapped));
         }
     }
 }
