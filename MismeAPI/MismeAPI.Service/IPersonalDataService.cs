@@ -23,6 +23,6 @@ namespace MismeAPI.Service
 
         Task DeletePersonalDataAsync(int loggedUser, int id);
 
-        Task<UserPersonalData> SetPersonalDataValueAsync(int loggedUser, int id, string value);
+        Task<UserPersonalData> SetPersonalDataValueAsync(int loggedUser, int id, PatchPersonalDataRequest value);
     }
 }

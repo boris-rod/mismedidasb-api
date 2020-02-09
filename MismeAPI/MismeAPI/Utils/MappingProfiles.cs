@@ -17,6 +17,7 @@ namespace MismeAPI.Utils
             CreateMap<UserPersonalData, UserPersonalDataResponse>();
             CreateMap<Poll, PollResponse>();
             CreateMap<Question, QuestionResponse>();
+            CreateMap<Concept, ConceptResponse>();
         }
     }
 }

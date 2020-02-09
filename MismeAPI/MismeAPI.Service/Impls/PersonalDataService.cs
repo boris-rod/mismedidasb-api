@@ -160,7 +160,7 @@ namespace MismeAPI.Service.Impls
             await _uow.CommitAsync();
         }
 
-        public async Task<UserPersonalData> SetPersonalDataValueAsync(int loggedUser, int id, string value)
+        public async Task<UserPersonalData> SetPersonalDataValueAsync(int loggedUser, int id, PatchPersonalDataRequest value)
         {
             // not found personal data?
             var pd = await _uow.PersonalDataRepository.GetAsync(id);
@@ -172,7 +172,7 @@ namespace MismeAPI.Service.Impls
             userPd.MeasuredAt = DateTime.UtcNow;
             userPd.PersonalDataId = pd.Id;
             userPd.UserId = loggedUser;
-            userPd.Value = value;
+            userPd.Value = value.Value;
             await _uow.UserPersonalDataRepository.AddAsync(userPd);
             await _uow.CommitAsync();
             return userPd;

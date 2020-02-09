@@ -15,6 +15,7 @@ namespace MismeAPI.Data.UoW
         IGenericRepository<Question> QuestionRepository { get; set; }
         IGenericRepository<Answer> AnswerRepository { get; set; }
         IGenericRepository<UserAnswer> UserAnswerRepository { get; set; }
+        IGenericRepository<Concept> ConceptRepository { get; set; }
 
         Task<int> CommitAsync();
     }

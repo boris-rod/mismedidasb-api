@@ -163,7 +163,7 @@ namespace MismeAPI.Controllers
         [ProducesResponseType(typeof(UserPersonalDataResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> SetValue([FromRoute] int id, [FromBody] string value)
+        public async Task<IActionResult> SetValue([FromRoute] int id, [FromBody] PatchPersonalDataRequest value)
         {
             var loggedUser = User.GetUserIdFromToken();
             var result = await _pDataService.SetPersonalDataValueAsync(loggedUser, id, value);

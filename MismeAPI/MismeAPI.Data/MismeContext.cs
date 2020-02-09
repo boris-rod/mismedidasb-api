@@ -17,5 +17,6 @@ namespace MismeAPI.Data
         public DbSet<Question> Question { get; set; }
         public DbSet<Answer> Answer { get; set; }
         public DbSet<UserAnswer> UserAnswer { get; set; }
+        public DbSet<Concept> Concept { get; set; }
     }
 }

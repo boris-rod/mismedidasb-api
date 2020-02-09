@@ -41,6 +41,8 @@ namespace MismeAPI.Service.Impls
             p.ModifiedAt = DateTime.UtcNow; ;
             p.Name = poll.Name;
             p.Description = poll.Description;
+            p.Codename = poll.Codename;
+            p.ConceptId = poll.ConceptId;
 
             await _uow.PollRepository.AddAsync(p);
             await _uow.CommitAsync();
@@ -73,6 +75,12 @@ namespace MismeAPI.Service.Impls
             var result = await _uow.PollRepository.GetAll()
                 .Include(p => p.Questions)
                 .ToListAsync();
+            return result;
+        }
+
+        public async Task<IEnumerable<Poll>> GetAllPollsByConceptAsync(int conceptId)
+        {
+            var result = await _uow.PollRepository.GetAll().Where(p => p.ConceptId == conceptId).ToListAsync();
             return result;
         }
 

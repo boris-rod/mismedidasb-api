@@ -100,7 +100,7 @@ namespace APITaxi.API.Controllers
             var userId = claimsIdentity.FindFirst(ClaimTypes.UserData)?.Value;
             await _accountService.LogoutAsync(int.Parse(userId), accessToken.ToString().Split("Bearer")[1].Trim());
 
-            return Ok();
+            return Ok(new ApiOkResponse(null));
         }
 
         /// <summary>
@@ -117,7 +117,7 @@ namespace APITaxi.API.Controllers
             var userId = claimsIdentity.FindFirst(ClaimTypes.UserData)?.Value;
             await _accountService.GlobalLogoutAsync(int.Parse(userId));
 
-            return Ok();
+            return Ok(new ApiOkResponse(null));
         }
 
         /// <summary>
@@ -140,7 +140,7 @@ namespace APITaxi.API.Controllers
             HttpContext.Response.Headers["RefreshToken"] = result.refreshToken;
             HttpContext.Response.Headers["Access-Control-Expose-Headers"] = "Authorization, RefreshToken";
 
-            return Ok();
+            return Ok(new ApiOkResponse(null));
         }
 
         /// <summary>

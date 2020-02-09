@@ -76,7 +76,7 @@ namespace MismeAPI.Controllers
         /// <summary>
         /// Update a question. Only an admin can do this operation. Requires authentication.
         /// </summary>
-        /// <param name="poll">Question request object.</param>
+        /// <param name="question">Question request object.</param>
         [HttpPut]
         [Authorize]
         [ProducesResponseType(typeof(QuestionResponse), (int)HttpStatusCode.OK)]
