@@ -18,5 +18,7 @@ namespace MismeAPI.Service
         Task DeletePollAsync(int loggedUser, int id);
 
         Task<IEnumerable<Poll>> GetAllPollsByConceptAsync(int conceptId);
+
+        Task SetPollResultAsync(int loggedUser, SetPollResultRequest pollResult);
     }
 }

@@ -97,6 +97,23 @@ namespace MismeAPI.Service.Impls
             return poll;
         }
 
+        public async Task SetPollResultAsync(int loggedUser, SetPollResultRequest pollResult)
+        {
+            // not found poll?
+            var pd = await _uow.PollRepository.GetAsync(pollResult.PollId);
+            if (pd == null)
+            {
+                throw new NotFoundException(ExceptionConstants.NOT_FOUND, "Poll");
+            }
+            var userPoll = new UserPoll();
+            userPoll.PollId = pd.Id;
+            userPoll.Result = pollResult.Result;
+            userPoll.UserId = loggedUser;
+            userPoll.CompletedAt = DateTime.UtcNow;
+            await _uow.UserPollRepository.AddAsync(userPoll);
+            await _uow.CommitAsync();
+        }
+
         public async Task<Poll> UpdatePollDataAsync(int loggedUser, UpdatePollRequest poll)
         {
             // not found poll?

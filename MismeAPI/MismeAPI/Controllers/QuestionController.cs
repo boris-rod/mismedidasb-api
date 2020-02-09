@@ -28,14 +28,14 @@ namespace MismeAPI.Controllers
         /// <summary>
         /// Get questions by poll. Requires authentication.
         /// </summary>
-        /// <param name="id">Poll id.</param>
+        /// <param name="pollId">Poll id.</param>
         [HttpGet]
         [Authorize]
         [ProducesResponseType(typeof(IEnumerable<QuestionResponse>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> GetQuestionsByPoll([FromQuery]int id)
+        public async Task<IActionResult> GetQuestionsByPoll([FromQuery]int pollId)
         {
-            var result = await _questionService.GetQuestionsByPollIdAsync(id);
+            var result = await _questionService.GetQuestionsByPollIdAsync(pollId);
             var mapped = _mapper.Map<IEnumerable<QuestionResponse>>(result);
             return Ok(new ApiOkResponse(mapped));
         }
