@@ -61,6 +61,8 @@ namespace MismeAPI
             services.AddTransient<IPersonalDataService, PersonalDataService>();
             services.AddTransient<IAccountService, AccountService>();
             services.AddTransient<IEmailService, EmailService>();
+            services.AddTransient<IPollService, PollService>();
+            services.AddTransient<IQuestionService, QuestionService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

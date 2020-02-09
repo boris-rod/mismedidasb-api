@@ -15,6 +15,8 @@ namespace MismeAPI.Utils
                         .ForMember(d => d.TypeId, opts => opts.MapFrom(source => (int)source.Type))
                         .ForMember(d => d.Type, opts => opts.MapFrom(source => source.Type.ToString()));
             CreateMap<UserPersonalData, UserPersonalDataResponse>();
+            CreateMap<Poll, PollResponse>();
+            CreateMap<Question, QuestionResponse>();
         }
     }
 }
