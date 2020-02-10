@@ -1,0 +1,14 @@
+image: microsoft/dotnet:latest
+
+stages:
+    - build
+
+before_script:
+    - "cd MismeAPI\MismeAPI"
+    - "dotnet restore"
+
+build:
+    stage: build
+    script:
+        - "dotnet build"
+
