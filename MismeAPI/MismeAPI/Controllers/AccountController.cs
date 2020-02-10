@@ -200,30 +200,28 @@ namespace APITaxi.API.Controllers
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
         public async Task<IActionResult> ChangeAccountStatus([FromBody] ChangeAccountStatusRequest changeAccountStatus)
         {
-            var claimsIdentity = this.User.Identity as ClaimsIdentity;
-            var userId = claimsIdentity.FindFirst(ClaimTypes.UserData)?.Value;
-            await _accountService.ChangeAccountStatusAsync(changeAccountStatus, int.Parse(userId));
+            var loggedUser = User.GetUserIdFromToken();
+            await _accountService.ChangeAccountStatusAsync(changeAccountStatus, loggedUser);
             return Ok();
         }
 
-        ///// <summary>
-        ///// Upload Avatar. Requires authentication.
-        ///// </summary>
-        ///// <param name="file">Avatar file.</param>
-        //[Authorize]
-        //[HttpPost("upload-avatar")]
-        //[ProducesResponseType((int)HttpStatusCode.OK)]
-        //[ProducesResponseType((int)HttpStatusCode.NotFound)]
-        //[ProducesResponseType((int)HttpStatusCode.BadRequest)]
-        //public async Task<IActionResult> UploadAvatar(IFormFile file)
-        //{
-        //    var claimsIdentity = this.User.Identity as ClaimsIdentity;
-        //    var userId = claimsIdentity.FindFirst(ClaimTypes.UserData)?.Value;
-        //    var result = await _accountService.UploadAvatarAsync(file, int.Parse(userId));
-        //    var user = _mapper.Map<UserResponse>(result);
+        /// <summary>
+        /// Upload Avatar. Requires authentication.
+        /// </summary>
+        /// <param name="file">Avatar file.</param>
+        [Authorize]
+        [HttpPost("upload-avatar")]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> UploadAvatar(IFormFile file)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            var result = await _accountService.UploadAvatarAsync(file, loggedUser);
+            var user = _mapper.Map<UserResponse>(result);
 
-        //    return Ok(new ApiOkResponse(user));
-        //}
+            return Ok(new ApiOkResponse(user));
+        }
 
         /// <summary>
         /// Forgot password. The user receive an email with a new password.
@@ -237,18 +235,18 @@ namespace APITaxi.API.Controllers
         {
             var newPass = await _accountService.ForgotPasswordAsync(email);
 
-            //var resource = _env.ContentRootPath
-            //           + Path.DirectorySeparatorChar.ToString()
-            //           + "Templates"
-            //           + Path.DirectorySeparatorChar.ToString()
-            //           + "ForgotPassword.html";
-            //var reader = new StreamReader(resource);
-            //var emailBody = reader.ReadToEnd().ToForgotPasswordEmail(newPass);
-            //reader.Dispose();
+            var resource = _env.ContentRootPath
+                       + Path.DirectorySeparatorChar.ToString()
+                       + "Templates"
+                       + Path.DirectorySeparatorChar.ToString()
+                       + "ForgotPassword.html";
+            var reader = new StreamReader(resource);
+            var emailBody = reader.ReadToEnd().ToForgotPasswordEmail(newPass);
+            reader.Dispose();
 
-            //var subject = "Password Reset";
+            var subject = "Password Reset";
 
-            //await _emailService.SendEmailResponseAsync(subject, emailBody, email);
+            await _emailService.SendEmailResponseAsync(subject, emailBody, email);
 
             return Ok();
         }
@@ -283,18 +281,18 @@ namespace APITaxi.API.Controllers
         public async Task<IActionResult> ResendVerificationCode(string email)
         {
             var code = await _accountService.ResendVerificationCodeAsync(email);
-            //var resource = _env.ContentRootPath
-            //           + Path.DirectorySeparatorChar.ToString()
-            //           + "Templates"
-            //           + Path.DirectorySeparatorChar.ToString()
-            //           + "AccountActivation.html";
-            //var reader = new StreamReader(resource);
-            //var emailBody = reader.ReadToEnd().ToActivationAccountEmail(code.ToString());
-            //reader.Dispose();
+            var resource = _env.ContentRootPath
+                       + Path.DirectorySeparatorChar.ToString()
+                       + "Templates"
+                       + Path.DirectorySeparatorChar.ToString()
+                       + "AccountActivation.html";
+            var reader = new StreamReader(resource);
+            var emailBody = reader.ReadToEnd().ToActivationAccountEmail(code.ToString());
+            reader.Dispose();
 
-            //var subject = "Resend Verification Code";
+            var subject = "Resend Verification Code";
 
-            //await _emailService.SendEmailResponseAsync(subject, emailBody, email);
+            await _emailService.SendEmailResponseAsync(subject, emailBody, email);
 
             return Ok();
         }

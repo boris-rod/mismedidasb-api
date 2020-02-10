@@ -15,6 +15,7 @@ using MismeAPI.Service;
 using MismeAPI.Service.Impls;
 using MismeAPI.Services;
 using MismeAPI.Services.Impls;
+using MismeAPI.Utils;
 using Newtonsoft.Json;
 using Serilog;
 using System;
@@ -54,10 +55,11 @@ namespace MismeAPI
             services.ConfigureDetection();
 
             services.AddHttpContextAccessor();
-            services.AddAutoMapper(typeof(Startup));
 
             services.AddTransient<IUnitOfWork, UnitOfWork>();
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+            services.AddTransient<IAmazonS3Service, AmazonS3Service>();
+            services.AddTransient<IFileService, FileService>();
             services.AddTransient<IPersonalDataService, PersonalDataService>();
             services.AddTransient<IAccountService, AccountService>();
             services.AddTransient<IEmailService, EmailService>();
@@ -65,6 +67,13 @@ namespace MismeAPI
             services.AddTransient<IQuestionService, QuestionService>();
             services.AddTransient<IConceptService, ConceptService>();
             services.AddTransient<IAnswerService, AnswerService>();
+
+            var provider = services.BuildServiceProvider();
+            var amazonS3Service = provider.GetService<IAmazonS3Service>();
+
+            var apiMappings = new MappingProfiles(amazonS3Service);
+            services.AddAutoMapper(x => x.AddProfile(apiMappings), typeof(Startup));
+            //services.AddAutoMapper(typeof(Startup));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

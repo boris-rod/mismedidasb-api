@@ -1,4 +1,5 @@
-﻿using MismeAPI.Common.DTO.Request;
+﻿using Microsoft.AspNetCore.Http;
+using MismeAPI.Common.DTO.Request;
 using MismeAPI.Data.Entities;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -29,7 +30,7 @@ namespace MismeAPI.Services
 
         Task ChangeAccountStatusAsync(ChangeAccountStatusRequest changeAccountStatus, int userId);
 
-        //Task<User> UploadAvatarAsync(IFormFile file, int currentUser);
+        Task<User> UploadAvatarAsync(IFormFile file, int currentUser);
 
         Task<string> ForgotPasswordAsync(string email);
 
