@@ -46,6 +46,7 @@ namespace MismeAPI
                 config.Filters.Add(typeof(ApiValidationFilterAttribute));
                 config.EnableEndpointRouting = false;
             }).AddNewtonsoftJson(opt => opt.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
+            services.AddResponseCaching();
 
             services.ConfigureDbContext(Configuration);
             services.ConfigureSwagger();
