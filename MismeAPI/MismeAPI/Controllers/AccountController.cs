@@ -62,8 +62,9 @@ namespace APITaxi.API.Controllers
             var subject = "Activation Account";
 
             await _emailService.SendEmailResponseAsync(subject, emailBody, user.Email);
+            var mapped = _mapper.Map<UserResponse>(user);
 
-            return Created("", true);
+            return Created("", new ApiOkResponse(mapped));
         }
 
         /// <summary>
