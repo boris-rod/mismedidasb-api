@@ -19,5 +19,8 @@ namespace MismeAPI.Data
         public DbSet<UserAnswer> UserAnswer { get; set; }
         public DbSet<Concept> Concept { get; set; }
         public DbSet<UserPoll> UserPoll { get; set; }
+        public DbSet<Dish> Dishes { get; set; }
+        public DbSet<Tag> Tags { get; set; }
+        public DbSet<DishTag> DishesTags { get; set; }
     }
 }

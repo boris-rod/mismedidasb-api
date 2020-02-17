@@ -24,6 +24,9 @@ namespace MismeAPI.Data.UoW
             UserAnswerRepository = UserAnswerRepository ?? new GenericRepository<UserAnswer>(_context);
             ConceptRepository = ConceptRepository ?? new GenericRepository<Concept>(_context);
             UserPollRepository = UserPollRepository ?? new GenericRepository<UserPoll>(_context);
+            TagRepository = TagRepository ?? new GenericRepository<Tag>(_context);
+            DishRepository = DishRepository ?? new GenericRepository<Dish>(_context);
+            DishTagRepository = DishTagRepository ?? new GenericRepository<DishTag>(_context);
         }
 
         public IGenericRepository<User> UserRepository { get; set; }
@@ -36,6 +39,9 @@ namespace MismeAPI.Data.UoW
         public IGenericRepository<UserAnswer> UserAnswerRepository { get; set; }
         public IGenericRepository<Concept> ConceptRepository { get; set; }
         public IGenericRepository<UserPoll> UserPollRepository { get; set; }
+        public IGenericRepository<Tag> TagRepository { get; set; }
+        public IGenericRepository<Dish> DishRepository { get; set; }
+        public IGenericRepository<DishTag> DishTagRepository { get; set; }
 
         public async Task<int> CommitAsync()
         {

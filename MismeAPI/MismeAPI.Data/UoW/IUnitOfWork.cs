@@ -17,6 +17,9 @@ namespace MismeAPI.Data.UoW
         IGenericRepository<UserAnswer> UserAnswerRepository { get; set; }
         IGenericRepository<Concept> ConceptRepository { get; set; }
         IGenericRepository<UserPoll> UserPollRepository { get; set; }
+        IGenericRepository<Tag> TagRepository { get; set; }
+        IGenericRepository<Dish> DishRepository { get; set; }
+        IGenericRepository<DishTag> DishTagRepository { get; set; }
 
         Task<int> CommitAsync();
     }
