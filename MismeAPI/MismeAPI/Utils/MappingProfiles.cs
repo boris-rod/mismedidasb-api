@@ -28,6 +28,8 @@ namespace MismeAPI.Utils
             CreateMap<Poll, PollResponse>();
             CreateMap<Question, QuestionResponse>();
             CreateMap<Concept, ConceptResponse>();
+            CreateMap<Tag, TagResponse>();
+            CreateMap<Dish, DishResponse>();
         }
     }
 }

@@ -18,6 +18,8 @@ namespace MismeAPI.Data.Entities
         public double Proteins { get; set; }
         public double Fat { get; set; }
         public double Fiber { get; set; }
+        public string Image { get; set; }
+        public string ImageMimeType { get; set; }
         public virtual ICollection<DishTag> DishTags { get; set; }
     }
 }
