@@ -20,7 +20,7 @@ namespace MismeAPI.Utils
             CreateMap<User, UserResponse>()
                         .ForMember(d => d.StatusId, opts => opts.MapFrom(source => (int)source.Status))
                         .ForMember(d => d.Status, opts => opts.MapFrom(source => source.Status.ToString()))
-                        .ForMember(d => d.Avatar, opts => opts.MapFrom(source => String.IsNullOrWhiteSpace(source.Avatar) ? "" : _amazonS3Service.GetPresignUrl(source.Avatar)));
+                        .ForMember(d => d.Avatar, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Avatar) ? "" : _amazonS3Service.GetPresignUrl(source.Avatar)));
             CreateMap<PersonalData, PersonalDataResponse>()
                         .ForMember(d => d.TypeId, opts => opts.MapFrom(source => (int)source.Type))
                         .ForMember(d => d.Type, opts => opts.MapFrom(source => source.Type.ToString()));
@@ -29,7 +29,13 @@ namespace MismeAPI.Utils
             CreateMap<Question, QuestionResponse>();
             CreateMap<Concept, ConceptResponse>();
             CreateMap<Tag, TagResponse>();
-            CreateMap<Dish, DishResponse>();
+            CreateMap<Dish, DishResponse>()
+                .ForMember(d => d.Tags, opts => opts.MapFrom(source => source.DishTags))
+                .ForMember(d => d.Image, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Image) ? "" : _amazonS3Service.GetPresignUrl(source.Image))); ;
+            CreateMap<DishTag, TagResponse>()
+                .ForMember(d => d.Name, opts => opts.MapFrom(source => source.Tag.Name))
+                .ForMember(d => d.Id, opts => opts.MapFrom(source => source.TagId))
+                .ForMember(d => d.Id, opts => opts.MapFrom(source => source.TagId));
         }
     }
 }

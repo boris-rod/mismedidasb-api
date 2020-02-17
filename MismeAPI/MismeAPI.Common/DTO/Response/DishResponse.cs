@@ -12,5 +12,7 @@ namespace MismeAPI.Common.DTO.Response
         public double Fat { get; set; }
         public double Fiber { get; set; }
         public List<TagResponse> Tags { get; set; }
+        public string Image { get; set; }
+        public string ImageMimeType { get; set; }
     }
 }
