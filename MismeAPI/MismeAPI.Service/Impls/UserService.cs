@@ -45,41 +45,47 @@ namespace MismeAPI.Service.Impls
             }
 
             // define sort order
-            //if (!string.IsNullOrWhiteSpace(sortOrder))
-            //{
-            //    // sort order section
-            //    switch (sortOrder)
-            //    {
-            //        case "status_desc":
-            //            result = result.OrderByDescending(i => i.Status.ToString());
-            //            break;
+            if (!string.IsNullOrWhiteSpace(sortOrder))
+            {
+                // sort order section
+                switch (sortOrder)
+                {
+                    case "fullName_desc":
+                        result = result.OrderByDescending(i => i.FullName);
+                        break;
 
-            // case "status_asc": result = result.OrderBy(i => i.Status.ToString()); break;
+                    case "fullName_asc":
+                        result = result.OrderBy(i => i.FullName);
+                        break;
 
-            // case "severity_desc": result = result.OrderByDescending(i => i.Severity.ToString()); break;
+                    case "email_desc":
+                        result = result.OrderByDescending(i => i.Email);
+                        break;
 
-            // case "severity_asc": result = result.OrderBy(i => i.Severity.ToString()); break;
+                    case "email_asc":
+                        result = result.OrderBy(i => i.Email);
+                        break;
 
-            // case "issueCode_desc": result = result.OrderByDescending(i => i.Code); break;
+                    case "phone_desc":
+                        result = result.OrderByDescending(i => i.Phone);
+                        break;
 
-            // case "issueCode_asc": result = result.OrderBy(i => i.Code); break;
+                    case "phone_asc":
+                        result = result.OrderBy(i => i.Phone);
+                        break;
 
-            // case "issueType_desc": result = result.OrderByDescending(i => i.IssueType.Type); break;
+                    case "status_desc":
+                        result = result.OrderByDescending(i => i.Status.ToString());
+                        break;
 
-            // case "issueType_asc": result = result.OrderBy(i => i.IssueType.Type); break;
+                    case "status_asc":
+                        result = result.OrderBy(i => i.Status.ToString());
+                        break;
 
-            // case "openedDate_desc": result = result.OrderByDescending(i => i.DateOpened); break;
-
-            // case "openedDate_asc": result = result.OrderBy(i => i.DateOpened); break;
-
-            // case "updatedDate_desc": result = result.OrderBy(i => i.DateUpdated); break;
-
-            // case "updatedDate_asc": result = result.OrderBy(i => i.DateUpdated); break;
-
-            //        default:
-            //            break;
-            //    }
-            //}
+                    default:
+                        break;
+                }
+            }
 
             return await PaginatedList<User>.CreateAsync(result, pag, perPag);
         }
