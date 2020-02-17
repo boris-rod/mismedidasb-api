@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MismeAPI.Data.Entities
 {
+    [Table("poll")]
     public class Poll
     {
         public Poll()

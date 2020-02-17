@@ -1,7 +1,9 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MismeAPI.Data.Entities
 {
+    [Table("answer")]
     public class Answer
     {
         public int Id { get; set; }

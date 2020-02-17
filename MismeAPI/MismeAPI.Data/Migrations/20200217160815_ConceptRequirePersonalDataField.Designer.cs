@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MismeAPI.Data;
 
 namespace MismeAPI.Data.Migrations
 {
     [DbContext(typeof(MismeContext))]
-    partial class MismeContextModelSnapshot : ModelSnapshot
+    [Migration("20200217160815_ConceptRequirePersonalDataField")]
+    partial class ConceptRequirePersonalDataField
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -45,7 +47,7 @@ namespace MismeAPI.Data.Migrations
 
                     b.HasIndex("QuestionId");
 
-                    b.ToTable("answer");
+                    b.ToTable("Answer");
                 });
 
             modelBuilder.Entity("MismeAPI.Data.Entities.Concept", b =>
@@ -74,7 +76,7 @@ namespace MismeAPI.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("concept");
+                    b.ToTable("Concept");
                 });
 
             modelBuilder.Entity("MismeAPI.Data.Entities.PersonalData", b =>
@@ -106,7 +108,7 @@ namespace MismeAPI.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("personaldata");
+                    b.ToTable("PersonalData");
                 });
 
             modelBuilder.Entity("MismeAPI.Data.Entities.Poll", b =>
@@ -137,7 +139,7 @@ namespace MismeAPI.Data.Migrations
 
                     b.HasIndex("ConceptId");
 
-                    b.ToTable("poll");
+                    b.ToTable("Poll");
                 });
 
             modelBuilder.Entity("MismeAPI.Data.Entities.Question", b =>
@@ -165,7 +167,7 @@ namespace MismeAPI.Data.Migrations
 
                     b.HasIndex("PollId");
 
-                    b.ToTable("question");
+                    b.ToTable("Question");
                 });
 
             modelBuilder.Entity("MismeAPI.Data.Entities.User", b =>
@@ -214,7 +216,7 @@ namespace MismeAPI.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("user");
+                    b.ToTable("User");
                 });
 
             modelBuilder.Entity("MismeAPI.Data.Entities.UserAnswer", b =>
@@ -238,7 +240,7 @@ namespace MismeAPI.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("useranswer");
+                    b.ToTable("UserAnswer");
                 });
 
             modelBuilder.Entity("MismeAPI.Data.Entities.UserPersonalData", b =>
@@ -265,7 +267,7 @@ namespace MismeAPI.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("userpersonaldata");
+                    b.ToTable("UserPersonalData");
                 });
 
             modelBuilder.Entity("MismeAPI.Data.Entities.UserPoll", b =>
@@ -292,7 +294,7 @@ namespace MismeAPI.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("userpoll");
+                    b.ToTable("UserPoll");
                 });
 
             modelBuilder.Entity("MismeAPI.Data.Entities.UserToken", b =>
@@ -344,7 +346,7 @@ namespace MismeAPI.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("usertoken");
+                    b.ToTable("UserToken");
                 });
 
             modelBuilder.Entity("MismeAPI.Data.Entities.Answer", b =>

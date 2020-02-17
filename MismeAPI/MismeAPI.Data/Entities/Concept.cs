@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MismeAPI.Data.Entities
 {
+    [Table("concept")]
     public class Concept
     {
         public Concept()
@@ -17,5 +19,6 @@ namespace MismeAPI.Data.Entities
         public DateTime CreatedAt { get; set; }
         public DateTime ModifiedAt { get; set; }
         public virtual ICollection<Poll> Polls { get; set; }
+        public bool RequirePersonalData { get; set; }
     }
 }
