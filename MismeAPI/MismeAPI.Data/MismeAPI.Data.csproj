@@ -17,5 +17,6 @@
     <PackageReference Include="MySql.Data.EntityFrameworkCore" Version="8.0.19" />
     <PackageReference Include="MySqlConnector" Version="0.61.0" />
     <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="3.1.0" />
+    <PackageReference Include="Z.EntityFramework.Plus.EFCore" Version="3.0.39" />
   </ItemGroup>
 </Project>
