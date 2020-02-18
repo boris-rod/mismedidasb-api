@@ -297,5 +297,21 @@ namespace APITaxi.API.Controllers
 
             return Ok();
         }
+
+        /// <summary>
+        /// Remove logged in user avatar. Requires authentication.
+        /// </summary>
+
+        [Authorize]
+        [HttpPost("remove-avatar")]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        public async Task<IActionResult> RemoveAvatar()
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            var result = await _accountService.RemoveAvatarAsync(loggedUser);
+            var user = _mapper.Map<UserResponse>(result);
+
+            return Ok(new ApiOkResponse(user));
+        }
     }
 }

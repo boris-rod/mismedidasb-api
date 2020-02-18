@@ -2,8 +2,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MismeAPI.BasicResponses;
+using MismeAPI.Common.DTO.Request;
 using MismeAPI.Common.DTO.Response;
 using MismeAPI.Service;
+using MismeAPI.Utils;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -50,6 +52,23 @@ namespace MismeAPI.Controllers
             var result = await _dishService.GetDishByIdAsync(id);
             var mapped = _mapper.Map<DishResponse>(result);
             return Ok(new ApiOkResponse(mapped));
+        }
+
+        /// <summary>
+        /// Add a dish. Only an admin can do this operation. Requires authentication.
+        /// </summary>
+        /// <param name="dish">Dish request object.</param>
+        [HttpPost]
+        [Authorize]
+        [ProducesResponseType(typeof(DishResponse), (int)HttpStatusCode.Created)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
+        public async Task<IActionResult> AddDish([FromBody] CreateDishRequest dish)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            var result = await _dishService.CreateDishAsync(loggedUser, dish);
+            var mapped = _mapper.Map<DishResponse>(result);
+            return Created("", new ApiOkResponse(mapped));
         }
     }
 }

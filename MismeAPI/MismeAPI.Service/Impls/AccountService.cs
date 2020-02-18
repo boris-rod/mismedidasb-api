@@ -491,5 +491,19 @@ namespace MismeAPI.Services.Impls
             await _uow.CommitAsync();
             return number;
         }
+
+        public async Task<User> RemoveAvatarAsync(int loggedUser)
+        {
+            var user = await _uow.UserRepository.GetAsync(loggedUser);
+            if (!string.IsNullOrWhiteSpace(user.Avatar))
+            {
+                await _fileService.DeleteFileAsync(user.Avatar);
+            }
+            user.Avatar = "";
+            user.AvatarMimeType = "";
+            _uow.UserRepository.Update(user);
+            await _uow.CommitAsync();
+            return user;
+        }
     }
 }
