@@ -53,7 +53,7 @@ namespace MismeAPI.Services.Impls
 
             if (user.Password != hashedPass)
             {
-                throw new NotAllowedException(ExceptionConstants.NOT_ALLOWED);
+                throw new NotAllowedException(ExceptionConstants.UNAUTHORIZED);
             }
             if (user.Status != StatusEnum.ACTIVE)
             {
