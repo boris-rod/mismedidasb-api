@@ -11,6 +11,7 @@ using MismeAPI.Common.Exceptions;
 using MismeAPI.Data.Entities;
 using MismeAPI.Data.Entities.Enums;
 using MismeAPI.Data.UoW;
+using MismeAPI.Service.Utils;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -449,7 +450,9 @@ namespace MismeAPI.Services.Impls
                 throw new NotFoundException(ExceptionConstants.NOT_FOUND, "User");
             }
 
-            string newPass = Guid.NewGuid().ToString();
+            var generator = new PasswordGenerator(6, 6, 1, 1, 1, 1);
+
+            string newPass = generator.Generate();
 
             var newPasswordHash = GetSha256Hash(newPass);
 
