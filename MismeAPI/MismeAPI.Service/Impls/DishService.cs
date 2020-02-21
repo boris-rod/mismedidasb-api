@@ -133,7 +133,7 @@ namespace MismeAPI.Service.Impls
             return dish;
         }
 
-        public async Task<IEnumerable<Dish>> GetDishesAsync(string search)
+        public async Task<IEnumerable<Dish>> GetDishesAsync(string search, List<int> tags)
         {
             var results = _uow.DishRepository.GetAll()
                 .Include(d => d.DishTags)
@@ -142,6 +142,13 @@ namespace MismeAPI.Service.Impls
             if (!string.IsNullOrWhiteSpace(search))
             {
                 results = results.Where(r => r.Name.ToLower().Contains(search.ToLower()));
+            }
+            if (tags.Count > 0)
+            {
+                foreach (var t in tags)
+                {
+                    results = results.Where(d => d.DishTags.Any(d => d.TagId == t));
+                }
             }
             return await results.ToListAsync();
         }

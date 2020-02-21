@@ -7,7 +7,7 @@ namespace MismeAPI.Service
 {
     public interface IDishService
     {
-        Task<IEnumerable<Dish>> GetDishesAsync(string search);
+        Task<IEnumerable<Dish>> GetDishesAsync(string search, List<int> tags);
 
         Task<Dish> GetDishByIdAsync(int id);
 

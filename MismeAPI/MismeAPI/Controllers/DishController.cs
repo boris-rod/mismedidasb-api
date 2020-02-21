@@ -29,12 +29,13 @@ namespace MismeAPI.Controllers
         /// Get all dishes. Requires authentication.
         /// </summary>
         /// <param name="search">Search param.</param>
+        /// <param name="tags">Tags id for filtering.</param>
         [HttpGet]
         [Authorize]
         [ProducesResponseType(typeof(IEnumerable<DishResponse>), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> GetAll(string search)
+        public async Task<IActionResult> GetAll(string search, List<int> tags)
         {
-            var result = await _dishService.GetDishesAsync(search);
+            var result = await _dishService.GetDishesAsync(search, tags);
             var mapped = _mapper.Map<IEnumerable<DishResponse>>(result);
             return Ok(new ApiOkResponse(mapped));
         }
