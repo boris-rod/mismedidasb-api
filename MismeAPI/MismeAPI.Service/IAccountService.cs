@@ -39,5 +39,7 @@ namespace MismeAPI.Services
         Task<int> ResendVerificationCodeAsync(string email);
 
         Task<User> RemoveAvatarAsync(int loggedUser);
+
+        Task<User> GetUserProfileUseAsync(int loggedUser);
     }
 }

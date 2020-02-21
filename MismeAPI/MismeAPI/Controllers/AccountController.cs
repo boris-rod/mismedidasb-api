@@ -313,5 +313,20 @@ namespace APITaxi.API.Controllers
 
             return Ok(new ApiOkResponse(user));
         }
+
+        /// <summary>
+        /// Get user profile. Requires authentication.
+        /// </summary>
+        [Authorize]
+        [HttpGet("profile")]
+        [ProducesResponseType(typeof(UserResponse), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetUserProfile()
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            var result = await _accountService.GetUserProfileUseAsync(loggedUser);
+            var user = _mapper.Map<UserResponse>(result);
+
+            return Ok(new ApiOkResponse(user));
+        }
     }
 }

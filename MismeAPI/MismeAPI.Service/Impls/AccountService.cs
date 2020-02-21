@@ -508,5 +508,11 @@ namespace MismeAPI.Services.Impls
             await _uow.CommitAsync();
             return user;
         }
+
+        public async Task<User> GetUserProfileUseAsync(int loggedUser)
+        {
+            var user = await _uow.UserRepository.GetAsync(loggedUser);
+            return user;
+        }
     }
 }
