@@ -63,7 +63,7 @@ namespace MismeAPI.Controllers
         [ProducesResponseType(typeof(DishResponse), (int)HttpStatusCode.Created)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
-        public async Task<IActionResult> AddDish([FromBody] CreateDishRequest dish)
+        public async Task<IActionResult> AddDish(CreateDishRequest dish)
         {
             var loggedUser = User.GetUserIdFromToken();
             var result = await _dishService.CreateDishAsync(loggedUser, dish);

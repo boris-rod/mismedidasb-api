@@ -48,51 +48,48 @@ namespace MismeAPI.Service.Impls
             dbDish.Proteins = dish.Proteins;
 
             // avatar
-            string guid = Guid.NewGuid().ToString();
+
             if (dish.Image != null)
             {
+                string guid = Guid.NewGuid().ToString();
                 await _fileService.UploadFileAsync(dish.Image, guid);
+                dbDish.Image = guid;
+                dbDish.ImageMimeType = dish.Image.ContentType;
             }
-            dbDish.Image = guid;
-            dbDish.ImageMimeType = dish.Image.ContentType;
 
-            // tags
-            foreach (var tag in dish.Tags)
+            //existing tags
+            foreach (var id in dish.TagsIds)
             {
-                // existing tag
-                if (tag.Id.HasValue)
+                var t = await _uow.TagRepository.GetAsync(id);
+                if (t != null)
                 {
-                    var t = await _uow.TagRepository.GetAsync(tag.Id.Value);
-                    if (t != null)
-                    {
-                        var dt = new DishTag
-                        {
-                            Dish = dbDish,
-                            TagId = t.Id,
-                            TaggedAt = DateTime.UtcNow
-                        };
-
-                        await _uow.DishTagRepository.AddAsync(dt);
-                    }
-                }
-                // new tag
-                else
-                {
-                    var ta = new Tag
-                    {
-                        Name = tag.Name
-                    };
-                    await _uow.TagRepository.AddAsync(ta);
-
                     var dt = new DishTag
                     {
                         Dish = dbDish,
-                        Tag = ta,
+                        TagId = t.Id,
                         TaggedAt = DateTime.UtcNow
                     };
 
                     await _uow.DishTagRepository.AddAsync(dt);
                 }
+            }
+            //new tags
+            foreach (var name in dish.NewTags)
+            {
+                var ta = new Tag
+                {
+                    Name = name
+                };
+                await _uow.TagRepository.AddAsync(ta);
+
+                var dt = new DishTag
+                {
+                    Dish = dbDish,
+                    Tag = ta,
+                    TaggedAt = DateTime.UtcNow
+                };
+
+                await _uow.DishTagRepository.AddAsync(dt);
             }
 
             await _uow.DishRepository.AddAsync(dbDish);
