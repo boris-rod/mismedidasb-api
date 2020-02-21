@@ -98,6 +98,28 @@ namespace MismeAPI.Service.Impls
             return dbDish;
         }
 
+        public async Task DeleteDishAsync(int loggedUser, int id)
+        {
+            // validate admin user
+            var user = await _uow.UserRepository.FindByAsync(u => u.Id == loggedUser && u.Role == RoleEnum.ADMIN);
+            if (user.Count == 0)
+            {
+                throw new NotAllowedException(ExceptionConstants.NOT_ALLOWED);
+            }
+            var dish = await _uow.DishRepository.GetAsync(id);
+            if (dish == null)
+            {
+                throw new NotFoundException(ExceptionConstants.NOT_FOUND, "Dish");
+            }
+
+            if (!string.IsNullOrWhiteSpace(dish.Image))
+            {
+                await _fileService.DeleteFileAsync(dish.Image);
+            }
+            _uow.DishRepository.Delete(dish);
+            await _uow.CommitAsync();
+        }
+
         public async Task<Dish> GetDishByIdAsync(int id)
         {
             var dish = await _uow.DishRepository.GetAll().Where(d => d.Id == id)
@@ -122,6 +144,106 @@ namespace MismeAPI.Service.Impls
                 results = results.Where(r => r.Name.ToLower().Contains(search.ToLower()));
             }
             return await results.ToListAsync();
+        }
+
+        public async Task<Dish> UpdateDishAsync(int loggedUser, UpdateDishRequest dish)
+        {
+            // validate admin user
+            var user = await _uow.UserRepository.FindByAsync(u => u.Id == loggedUser && u.Role == RoleEnum.ADMIN);
+            if (user.Count == 0)
+            {
+                throw new NotAllowedException(ExceptionConstants.NOT_ALLOWED);
+            }
+
+            var dishh = await _uow.DishRepository.GetAll().Where(d => d.Id == dish.Id)
+                 .Include(d => d.DishTags)
+                    .ThenInclude(t => t.Tag)
+                 .FirstOrDefaultAsync();
+            if (dishh == null)
+            {
+                throw new NotFoundException(ExceptionConstants.NOT_FOUND, "Dish");
+            }
+
+            // validate dish name
+            var existDishName = await _uow.DishRepository.FindByAsync(p => p.Name.ToLower() == dish.Name.ToLower() && p.Id != dish.Id);
+            if (existDishName.Count > 0)
+            {
+                throw new InvalidDataException(ExceptionConstants.INVALID_DATA, "Dish name");
+            }
+
+            dishh.Calories = dish.Calories;
+            dishh.Carbohydrates = dish.Carbohydrates;
+            dishh.Fat = dish.Fat;
+            dishh.Fiber = dish.Fiber;
+            dishh.Name = dish.Name;
+            dishh.Proteins = dish.Proteins;
+
+            // avatar
+
+            if (!string.IsNullOrWhiteSpace(dish.RemovedImage))
+            {
+                await _fileService.DeleteFileAsync(dishh.Image);
+                dishh.Image = "";
+                dishh.ImageMimeType = "";
+            }
+            if (dish.Image != null)
+            {
+                string guid = Guid.NewGuid().ToString();
+                await _fileService.UploadFileAsync(dish.Image, guid);
+                dishh.Image = guid;
+                dishh.ImageMimeType = dish.Image.ContentType;
+            }
+
+            //delete current and removed tags
+            var results = _uow.DishTagRepository.GetAll().Where(dt => dish.Id == dt.DishId && !dish.TagsIds.Contains(dt.TagId));
+            foreach (var dt in results)
+            {
+                _uow.DishTagRepository.Delete(dt);
+            }
+
+            //existing tags
+            foreach (var id in dish.TagsIds)
+            {
+                var t = await _uow.TagRepository.GetAsync(id);
+                if (t != null)
+                {
+                    var exist = await _uow.DishTagRepository.GetAll().Where(t => t.TagId == id && t.DishId == dish.Id).FirstOrDefaultAsync();
+                    if (exist == null)
+                    {
+                        var dt = new DishTag
+                        {
+                            Dish = dishh,
+                            TagId = t.Id,
+                            TaggedAt = DateTime.UtcNow
+                        };
+
+                        await _uow.DishTagRepository.AddAsync(dt);
+                    }
+                }
+            }
+            //new tags
+            foreach (var name in dish.NewTags)
+            {
+                var ta = new Tag
+                {
+                    Name = name
+                };
+                await _uow.TagRepository.AddAsync(ta);
+
+                var dt = new DishTag
+                {
+                    Dish = dishh,
+                    Tag = ta,
+                    TaggedAt = DateTime.UtcNow
+                };
+
+                await _uow.DishTagRepository.AddAsync(dt);
+            }
+
+            await _uow.DishRepository.UpdateAsync(dishh, dishh.Id);
+            await _uow.CommitAsync();
+
+            return dishh;
         }
     }
 }

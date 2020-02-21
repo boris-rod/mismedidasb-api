@@ -61,6 +61,7 @@ namespace MismeAPI.Controllers
         [HttpPost]
         [Authorize]
         [ProducesResponseType(typeof(DishResponse), (int)HttpStatusCode.Created)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
         public async Task<IActionResult> AddDish(CreateDishRequest dish)
@@ -69,6 +70,39 @@ namespace MismeAPI.Controllers
             var result = await _dishService.CreateDishAsync(loggedUser, dish);
             var mapped = _mapper.Map<DishResponse>(result);
             return Created("", new ApiOkResponse(mapped));
+        }
+
+        /// <summary>
+        /// Update a dish. Only an admin can do this operation. Requires authentication.
+        /// </summary>
+        /// <param name="dish">Dish request object.</param>
+        [HttpPost("update")]
+        [Authorize]
+        [ProducesResponseType(typeof(DishResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
+        public async Task<IActionResult> UpdateDish(UpdateDishRequest dish)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            var result = await _dishService.UpdateDishAsync(loggedUser, dish);
+            var mapped = _mapper.Map<DishResponse>(result);
+            return Ok(new ApiOkResponse(mapped));
+        }
+
+        /// <summary>
+        /// Update a dish. Only an admin can do this operation. Requires authentication.
+        /// </summary>
+        /// <param name="id">Dish id.</param>
+        [HttpDelete("{id}")]
+        [Authorize]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
+        public async Task<IActionResult> DeleteDish([FromRoute]int id)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            await _dishService.DeleteDishAsync(loggedUser, id);
+            return Ok();
         }
     }
 }

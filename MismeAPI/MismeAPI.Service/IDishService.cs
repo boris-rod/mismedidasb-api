@@ -12,5 +12,9 @@ namespace MismeAPI.Service
         Task<Dish> GetDishByIdAsync(int id);
 
         Task<Dish> CreateDishAsync(int loggedUser, CreateDishRequest dish);
+
+        Task<Dish> UpdateDishAsync(int loggedUser, UpdateDishRequest dish);
+
+        Task DeleteDishAsync(int loggedUser, int id);
     }
 }
