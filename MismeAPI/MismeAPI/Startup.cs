@@ -41,11 +41,6 @@ namespace MismeAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc(config =>
-            {
-                config.Filters.Add(typeof(ApiValidationFilterAttribute));
-                config.EnableEndpointRouting = false;
-            }).AddNewtonsoftJson(opt => opt.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
             services.AddResponseCaching();
 
             services.ConfigureDbContext(Configuration);
@@ -56,6 +51,11 @@ namespace MismeAPI
             services.ConfigureDetection();
 
             services.AddHttpContextAccessor();
+            services.AddMvc(config =>
+            {
+                config.Filters.Add(typeof(ApiValidationFilterAttribute));
+                config.EnableEndpointRouting = false;
+            }).AddNewtonsoftJson(opt => opt.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
 
             services.AddTransient<IUnitOfWork, UnitOfWork>();
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
@@ -84,9 +84,9 @@ namespace MismeAPI
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IServiceProvider services)
         {
             app.UseCors(builder => builder
-           .AllowAnyOrigin()
-           .AllowAnyMethod()
-           .AllowAnyHeader());
+                   .AllowAnyOrigin()
+                   .AllowAnyMethod()
+                   .AllowAnyHeader());
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

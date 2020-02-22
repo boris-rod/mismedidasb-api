@@ -91,10 +91,10 @@ namespace MismeAPI.Controllers
         }
 
         /// <summary>
-        /// Update a dish. Only an admin can do this operation. Requires authentication.
+        /// Delete a dish. Only an admin can do this operation. Requires authentication.
         /// </summary>
         /// <param name="id">Dish id.</param>
-        [HttpDelete("{id}")]
+        [HttpPost("delete/{id}")]
         [Authorize]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
