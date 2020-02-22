@@ -187,7 +187,7 @@ namespace MismeAPI.Service.Impls
 
             // avatar
 
-            if (!string.IsNullOrWhiteSpace(dish.RemovedImage))
+            if (!string.IsNullOrWhiteSpace(dish.RemovedImage) && dish.RemovedImage != "null")
             {
                 await _fileService.DeleteFileAsync(dishh.Image);
                 dishh.Image = "";
