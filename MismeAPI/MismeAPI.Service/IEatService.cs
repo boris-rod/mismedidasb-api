@@ -1,4 +1,5 @@
-﻿using MismeAPI.Data.Entities;
+﻿using MismeAPI.Common.DTO.Request;
+using MismeAPI.Data.Entities;
 using MismeAPI.Services.Utils;
 using System;
 using System.Collections.Generic;
@@ -13,5 +14,7 @@ namespace MismeAPI.Service
         Task<List<Eat>> GetAllUserEatsByDateAsync(int userId, DateTime date, int eatTyp);
 
         Task<PaginatedList<Eat>> GetAdminAllUserEatsAsync(int adminId, int pag, int perPag, int userId, DateTime? date, int eatTyp);
+
+        Task<Eat> CreateEatAsync(int loggedUser, CreateEatRequest eat);
     }
 }

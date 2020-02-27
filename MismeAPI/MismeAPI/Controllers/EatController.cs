@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MismeAPI.BasicResponses;
+using MismeAPI.Common.DTO.Request;
 using MismeAPI.Common.DTO.Response;
 using MismeAPI.Service;
 using MismeAPI.Utils;
@@ -83,6 +84,8 @@ namespace MismeAPI.Controllers
         /// <param name="eatType">
         /// Eat by type: 0- Breakfast, 1- Snack1, 2- Lunch, 3- Snack2, 4- Dinner.
         /// </param>
+        /// <param name="page">The page to be displayed. 1 by default.</param>
+        /// <param name="perPage">The number of eats to be displayed per page. 10 by default.</param>
         [HttpGet("user-eats")]
         [Authorize]
         [ProducesResponseType(typeof(IEnumerable<EatResponse>), (int)HttpStatusCode.OK)]
@@ -101,6 +104,22 @@ namespace MismeAPI.Controllers
 
             var mapped = _mapper.Map<IEnumerable<EatResponse>>(result);
             return Ok(new ApiOkResponse(mapped));
+        }
+
+        /// <summary>
+        /// Add an eat. Requires authentication.
+        /// </summary>
+        /// <param name="eat">Eat request object.</param>
+        [HttpPost]
+        [Authorize]
+        [ProducesResponseType(typeof(EatResponse), (int)HttpStatusCode.Created)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> AddDish([FromBody]CreateEatRequest eat)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            var result = await _eatService.CreateEatAsync(loggedUser, eat);
+            var mapped = _mapper.Map<EatResponse>(result);
+            return Created("", new ApiOkResponse(mapped));
         }
     }
 }

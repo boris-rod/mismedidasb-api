@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MismeAPI.Common;
+using MismeAPI.Common.DTO.Request;
 using MismeAPI.Common.Exceptions;
 using MismeAPI.Data.Entities;
 using MismeAPI.Data.Entities.Enums;
@@ -19,6 +20,38 @@ namespace MismeAPI.Service.Impls
         public EatService(IUnitOfWork uow)
         {
             _uow = uow ?? throw new ArgumentNullException(nameof(uow));
+        }
+
+        public async Task<Eat> CreateEatAsync(int loggedUser, CreateEatRequest eat)
+        {
+            // this assume the user is creating an eat every day
+            var eatTypeAlradyExists = await _uow.EatRepository.GetAll()
+                .Where(e => e.CreatedAt.Date == DateTime.UtcNow.Date && e.EatType == (EatTypeEnum)eat.EatType)
+                .FirstOrDefaultAsync();
+            if (eatTypeAlradyExists != null)
+            {
+                throw new AlreadyExistsException("An eat is already configured this day.");
+            }
+
+            var e = new Eat();
+            e.EatType = (EatTypeEnum)eat.EatType;
+            e.CreatedAt = DateTime.UtcNow;
+            e.ModifiedAt = DateTime.UtcNow;
+            e.UserId = loggedUser;
+            var eatDishes = new List<EatDish>();
+            foreach (var ed in eat.Dishes)
+            {
+                var eatD = new EatDish();
+                eatD.DishId = ed.DishId;
+                eatD.Qty = ed.Qty;
+
+                eatDishes.Add(eatD);
+            }
+            e.EatDishes = eatDishes;
+
+            await _uow.EatRepository.AddAsync(e);
+            await _uow.CommitAsync();
+            return e;
         }
 
         public async Task<PaginatedList<Eat>> GetAdminAllUserEatsAsync(int adminId, int pag, int perPag, int userId, DateTime? date, int eatTyp)
