@@ -71,6 +71,7 @@ namespace MismeAPI
             services.AddTransient<IUserService, UserService>();
             services.AddTransient<ITagService, TagService>();
             services.AddTransient<IDishService, DishService>();
+            services.AddTransient<IEatService, EatService>();
 
             var provider = services.BuildServiceProvider();
             var amazonS3Service = provider.GetService<IAmazonS3Service>();
