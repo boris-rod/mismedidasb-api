@@ -22,5 +22,7 @@ namespace MismeAPI.Data
         public DbSet<Dish> Dishes { get; set; }
         public DbSet<Tag> Tags { get; set; }
         public DbSet<DishTag> DishesTags { get; set; }
+        public DbSet<Eat> Eats { get; set; }
+        public DbSet<EatDish> EatDishes { get; set; }
     }
 }

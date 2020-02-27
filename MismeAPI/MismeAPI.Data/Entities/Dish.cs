@@ -9,6 +9,7 @@ namespace MismeAPI.Data.Entities
         public Dish()
         {
             DishTags = new HashSet<DishTag>();
+            EatDishes = new HashSet<EatDish>();
         }
 
         public int Id { get; set; }
@@ -21,5 +22,6 @@ namespace MismeAPI.Data.Entities
         public string Image { get; set; }
         public string ImageMimeType { get; set; }
         public virtual ICollection<DishTag> DishTags { get; set; }
+        public virtual ICollection<EatDish> EatDishes { get; set; }
     }
 }
