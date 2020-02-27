@@ -123,5 +123,44 @@ namespace MismeAPI.Service.Impls
             }
             return await PaginatedList<Eat>.CreateAsync(results, pag, perPag);
         }
+
+        public async Task<Eat> UpdateEatAsync(int loggedUser, UpdateEatRequest eat)
+        {
+            var e = await _uow.EatRepository.GetAll().Where(e => e.Id == eat.Id)
+                        .Include(e => e.User)
+                        .Include(e => e.EatDishes)
+                            .ThenInclude(ed => ed.Dish)
+                                .ThenInclude(d => d.DishTags)
+                                    .ThenInclude(dt => dt.Tag)
+                        .FirstOrDefaultAsync();
+
+            if (e == null)
+            {
+                throw new NotFoundException(ExceptionConstants.NOT_FOUND, "Eat");
+            }
+
+            e.EatType = (EatTypeEnum)eat.EatType;
+            e.ModifiedAt = DateTime.UtcNow;
+
+            foreach (var ed in e.EatDishes)
+            {
+                _uow.EatDishRepository.Delete(ed);
+            }
+
+            var eatDishes = new List<EatDish>();
+            foreach (var ed in eat.Dishes)
+            {
+                var eatD = new EatDish();
+                eatD.DishId = ed.DishId;
+                eatD.Qty = ed.Qty;
+
+                eatDishes.Add(eatD);
+            }
+            e.EatDishes = eatDishes;
+
+            _uow.EatRepository.Update(e);
+            await _uow.CommitAsync();
+            return e;
+        }
     }
 }

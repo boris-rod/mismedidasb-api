@@ -121,5 +121,22 @@ namespace MismeAPI.Controllers
             var mapped = _mapper.Map<EatResponse>(result);
             return Created("", new ApiOkResponse(mapped));
         }
+
+        /// <summary>
+        /// Update an eat. Requires authentication.
+        /// </summary>
+        /// <param name="eat">Eat request object.</param>
+        [HttpPut]
+        [Authorize]
+        [ProducesResponseType(typeof(EatResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(EatResponse), (int)HttpStatusCode.NotFound)]
+        public async Task<IActionResult> UpdateDish([FromBody]UpdateEatRequest eat)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            var result = await _eatService.UpdateEatAsync(loggedUser, eat);
+            var mapped = _mapper.Map<EatResponse>(result);
+            return Created("", new ApiOkResponse(mapped));
+        }
     }
 }
