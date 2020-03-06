@@ -15,7 +15,7 @@ namespace MismeAPI
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
-                    webBuilder.UseIISIntegration();
+                    //webBuilder.UseIISIntegration();
                 });
     }
 }

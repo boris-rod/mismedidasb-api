@@ -80,7 +80,14 @@ namespace MismeAPI
 
         public static void ConfigureCors(this IServiceCollection services)
         {
-            services.AddCors();
+            services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(builder =>
+                    builder.SetIsOriginAllowed(_ => true)
+                        .AllowAnyMethod()
+                        .AllowAnyHeader()
+                        .AllowCredentials());
+            });
         }
 
         public static void ConfigureTokenAuth(this IServiceCollection services, IConfiguration config)
