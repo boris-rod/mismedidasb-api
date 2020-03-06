@@ -11,6 +11,7 @@
   <ItemGroup>
     <PackageReference Include="AWSSDK.S3" Version="3.3.110.21" />
     <PackageReference Include="AWSSDK.SimpleSystemsManagement" Version="3.3.118.1" />
+    <PackageReference Include="CorePush" Version="2.1.0" />
     <PackageReference Include="DeviceDetector.NET" Version="4.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.1.0" />
     <PackageReference Include="Askmethat.Aspnet.JsonLocalizer" Version="2.1.2" />
