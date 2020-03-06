@@ -13,6 +13,7 @@ namespace MismeAPI.Data.Entities
         {
             UserTokens = new HashSet<UserToken>();
             Eats = new HashSet<Eat>();
+            Devices = new HashSet<Device>();
         }
 
         public int Id { get; set; }
@@ -40,5 +41,6 @@ namespace MismeAPI.Data.Entities
         public int VerificationCode { get; set; }
         public virtual ICollection<UserToken> UserTokens { get; set; }
         public virtual ICollection<Eat> Eats { get; set; }
+        public virtual ICollection<Device> Devices { get; set; }
     }
 }

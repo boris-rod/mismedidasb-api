@@ -22,6 +22,7 @@ namespace MismeAPI.Data.UoW
         IGenericRepository<DishTag> DishTagRepository { get; set; }
         IGenericRepository<Eat> EatRepository { get; set; }
         IGenericRepository<EatDish> EatDishRepository { get; set; }
+        IGenericRepository<Device> DeviceRepository { get; set; }
 
         Task<int> CommitAsync();
     }
