@@ -29,7 +29,7 @@ namespace MismeAPI.Controllers
         [HttpPost]
         [Authorize]
         [ProducesResponseType((int)HttpStatusCode.Created)]
-        public async Task<IActionResult> SetDevice(AddDeviceRequest device)
+        public async Task<IActionResult> SetDevice([FromBody]AddDeviceRequest device)
         {
             var loggedUser = User.GetUserIdFromToken();
             await _deviceService.CreateOrUpdateDeviceAsync(loggedUser, device);
