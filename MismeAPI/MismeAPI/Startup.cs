@@ -12,6 +12,7 @@ using MismeAPI.Data.UoW;
 using MismeAPI.Filters;
 using MismeAPI.Middlewares;
 using MismeAPI.Service;
+using MismeAPI.Service.Hubs;
 using MismeAPI.Service.Impls;
 using MismeAPI.Services;
 using MismeAPI.Services.Impls;
@@ -41,15 +42,15 @@ namespace MismeAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddResponseCaching();
-
+            services.ConfigureCors();
+            services.ConfigureSignalR();
             services.ConfigureDbContext(Configuration);
             services.ConfigureSwagger();
             services.ConfigureTokenAuth(Configuration);
+            services.AddResponseCaching();
             services.ConfigureCompression();
-            services.ConfigureCors();
-            services.ConfigureDetection();
 
+            services.ConfigureDetection();
             services.AddHttpContextAccessor();
             services.AddMvc(config =>
             {
@@ -99,7 +100,7 @@ namespace MismeAPI
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Misme API V1");
             });
-            CreateAdminUserAsync(services).Wait();
+
             app.UseHttpsRedirection();
 
             app.UseRouting();
@@ -110,9 +111,10 @@ namespace MismeAPI
             app.UseResponseCompression();
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapHub<UserHub>("/userHub", map => { });
                 endpoints.MapControllers();
             });
-
+            CreateAdminUserAsync(services).Wait();
             //try
             //{
             //    ImportDishesAsync(services).Wait();

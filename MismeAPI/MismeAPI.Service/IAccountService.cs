@@ -28,7 +28,7 @@ namespace MismeAPI.Services
 
         Task<User> GetUserAsync(int userId);
 
-        Task ChangeAccountStatusAsync(ChangeAccountStatusRequest changeAccountStatus, int userId);
+        Task<User> ChangeAccountStatusAsync(ChangeAccountStatusRequest changeAccountStatus, int userId);
 
         Task<User> UploadAvatarAsync(IFormFile file, int currentUser);
 

@@ -119,5 +119,10 @@ namespace MismeAPI
         {
             services.AddDetection();
         }
+
+        public static void ConfigureSignalR(this IServiceCollection services)
+        {
+            services.AddSignalR();
+        }
     }
 }

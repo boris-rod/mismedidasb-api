@@ -387,7 +387,7 @@ namespace MismeAPI.Services.Impls
             return user;
         }
 
-        public async Task ChangeAccountStatusAsync(ChangeAccountStatusRequest changeAccountStatus, int userId)
+        public async Task<User> ChangeAccountStatusAsync(ChangeAccountStatusRequest changeAccountStatus, int userId)
         {
             var user = await _uow.UserRepository.FindBy(u => u.Id == userId).FirstOrDefaultAsync();
 
@@ -415,6 +415,7 @@ namespace MismeAPI.Services.Impls
             _uow.UserRepository.Update(user);
 
             await _uow.CommitAsync();
+            return user;
         }
 
         public async Task<User> UploadAvatarAsync(IFormFile file, int userId)

@@ -1,4 +1,6 @@
-﻿namespace MismeAPI.Common.DTO.Response
+﻿using System;
+
+namespace MismeAPI.Common.DTO.Response
 {
     public class UserResponse
     {
@@ -12,5 +14,7 @@
         public string AvatarMimeType { get; set; }
         public string Role { get; set; }
         public int RoleId { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime ModifiedAt { get; set; }
     }
 }

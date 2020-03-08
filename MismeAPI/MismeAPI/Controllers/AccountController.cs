@@ -3,9 +3,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using MismeAPI.BasicResponses;
 using MismeAPI.Common.DTO.Request;
 using MismeAPI.Common.DTO.Response;
+using MismeAPI.Data.Entities.Enums;
+using MismeAPI.Service.Hubs;
 using MismeAPI.Services;
 using MismeAPI.Utils;
 using System;
@@ -24,13 +27,15 @@ namespace APITaxi.API.Controllers
         private readonly IMapper _mapper;
         private IWebHostEnvironment _env;
         private readonly IEmailService _emailService;
+        private IHubContext<UserHub> _hub;
 
-        public AccountController(IAccountService accountService, IMapper mapper, IEmailService emailService, IWebHostEnvironment env)
+        public AccountController(IAccountService accountService, IMapper mapper, IEmailService emailService, IWebHostEnvironment env, IHubContext<UserHub> hub)
         {
             _accountService = accountService ?? throw new ArgumentNullException(nameof(accountService));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _env = env ?? throw new ArgumentNullException(nameof(env));
             _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
+            _hub = hub ?? throw new ArgumentNullException(nameof(hub));
         }
 
         /// <summary>
@@ -63,6 +68,7 @@ namespace APITaxi.API.Controllers
 
             await _emailService.SendEmailResponseAsync(subject, emailBody, user.Email);
             var mapped = _mapper.Map<UserResponse>(user);
+            await _hub.Clients.All.SendAsync(HubConstants.USER_REGISTERED, mapped);
 
             return Created("", new ApiOkResponse(mapped));
         }
@@ -202,7 +208,17 @@ namespace APITaxi.API.Controllers
         public async Task<IActionResult> ChangeAccountStatus([FromBody] ChangeAccountStatusRequest changeAccountStatus)
         {
             var loggedUser = User.GetUserIdFromToken();
-            await _accountService.ChangeAccountStatusAsync(changeAccountStatus, loggedUser);
+            var user = await _accountService.ChangeAccountStatusAsync(changeAccountStatus, loggedUser);
+            var mapped = _mapper.Map<UserResponse>(user);
+            if (user.Status == StatusEnum.ACTIVE)
+            {
+                await _hub.Clients.All.SendAsync(HubConstants.USER_ACTIVATED, mapped);
+            }
+            else if (user.Status == StatusEnum.INACTIVE)
+            {
+                await _hub.Clients.All.SendAsync(HubConstants.USER_DISABLED, mapped);
+            }
+
             return Ok();
         }
 
@@ -266,9 +282,9 @@ namespace APITaxi.API.Controllers
         public async Task<IActionResult> ActivationAccount([FromBody] ActivationAccountRequest activation)
         {
             var result = await _accountService.ActivationAccountAsync(activation);
-            var user = _mapper.Map<UserResponse>(result);
-
-            return Ok(new ApiOkResponse(user));
+            var mapped = _mapper.Map<UserResponse>(result);
+            await _hub.Clients.All.SendAsync(HubConstants.USER_ACTIVATED, mapped);
+            return Ok(new ApiOkResponse(mapped));
         }
 
         /// <summary>
