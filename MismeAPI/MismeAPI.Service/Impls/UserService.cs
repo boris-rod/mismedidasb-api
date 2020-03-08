@@ -1,4 +1,5 @@
-﻿using MismeAPI.Common.Exceptions;
+﻿using Microsoft.EntityFrameworkCore;
+using MismeAPI.Common.Exceptions;
 using MismeAPI.Data.Entities;
 using MismeAPI.Data.Entities.Enums;
 using MismeAPI.Data.UoW;
@@ -88,6 +89,20 @@ namespace MismeAPI.Service.Impls
             }
 
             return await PaginatedList<User>.CreateAsync(result, pag, perPag);
+        }
+
+        public async Task<dynamic> GetUsersStatsAsync(int loggedUser)
+        {
+            var results = await _uow.UserRepository.GetAll().GroupBy(u => u.Status)
+                .Select(g => new
+                {
+                    name = g.Key == StatusEnum.ACTIVE ? "Activo" :
+                        (g.Key == StatusEnum.INACTIVE ? "Deshabilitado" : "Por Activar"),
+                    value = g.Count()
+                })
+                .ToListAsync();
+
+            return results;
         }
     }
 }

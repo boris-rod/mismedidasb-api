@@ -53,5 +53,20 @@ namespace MismeAPI.Controllers
             var mapped = _mapper.Map<IEnumerable<UserResponse>>(result);
             return Ok(new ApiOkResponse(mapped));
         }
+
+        /// <summary>
+        /// Get users stats. Requires authentication. Admin access.
+        /// </summary>
+        [HttpGet("stats")]
+        [ProducesResponseType(typeof(IEnumerable<dynamic>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
+        public async Task<IActionResult> GetUsersStats()
+        {
+            var loggedUser = User.GetUserIdFromToken();
+
+            var result = await _userService.GetUsersStatsAsync(loggedUser);
+
+            return Ok(new ApiOkResponse(result));
+        }
     }
 }
