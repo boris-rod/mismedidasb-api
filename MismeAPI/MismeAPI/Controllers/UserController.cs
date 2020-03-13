@@ -68,5 +68,22 @@ namespace MismeAPI.Controllers
 
             return Ok(new ApiOkResponse(result));
         }
+
+        /// <summary>
+        /// Get users stats by dates. Requires authentication. Admin access. <param
+        /// name="dateType">Date type. 0- Today, 1- Week, 2- Month, 3- Year</param>
+        /// </summary>
+        [HttpGet("stats-by-date")]
+        [ProducesResponseType(typeof(IEnumerable<UsersByDateSeriesResponse>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
+        public async Task<IActionResult> GetUsersStatsByDates([FromQuery] int? dateType)
+        {
+            var type = dateType ?? 0;
+            var loggedUser = User.GetUserIdFromToken();
+
+            var result = await _userService.GetUsersStatsByDateAsync(loggedUser, type);
+
+            return Ok(new ApiOkResponse(result));
+        }
     }
 }

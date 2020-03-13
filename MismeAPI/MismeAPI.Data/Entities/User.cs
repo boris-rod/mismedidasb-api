@@ -38,6 +38,9 @@ namespace MismeAPI.Data.Entities
         public string AvatarMimeType { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime ModifiedAt { get; set; }
+        public DateTime? ActivatedAt { get; set; }
+        public DateTime? DisabledAt { get; set; }
+
         public int VerificationCode { get; set; }
         public virtual ICollection<UserToken> UserTokens { get; set; }
         public virtual ICollection<Eat> Eats { get; set; }

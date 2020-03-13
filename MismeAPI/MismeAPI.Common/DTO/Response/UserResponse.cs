@@ -16,5 +16,7 @@ namespace MismeAPI.Common.DTO.Response
         public int RoleId { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime ModifiedAt { get; set; }
+        public DateTime? ActivatedAt { get; set; }
+        public DateTime? DisabledAt { get; set; }
     }
 }

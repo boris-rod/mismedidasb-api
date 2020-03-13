@@ -1,10 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using MismeAPI.Common.DTO.Response;
 using MismeAPI.Common.Exceptions;
 using MismeAPI.Data.Entities;
 using MismeAPI.Data.Entities.Enums;
 using MismeAPI.Data.UoW;
 using MismeAPI.Services.Utils;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -103,6 +105,88 @@ namespace MismeAPI.Service.Impls
                 .ToListAsync();
 
             return results;
+        }
+
+        public async Task<IEnumerable<UsersByDateSeriesResponse>> GetUsersStatsByDateAsync(int loggedUser, int type)
+        {
+            var user = await _uow.UserRepository.GetAsync(loggedUser);
+            if (user.Role == RoleEnum.NORMAL)
+            {
+                throw new NotAllowedException("User");
+            }
+            switch (type)
+            {
+                case 0:
+                    return GetUserStatsFromTodayAsync();
+
+                default:
+                    return null;
+            }
+        }
+
+        private IEnumerable<UsersByDateSeriesResponse> GetUserStatsFromTodayAsync()
+        {
+            var created = _uow.UserRepository.GetAll().Where(u => u.Status == StatusEnum.PENDING && u.CreatedAt.Date == DateTime.UtcNow.Date);
+            var active = _uow.UserRepository.GetAll().Where(u => u.Status == StatusEnum.ACTIVE && u.ActivatedAt.HasValue && u.ActivatedAt.Value.Date == DateTime.UtcNow.Date);
+            var disabled = _uow.UserRepository.GetAll().Where(u => u.Status == StatusEnum.INACTIVE && u.DisabledAt.HasValue && u.DisabledAt.Value.Date == DateTime.UtcNow.Date);
+
+            var creGrouped = created.AsEnumerable().GroupBy(c => c.CreatedAt.Hour);
+            var actGrouped = active.AsEnumerable().GroupBy(c => c.ActivatedAt?.Hour);
+            var disGrouped = disabled.AsEnumerable().GroupBy(c => c.DisabledAt?.Hour);
+
+            var seriesToReturn = new List<UsersByDateSeriesResponse>();
+
+            // active
+            var serieResponse = new UsersByDateSeriesResponse();
+            serieResponse.Name = "Activo";
+            var series = new List<BasicSerieResponse>();
+            foreach (var item in actGrouped)
+            {
+                if (item.Key.HasValue)
+                {
+                    var simpleSerie = new BasicSerieResponse();
+                    simpleSerie.Name = item.Key.Value.ToString();
+                    simpleSerie.Value = item.Count();
+                    series.Add(simpleSerie);
+                }
+            }
+            serieResponse.Series = series;
+            seriesToReturn.Add(serieResponse);
+            // end active
+
+            //created
+            serieResponse = new UsersByDateSeriesResponse();
+
+            serieResponse.Name = "Por Activar";
+            series = new List<BasicSerieResponse>();
+            foreach (var item in creGrouped)
+            {
+                var simpleSerie = new BasicSerieResponse();
+                simpleSerie.Name = item.Key.ToString();
+                simpleSerie.Value = item.Count();
+                series.Add(simpleSerie);
+            }
+            serieResponse.Series = series;
+            seriesToReturn.Add(serieResponse);
+            //end created
+
+            //created
+            serieResponse = new UsersByDateSeriesResponse();
+
+            serieResponse.Name = "Deshabilitado";
+            series = new List<BasicSerieResponse>();
+            foreach (var item in disGrouped)
+            {
+                var simpleSerie = new BasicSerieResponse();
+                simpleSerie.Name = item.Key.ToString();
+                simpleSerie.Value = item.Count();
+                series.Add(simpleSerie);
+            }
+            serieResponse.Series = series;
+            seriesToReturn.Add(serieResponse);
+            //end created
+
+            return seriesToReturn;
         }
     }
 }
