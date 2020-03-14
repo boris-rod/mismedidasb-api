@@ -117,14 +117,14 @@ namespace MismeAPI.Service.Impls
             switch (type)
             {
                 case 0:
-                    return GetUserStatsFromTodayAsync();
+                    return GetUserStatsFromToday();
 
                 default:
                     return null;
             }
         }
 
-        private IEnumerable<UsersByDateSeriesResponse> GetUserStatsFromTodayAsync()
+        private IEnumerable<UsersByDateSeriesResponse> GetUserStatsFromToday()
         {
             var created = _uow.UserRepository.GetAll().Where(u => u.Status == StatusEnum.PENDING && u.CreatedAt.Date == DateTime.UtcNow.Date);
             var active = _uow.UserRepository.GetAll().Where(u => u.Status == StatusEnum.ACTIVE && u.ActivatedAt.HasValue && u.ActivatedAt.Value.Date == DateTime.UtcNow.Date);
@@ -135,56 +135,53 @@ namespace MismeAPI.Service.Impls
             var disGrouped = disabled.AsEnumerable().GroupBy(c => c.DisabledAt?.Hour);
 
             var seriesToReturn = new List<UsersByDateSeriesResponse>();
-
-            // active
-            var serieResponse = new UsersByDateSeriesResponse();
-            serieResponse.Name = "Activo";
-            var series = new List<BasicSerieResponse>();
-            foreach (var item in actGrouped)
+            for (int i = 0; i <= 23; i++)
             {
-                if (item.Key.HasValue)
+                var serieResponse = new UsersByDateSeriesResponse();
+                serieResponse.Name = i.ToString();
+                var series = new List<BasicSerieResponse>();
+
+                var act = actGrouped.Where(ag => ag.Key.HasValue && ag.Key.Value == i).FirstOrDefault();
+                if (act != null)
                 {
                     var simpleSerie = new BasicSerieResponse();
-                    simpleSerie.Name = item.Key.Value.ToString();
-                    simpleSerie.Value = item.Count();
-                    series.Add(simpleSerie);
+                    simpleSerie.Name = "Activo";
+                    simpleSerie.Value = act.Count();
+                    if (act.Count() > 0)
+                    {
+                        series.Add(simpleSerie);
+                    }
+                }
+
+                var pend = creGrouped.Where(ag => ag.Key == i).FirstOrDefault();
+                if (pend != null)
+                {
+                    var simpleSerie = new BasicSerieResponse();
+                    simpleSerie.Name = "Por Activar";
+                    simpleSerie.Value = pend.Count();
+                    if (pend.Count() > 0)
+                    {
+                        series.Add(simpleSerie);
+                    }
+                }
+
+                var dis = disGrouped.Where(ag => ag.Key.HasValue && ag.Key.Value == i).FirstOrDefault();
+                if (dis != null)
+                {
+                    var simpleSerie = new BasicSerieResponse();
+                    simpleSerie.Name = "Deshabilitado";
+                    simpleSerie.Value = dis.Count();
+                    if (dis.Count() > 0)
+                    {
+                        series.Add(simpleSerie);
+                    }
+                }
+                if (series.Count > 0)
+                {
+                    serieResponse.Series = series;
+                    seriesToReturn.Add(serieResponse);
                 }
             }
-            serieResponse.Series = series;
-            seriesToReturn.Add(serieResponse);
-            // end active
-
-            //created
-            serieResponse = new UsersByDateSeriesResponse();
-
-            serieResponse.Name = "Por Activar";
-            series = new List<BasicSerieResponse>();
-            foreach (var item in creGrouped)
-            {
-                var simpleSerie = new BasicSerieResponse();
-                simpleSerie.Name = item.Key.ToString();
-                simpleSerie.Value = item.Count();
-                series.Add(simpleSerie);
-            }
-            serieResponse.Series = series;
-            seriesToReturn.Add(serieResponse);
-            //end created
-
-            //created
-            serieResponse = new UsersByDateSeriesResponse();
-
-            serieResponse.Name = "Deshabilitado";
-            series = new List<BasicSerieResponse>();
-            foreach (var item in disGrouped)
-            {
-                var simpleSerie = new BasicSerieResponse();
-                simpleSerie.Name = item.Key.ToString();
-                simpleSerie.Value = item.Count();
-                series.Add(simpleSerie);
-            }
-            serieResponse.Series = series;
-            seriesToReturn.Add(serieResponse);
-            //end created
 
             return seriesToReturn;
         }
