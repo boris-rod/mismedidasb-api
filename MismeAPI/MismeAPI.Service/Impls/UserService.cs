@@ -7,6 +7,7 @@ using MismeAPI.Data.UoW;
 using MismeAPI.Services.Utils;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -116,11 +117,14 @@ namespace MismeAPI.Service.Impls
             }
             switch (type)
             {
-                case 0:
+                case 1:
                     return GetUserStatsFromToday();
 
+                case 2:
+                    return GetUserStatsFromMonth();
+
                 default:
-                    return null;
+                    return GetUserStatsFromYear();
             }
         }
 
@@ -139,6 +143,133 @@ namespace MismeAPI.Service.Impls
             {
                 var serieResponse = new UsersByDateSeriesResponse();
                 serieResponse.Name = i.ToString();
+                var series = new List<BasicSerieResponse>();
+
+                var act = actGrouped.Where(ag => ag.Key.HasValue && ag.Key.Value == i).FirstOrDefault();
+                if (act != null)
+                {
+                    var simpleSerie = new BasicSerieResponse();
+                    simpleSerie.Name = "Activo";
+                    simpleSerie.Value = act.Count();
+                    if (act.Count() > 0)
+                    {
+                        series.Add(simpleSerie);
+                    }
+                }
+
+                var pend = creGrouped.Where(ag => ag.Key == i).FirstOrDefault();
+                if (pend != null)
+                {
+                    var simpleSerie = new BasicSerieResponse();
+                    simpleSerie.Name = "Por Activar";
+                    simpleSerie.Value = pend.Count();
+                    if (pend.Count() > 0)
+                    {
+                        series.Add(simpleSerie);
+                    }
+                }
+
+                var dis = disGrouped.Where(ag => ag.Key.HasValue && ag.Key.Value == i).FirstOrDefault();
+                if (dis != null)
+                {
+                    var simpleSerie = new BasicSerieResponse();
+                    simpleSerie.Name = "Deshabilitado";
+                    simpleSerie.Value = dis.Count();
+                    if (dis.Count() > 0)
+                    {
+                        series.Add(simpleSerie);
+                    }
+                }
+                if (series.Count > 0)
+                {
+                    serieResponse.Series = series;
+                    seriesToReturn.Add(serieResponse);
+                }
+            }
+
+            return seriesToReturn;
+        }
+
+        private IEnumerable<UsersByDateSeriesResponse> GetUserStatsFromMonth()
+        {
+            var created = _uow.UserRepository.GetAll().Where(u => u.Status == StatusEnum.PENDING && u.CreatedAt.Date.Month == DateTime.UtcNow.Date.Month);
+            var active = _uow.UserRepository.GetAll().Where(u => u.Status == StatusEnum.ACTIVE && u.ActivatedAt.HasValue && u.ActivatedAt.Value.Date.Month == DateTime.UtcNow.Date.Month);
+            var disabled = _uow.UserRepository.GetAll().Where(u => u.Status == StatusEnum.INACTIVE && u.DisabledAt.HasValue && u.DisabledAt.Value.Date.Month == DateTime.UtcNow.Date.Month);
+
+            var creGrouped = created.AsEnumerable().GroupBy(c => c.CreatedAt.Day);
+            var actGrouped = active.AsEnumerable().GroupBy(c => c.ActivatedAt?.Day);
+            var disGrouped = disabled.AsEnumerable().GroupBy(c => c.DisabledAt?.Day);
+
+            var daysInMonth = DateTime.DaysInMonth(DateTime.UtcNow.Year, DateTime.UtcNow.Month);
+
+            var seriesToReturn = new List<UsersByDateSeriesResponse>();
+            for (int i = 1; i <= daysInMonth; i++)
+            {
+                var serieResponse = new UsersByDateSeriesResponse();
+                serieResponse.Name = i.ToString();
+                var series = new List<BasicSerieResponse>();
+
+                var act = actGrouped.Where(ag => ag.Key.HasValue && ag.Key.Value == i).FirstOrDefault();
+                if (act != null)
+                {
+                    var simpleSerie = new BasicSerieResponse();
+                    simpleSerie.Name = "Activo";
+                    simpleSerie.Value = act.Count();
+                    if (act.Count() > 0)
+                    {
+                        series.Add(simpleSerie);
+                    }
+                }
+
+                var pend = creGrouped.Where(ag => ag.Key == i).FirstOrDefault();
+                if (pend != null)
+                {
+                    var simpleSerie = new BasicSerieResponse();
+                    simpleSerie.Name = "Por Activar";
+                    simpleSerie.Value = pend.Count();
+                    if (pend.Count() > 0)
+                    {
+                        series.Add(simpleSerie);
+                    }
+                }
+
+                var dis = disGrouped.Where(ag => ag.Key.HasValue && ag.Key.Value == i).FirstOrDefault();
+                if (dis != null)
+                {
+                    var simpleSerie = new BasicSerieResponse();
+                    simpleSerie.Name = "Deshabilitado";
+                    simpleSerie.Value = dis.Count();
+                    if (dis.Count() > 0)
+                    {
+                        series.Add(simpleSerie);
+                    }
+                }
+                if (series.Count > 0)
+                {
+                    serieResponse.Series = series;
+                    seriesToReturn.Add(serieResponse);
+                }
+            }
+
+            return seriesToReturn;
+        }
+
+        private IEnumerable<UsersByDateSeriesResponse> GetUserStatsFromYear()
+        {
+            var created = _uow.UserRepository.GetAll().Where(u => u.Status == StatusEnum.PENDING && u.CreatedAt.Date.Year == DateTime.UtcNow.Date.Year);
+            var active = _uow.UserRepository.GetAll().Where(u => u.Status == StatusEnum.ACTIVE && u.ActivatedAt.HasValue && u.ActivatedAt.Value.Date.Year == DateTime.UtcNow.Date.Year);
+            var disabled = _uow.UserRepository.GetAll().Where(u => u.Status == StatusEnum.INACTIVE && u.DisabledAt.HasValue && u.DisabledAt.Value.Date.Year == DateTime.UtcNow.Date.Year);
+
+            var creGrouped = created.AsEnumerable().GroupBy(c => c.CreatedAt.Month);
+            var actGrouped = active.AsEnumerable().GroupBy(c => c.ActivatedAt?.Month);
+            var disGrouped = disabled.AsEnumerable().GroupBy(c => c.DisabledAt?.Month);
+
+            var seriesToReturn = new List<UsersByDateSeriesResponse>();
+            for (int i = 1; i <= 12; i++)
+            {
+                var serieResponse = new UsersByDateSeriesResponse();
+                string monthName = CultureInfo.CurrentCulture.DateTimeFormat.GetAbbreviatedMonthName(i);
+                serieResponse.Name = monthName;
                 var series = new List<BasicSerieResponse>();
 
                 var act = actGrouped.Where(ag => ag.Key.HasValue && ag.Key.Value == i).FirstOrDefault();
