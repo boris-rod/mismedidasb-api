@@ -96,7 +96,13 @@ namespace MismeAPI.Service.Impls
 
         public async Task<dynamic> GetUsersStatsAsync(int loggedUser)
         {
-            var results = await _uow.UserRepository.GetAll().GroupBy(u => u.Status)
+            var user = await _uow.UserRepository.GetAsync(loggedUser);
+            if (user.Role == RoleEnum.NORMAL)
+            {
+                throw new NotAllowedException("User");
+            }
+
+            var results = await _uow.UserRepository.GetAll().Where(u => u.Id != loggedUser).GroupBy(u => u.Status)
                 .Select(g => new
                 {
                     name = g.Key == StatusEnum.ACTIVE ? "Activo" :
