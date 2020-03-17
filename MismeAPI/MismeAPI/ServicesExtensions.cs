@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Hangfire;
+using Hangfire.MySql;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
@@ -123,6 +125,29 @@ namespace MismeAPI
         public static void ConfigureSignalR(this IServiceCollection services)
         {
             services.AddSignalR();
+        }
+
+        public static void ConfigureHangfire(this IServiceCollection services, IConfiguration config)
+        {
+            services.AddHangfire(configuration => configuration
+                    .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+                    .UseSimpleAssemblyNameTypeSerializer()
+                    .UseRecommendedSerializerSettings()
+                    .UseStorage(new MySqlStorage(config.GetConnectionString("HangfireConnection"),
+                       new MySqlStorageOptions
+                       {
+                           //TransactionIsolationLevel = IsolationLevel.ReadCommitted,
+                           QueuePollInterval = TimeSpan.FromSeconds(15),
+                           JobExpirationCheckInterval = TimeSpan.FromHours(1),
+                           CountersAggregateInterval = TimeSpan.FromMinutes(5),
+                           PrepareSchemaIfNecessary = true,
+                           DashboardJobListLimit = 50000,
+                           TransactionTimeout = TimeSpan.FromMinutes(1),
+                           TablesPrefix = "Hangfire"
+                       })));
+
+            // Add the processing server as IHostedService
+            services.AddHangfireServer();
         }
     }
 }

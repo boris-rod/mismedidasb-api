@@ -1,4 +1,5 @@
 using AutoMapper;
+using Hangfire;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -44,6 +45,8 @@ namespace MismeAPI
         {
             services.ConfigureCors();
             services.ConfigureSignalR();
+            services.ConfigureHangfire(Configuration);
+
             services.ConfigureDbContext(Configuration);
             services.ConfigureSwagger();
             services.ConfigureTokenAuth(Configuration);
@@ -74,19 +77,25 @@ namespace MismeAPI
             services.AddTransient<IDishService, DishService>();
             services.AddTransient<IEatService, EatService>();
             services.AddTransient<IDeviceService, DeviceService>();
+            services.AddTransient<IMismeBackgroundService, MismeBackgroundService>();
 
             var provider = services.BuildServiceProvider();
             var amazonS3Service = provider.GetService<IAmazonS3Service>();
 
             var apiMappings = new MappingProfiles(amazonS3Service);
             services.AddAutoMapper(x => x.AddProfile(apiMappings), typeof(Startup));
+
             //services.AddAutoMapper(typeof(Startup));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IServiceProvider services)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IServiceProvider services, IBackgroundJobClient backgroundJobs, IRecurringJobManager recurringJobs)
         {
             app.UseCors();
+            app.UseHangfireDashboard();
+            var mismeBackJobs = services.GetRequiredService<IMismeBackgroundService>();
+            recurringJobs.AddOrUpdate<IMismeBackgroundService>("ExpiredTokens", (e) => e.CleanExpiredTokensAsync(), "0 3 * * *");
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
