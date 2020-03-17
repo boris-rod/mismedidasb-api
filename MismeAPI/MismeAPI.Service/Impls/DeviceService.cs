@@ -18,12 +18,13 @@ namespace MismeAPI.Service.Impls
 
         public async Task CreateOrUpdateDeviceAsync(int loggedUser, AddDeviceRequest device)
         {
-            var dev = await _uow.DeviceRepository.FindBy(d => d.DeviceId == device.DeviceId && d.UserId == loggedUser).FirstOrDefaultAsync();
+            //var dev = await _uow.DeviceRepository.FindBy(d => d.DeviceId == device.DeviceId && d.UserId == loggedUser).FirstOrDefaultAsync();
+            var dev = await _uow.DeviceRepository.FindBy(d => d.UserId == loggedUser).FirstOrDefaultAsync();
             if (dev == null)
             {
                 dev = new Device();
                 dev.Token = device.Token;
-                dev.DeviceId = device.DeviceId;
+                //dev.DeviceId = device.DeviceId;
                 dev.UserId = loggedUser;
                 await _uow.DeviceRepository.AddAsync(dev);
             }

@@ -2,7 +2,7 @@
 {
     public class AddDeviceRequest
     {
-        public int DeviceId { get; set; }
+        //public int DeviceId { get; set; }
         public string Token { get; set; }
     }
 }
