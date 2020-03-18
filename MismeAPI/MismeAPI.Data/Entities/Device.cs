@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using MismeAPI.Data.Entities.Enums;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MismeAPI.Data.Entities
 {
@@ -10,5 +11,7 @@ namespace MismeAPI.Data.Entities
 
         //public int DeviceId { get; set; }
         public string Token { get; set; }
+
+        public DeviceTypeEnum Type { get; set; }
     }
 }

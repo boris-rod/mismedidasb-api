@@ -5,5 +5,7 @@ namespace MismeAPI.Service
     public interface IMismeBackgroundService
     {
         Task CleanExpiredTokensAsync();
+
+        Task SendFireBaseNotificationsAsync();
     }
 }

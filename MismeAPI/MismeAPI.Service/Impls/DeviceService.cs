@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MismeAPI.Common.DTO.Request.Device;
 using MismeAPI.Data.Entities;
+using MismeAPI.Data.Entities.Enums;
 using MismeAPI.Data.UoW;
 using System;
 using System.Threading.Tasks;
@@ -24,13 +25,14 @@ namespace MismeAPI.Service.Impls
             {
                 dev = new Device();
                 dev.Token = device.Token;
-                //dev.DeviceId = device.DeviceId;
+                dev.Type = (DeviceTypeEnum)device.DeviceType;
                 dev.UserId = loggedUser;
                 await _uow.DeviceRepository.AddAsync(dev);
             }
             else
             {
                 dev.Token = device.Token;
+                dev.Type = (DeviceTypeEnum)device.DeviceType;
                 await _uow.DeviceRepository.UpdateAsync(dev, dev.Id);
             }
             await _uow.CommitAsync();
