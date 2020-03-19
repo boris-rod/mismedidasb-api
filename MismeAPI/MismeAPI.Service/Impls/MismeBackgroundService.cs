@@ -1,8 +1,8 @@
 ﻿using CorePush.Google;
+using FirebaseAdmin.Messaging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using MismeAPI.Data.UoW;
-using MismeAPI.Service.Notifications;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -40,24 +40,42 @@ namespace MismeAPI.Service.Impls
             {
                 using (var fcm = new FcmSender(serverKey, senderId))
                 {
-                    if (device.Type == Data.Entities.Enums.DeviceTypeEnum.ANDROID)
+                    //if (device.Type == Data.Entities.Enums.DeviceTypeEnum.ANDROID)
+                    //{
+                    //var googleNot = new GoogleNotification();
+                    //googleNot.Data = new GoogleNotification.DataPayload
+                    //{
+                    //    Message = "Testing"
+                    //};
+
+                    Message message = new Message()
                     {
-                        var googleNot = new GoogleNotification();
-                        googleNot.Data = new GoogleNotification.DataPayload
+                        Notification = new Notification
                         {
-                            Message = "Testing"
-                        };
-                        await fcm.SendAsync(device.Token, googleNot);
-                    }
-                    else
-                    {
-                        var appleNot = new AppleNotification();
-                        appleNot.Aps = new AppleNotification.ApsPayload
-                        {
-                            AlertBody = "Testing"
-                        };
-                        await fcm.SendAsync(device.Token, appleNot);
-                    }
+                            Title = "My push notification title",
+                            Body = "Content for this push notification"
+                        }
+                        ,
+                        //           Data = new Dictionary<string, string>()
+                        //{
+                        //    { "AdditionalData1", "data 1" },
+                        //    { "AdditionalData2", "data 2" },
+                        //    { "AdditionalData3", "data 3" },
+                        //},
+                        Token = device.Token
+                    };
+
+                    var response = await fcm.SendAsync(device.Token, message);
+                    //}
+                    //else
+                    //{
+                    //    var appleNot = new AppleNotification();
+                    //    appleNot.Aps = new AppleNotification.ApsPayload
+                    //    {
+                    //        AlertBody = "Testing"
+                    //    };
+                    //    await fcm.SendAsync(device.Token, appleNot);
+                    //}
                 }
             }
         }
