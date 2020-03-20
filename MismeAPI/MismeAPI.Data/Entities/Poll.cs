@@ -20,6 +20,7 @@ namespace MismeAPI.Data.Entities
         public string Description { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime ModifiedAt { get; set; }
+        public int Order { get; set; }
         public virtual ICollection<Question> Questions { get; set; }
     }
 }
