@@ -65,7 +65,6 @@ namespace MismeAPI
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             services.AddTransient<IAmazonS3Service, AmazonS3Service>();
             services.AddTransient<IFileService, FileService>();
-            services.AddTransient<IPersonalDataService, PersonalDataService>();
             services.AddTransient<IAccountService, AccountService>();
             services.AddTransient<IEmailService, EmailService>();
             services.AddTransient<IPollService, PollService>();

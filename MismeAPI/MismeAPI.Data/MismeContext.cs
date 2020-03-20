@@ -11,8 +11,7 @@ namespace MismeAPI.Data
 
         public DbSet<User> User { get; set; }
         public DbSet<UserToken> UserToken { get; set; }
-        public DbSet<PersonalData> PersonalData { get; set; }
-        public DbSet<UserPersonalData> UserPersonalData { get; set; }
+
         public DbSet<Poll> Poll { get; set; }
         public DbSet<Question> Question { get; set; }
         public DbSet<Answer> Answer { get; set; }

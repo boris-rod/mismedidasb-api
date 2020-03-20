@@ -16,8 +16,6 @@ namespace MismeAPI.Data.UoW
             _context = context ?? throw new ArgumentNullException(nameof(context));
             UserRepository = UserRepository ?? new GenericRepository<User>(_context);
             UserTokenRepository = UserTokenRepository ?? new GenericRepository<UserToken>(_context);
-            PersonalDataRepository = PersonalDataRepository ?? new GenericRepository<PersonalData>(_context);
-            UserPersonalDataRepository = UserPersonalDataRepository ?? new GenericRepository<UserPersonalData>(_context);
             PollRepository = PollRepository ?? new GenericRepository<Poll>(_context);
             AnswerRepository = AnswerRepository ?? new GenericRepository<Answer>(_context);
             QuestionRepository = QuestionRepository ?? new GenericRepository<Question>(_context);
@@ -34,8 +32,7 @@ namespace MismeAPI.Data.UoW
 
         public IGenericRepository<User> UserRepository { get; set; }
         public IGenericRepository<UserToken> UserTokenRepository { get; set; }
-        public IGenericRepository<PersonalData> PersonalDataRepository { get; set; }
-        public IGenericRepository<UserPersonalData> UserPersonalDataRepository { get; set; }
+
         public IGenericRepository<Poll> PollRepository { get; set; }
         public IGenericRepository<Answer> AnswerRepository { get; set; }
         public IGenericRepository<Question> QuestionRepository { get; set; }

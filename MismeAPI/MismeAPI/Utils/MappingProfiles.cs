@@ -23,12 +23,6 @@ namespace MismeAPI.Utils
                         .ForMember(d => d.Status, opts => opts.MapFrom(source => source.Status.ToString()))
                         .ForMember(d => d.Avatar, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Avatar) ? "" : _amazonS3Service.GetPresignUrl(source.Avatar)));
 
-            CreateMap<PersonalData, PersonalDataResponse>()
-                        .ForMember(d => d.TypeId, opts => opts.MapFrom(source => (int)source.Type))
-                        .ForMember(d => d.Type, opts => opts.MapFrom(source => source.Type.ToString()));
-
-            CreateMap<UserPersonalData, UserPersonalDataResponse>();
-
             CreateMap<Poll, PollResponse>();
 
             CreateMap<Question, QuestionResponse>();
