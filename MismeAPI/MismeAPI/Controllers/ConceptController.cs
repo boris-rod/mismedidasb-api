@@ -2,8 +2,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MismeAPI.BasicResponses;
+using MismeAPI.Common.DTO.Request.Concept;
 using MismeAPI.Common.DTO.Response;
 using MismeAPI.Service;
+using MismeAPI.Utils;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -49,6 +51,58 @@ namespace MismeAPI.Controllers
             var result = await _pollService.GetAllPollsByConceptAsync(id);
             var mapped = _mapper.Map<IEnumerable<PollResponse>>(result);
             return Ok(new ApiOkResponse(mapped));
+        }
+
+        /// <summary>
+        /// Add a concept. Only an admin can do this operation. Requires authentication.
+        /// </summary>
+        /// <param name="concept">Concept request object.</param>
+        [HttpPost]
+        [Authorize]
+        [ProducesResponseType(typeof(ConceptResponse), (int)HttpStatusCode.Created)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> AddConcept([FromBody]AddConceptRequest concept)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            var result = await _conceptService.AddConceptAsync(loggedUser, concept);
+            var mapped = _mapper.Map<ConceptResponse>(result);
+            return Created("", new ApiOkResponse(mapped));
+        }
+
+        /// <summary>
+        /// Delete a concept. Only an admin can do this operation. Requires authentication.
+        /// </summary>
+        /// <param name="id">Concept id to delete.</param>
+        [HttpDelete("{id}")]
+        [Authorize]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
+        public async Task<IActionResult> DeleteConcept([FromRoute]int id)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            await _conceptService.DeleteConceptAsync(loggedUser, id);
+            return Ok();
+        }
+
+        /// <summary>
+        /// Edit a concept. Only an admin can do this operation. Requires authentication.
+        /// </summary>
+        /// <param name="concept">Concept request object.</param>
+        /// <param name="id">Concept id to update.</param>
+        [HttpPut("{id}")]
+        [Authorize]
+        [ProducesResponseType(typeof(ConceptResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> EditConcept([FromRoute]int id, [FromBody]UpdateConceptRequest concept)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            var result = await _conceptService.EditConceptAsync(loggedUser, concept, id);
+            var mapped = _mapper.Map<ConceptResponse>(result);
+            return Created("", new ApiOkResponse(mapped));
         }
     }
 }

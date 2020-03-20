@@ -27,7 +27,8 @@ namespace MismeAPI.Utils
 
             CreateMap<Question, QuestionResponse>();
 
-            CreateMap<Concept, ConceptResponse>();
+            CreateMap<Concept, ConceptResponse>()
+                .ForMember(d => d.Image, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Image) ? "" : _amazonS3Service.GetPresignUrl(source.Image)));
 
             CreateMap<Tag, TagResponse>();
 
