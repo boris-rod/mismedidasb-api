@@ -97,7 +97,7 @@ namespace MismeAPI.Controllers
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
-        public async Task<IActionResult> EditConcept([FromRoute]int id, [FromBody]UpdateConceptRequest concept)
+        public async Task<IActionResult> EditConcept([FromRoute]int id, UpdateConceptRequest concept)
         {
             var loggedUser = User.GetUserIdFromToken();
             var result = await _conceptService.EditConceptAsync(loggedUser, concept, id);
