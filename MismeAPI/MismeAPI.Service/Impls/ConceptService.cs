@@ -8,6 +8,7 @@ using MismeAPI.Data.UoW;
 using MismeAPI.Services;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace MismeAPI.Service.Impls
@@ -53,6 +54,36 @@ namespace MismeAPI.Service.Impls
             await _uow.ConceptRepository.AddAsync(conceptDb);
             await _uow.CommitAsync();
             return conceptDb;
+        }
+
+        public async Task ChangeConceptPollOrderAsync(int loggedUser, PollOrderRequest pollOrderRequest, int id)
+        {
+            // validate admin user
+            var user = await _uow.UserRepository.FindByAsync(u => u.Id == loggedUser && u.Role == RoleEnum.ADMIN);
+            if (user.Count == 0)
+            {
+                throw new NotAllowedException(ExceptionConstants.NOT_ALLOWED);
+            }
+            var concept = await _uow.ConceptRepository.GetAll().Where(c => c.Id == id)
+                .Include(c => c.Polls).FirstOrDefaultAsync();
+            if (concept == null)
+            {
+                throw new NotFoundException(ExceptionConstants.NOT_FOUND, "Concept");
+            }
+            var pollOne = concept.Polls.Where(p => p.Id == pollOrderRequest.PollOneId).FirstOrDefault();
+            if (pollOne != null)
+            {
+                pollOne.Order = pollOrderRequest.PollOneOrder;
+                await _uow.PollRepository.UpdateAsync(pollOne, pollOne.Id);
+            }
+
+            var pollTwo = concept.Polls.Where(p => p.Id == pollOrderRequest.PollTwoId).FirstOrDefault();
+            if (pollTwo != null)
+            {
+                pollTwo.Order = pollOrderRequest.PollTwoOrder;
+                await _uow.PollRepository.UpdateAsync(pollTwo, pollTwo.Id);
+            }
+            await _uow.CommitAsync();
         }
 
         public async Task DeleteConceptAsync(int loggedUser, int id)

@@ -20,5 +20,7 @@ namespace MismeAPI.Service
         Task<IEnumerable<Poll>> GetAllPollsByConceptAsync(int conceptId);
 
         Task SetPollResultAsync(int loggedUser, SetPollResultRequest pollResult);
+
+        Task<Poll> UpdatePollTitleAsync(int loggedUser, string title, int id);
     }
 }

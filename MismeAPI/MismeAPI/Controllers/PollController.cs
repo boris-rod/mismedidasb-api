@@ -118,5 +118,23 @@ namespace MismeAPI.Controllers
             await _pollService.SetPollResultAsync(loggedUser, pollResult);
             return Ok(new ApiOkResponse(null));
         }
+
+        /// <summary>
+        /// Update a poll title. Only an admin can do this operation. Requires authentication.
+        /// </summary>
+        /// <param name="id">Poll id.</param>
+        /// <param name="title">Poll title.</param>
+        [HttpPatch("{id}")]
+        [Authorize]
+        [ProducesResponseType(typeof(PollResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
+        public async Task<IActionResult> Update([FromRoute] int id, [FromQuery] string title)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            var result = await _pollService.UpdatePollTitleAsync(loggedUser, title, id);
+            var mapped = _mapper.Map<PollResponse>(result);
+            return Ok(new ApiOkResponse(mapped));
+        }
     }
 }

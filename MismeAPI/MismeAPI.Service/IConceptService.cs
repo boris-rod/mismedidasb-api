@@ -14,5 +14,7 @@ namespace MismeAPI.Service
         Task DeleteConceptAsync(int loggedUser, int id);
 
         Task<Concept> EditConceptAsync(int loggedUser, UpdateConceptRequest concept, int id);
+
+        Task ChangeConceptPollOrderAsync(int loggedUser, PollOrderRequest pollOrderRequest, int id);
     }
 }

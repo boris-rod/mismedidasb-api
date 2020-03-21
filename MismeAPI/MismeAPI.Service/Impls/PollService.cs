@@ -146,5 +146,35 @@ namespace MismeAPI.Service.Impls
             await _uow.CommitAsync();
             return pd;
         }
+
+        public async Task<Poll> UpdatePollTitleAsync(int loggedUser, string title, int id)
+        {
+            // validate admin user
+            var user = await _uow.UserRepository.FindByAsync(u => u.Id == loggedUser && u.Role == RoleEnum.ADMIN);
+            if (user.Count == 0)
+            {
+                throw new NotAllowedException(ExceptionConstants.NOT_ALLOWED);
+            }
+            // not found poll?
+            var pd = await _uow.PollRepository.GetAll().Where(p => p.Id == id)
+                .Include(q => q.Questions)
+                .FirstOrDefaultAsync();
+            if (pd == null)
+            {
+                throw new NotFoundException(ExceptionConstants.NOT_FOUND, "Poll");
+            }
+            // validate poll title
+            var existPollName = await _uow.PollRepository.FindByAsync(p => p.Name.ToLower() == title.ToLower());
+
+            if (existPollName.Count > 0)
+            {
+                throw new InvalidDataException(ExceptionConstants.INVALID_DATA, "Poll name");
+            }
+            pd.Name = title;
+            await _uow.PollRepository.UpdateAsync(pd, id);
+            await _uow.CommitAsync();
+
+            return pd;
+        }
     }
 }
