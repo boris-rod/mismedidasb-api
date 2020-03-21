@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace MismeAPI.Common.DTO.Response
 {
@@ -11,5 +12,6 @@ namespace MismeAPI.Common.DTO.Response
         public bool IsReadOnly { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime ModifiedAt { get; set; }
+        public List<QuestionResponse> Questions { get; set; }
     }
 }

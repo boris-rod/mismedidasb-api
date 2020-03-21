@@ -87,13 +87,17 @@ namespace MismeAPI.Service.Impls
         {
             var result = await _uow.PollRepository.GetAll()
                 .Include(p => p.Questions)
+                    .ThenInclude(q => q.Answers)
                 .ToListAsync();
             return result;
         }
 
         public async Task<IEnumerable<Poll>> GetAllPollsByConceptAsync(int conceptId)
         {
-            var result = await _uow.PollRepository.GetAll().Where(p => p.ConceptId == conceptId).ToListAsync();
+            var result = await _uow.PollRepository.GetAll().Where(p => p.ConceptId == conceptId)
+                .Include(p => p.Questions)
+                    .ThenInclude(q => q.Answers)
+                .ToListAsync();
             return result;
         }
 
@@ -102,6 +106,7 @@ namespace MismeAPI.Service.Impls
             var poll = await _uow.PollRepository.GetAll()
                 .Where(p => p.Id == id)
                 .Include(p => p.Questions)
+                    .ThenInclude(q => q.Answers)
                 .FirstOrDefaultAsync();
             if (poll == null)
             {

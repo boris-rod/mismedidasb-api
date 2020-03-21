@@ -3,6 +3,7 @@ using MismeAPI.Common.DTO.Response;
 using MismeAPI.Data.Entities;
 using MismeAPI.Services;
 using System;
+using System.Linq;
 
 namespace MismeAPI.Utils
 {
@@ -23,9 +24,13 @@ namespace MismeAPI.Utils
                         .ForMember(d => d.Status, opts => opts.MapFrom(source => source.Status.ToString()))
                         .ForMember(d => d.Avatar, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Avatar) ? "" : _amazonS3Service.GetPresignUrl(source.Avatar)));
 
-            CreateMap<Poll, PollResponse>();
+            CreateMap<Poll, PollResponse>()
+                .ForMember(d => d.Questions, opts => opts.MapFrom(source => source.Questions.OrderBy(q => q.Order)));
 
-            CreateMap<Question, QuestionResponse>();
+            CreateMap<Question, QuestionResponse>()
+                 .ForMember(d => d.Answers, opts => opts.MapFrom(source => source.Answers.OrderBy(q => q.Order)));
+
+            CreateMap<Answer, AnswerResponse>();
 
             CreateMap<Concept, ConceptResponse>()
                 .ForMember(d => d.Image, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Image) ? "" : _amazonS3Service.GetPresignUrl(source.Image)));
