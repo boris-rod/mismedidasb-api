@@ -36,13 +36,15 @@ namespace MismeAPI.Service.Impls
             {
                 throw new InvalidDataException(ExceptionConstants.INVALID_DATA, "Poll name");
             }
+            var orderMax = await _uow.PollRepository.GetAll().MaxAsync(p => p.Order);
+
             var p = new Poll();
             p.CreatedAt = DateTime.UtcNow;
             p.ModifiedAt = DateTime.UtcNow; ;
             p.Name = poll.Name;
             p.Description = poll.Description;
-            p.Codename = poll.Codename;
             p.ConceptId = poll.ConceptId;
+            p.Order = orderMax + 1;
 
             await _uow.PollRepository.AddAsync(p);
             await _uow.CommitAsync();
@@ -67,6 +69,17 @@ namespace MismeAPI.Service.Impls
             }
 
             _uow.PollRepository.Delete(pd);
+
+            // needed to reorder
+            var polls = await _uow.PollRepository.GetAll().Where(p => p.ConceptId == pd.ConceptId && p.Order > pd.Order)
+                .OrderBy(p => p.Order)
+                .ToListAsync();
+            foreach (var poll in polls)
+            {
+                poll.Order = poll.Order - 1;
+                _uow.PollRepository.Update(poll);
+            }
+
             await _uow.CommitAsync();
         }
 
@@ -164,7 +177,7 @@ namespace MismeAPI.Service.Impls
                 throw new NotFoundException(ExceptionConstants.NOT_FOUND, "Poll");
             }
             // validate poll title
-            var existPollName = await _uow.PollRepository.FindByAsync(p => p.Name.ToLower() == title.ToLower());
+            var existPollName = await _uow.PollRepository.FindByAsync(p => p.Name.ToLower() == title.ToLower() && p.Id != id);
 
             if (existPollName.Count > 0)
             {
