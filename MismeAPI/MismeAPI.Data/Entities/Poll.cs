@@ -10,6 +10,7 @@ namespace MismeAPI.Data.Entities
         public Poll()
         {
             Questions = new HashSet<Question>();
+            UserPolls = new HashSet<UserPoll>();
         }
 
         public int Id { get; set; }
@@ -22,5 +23,6 @@ namespace MismeAPI.Data.Entities
         public int Order { get; set; }
         public bool IsReadOnly { get; set; }
         public virtual ICollection<Question> Questions { get; set; }
+        public virtual ICollection<UserPoll> UserPolls { get; set; }
     }
 }

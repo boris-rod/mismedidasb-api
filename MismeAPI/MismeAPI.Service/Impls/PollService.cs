@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MismeAPI.Common;
 using MismeAPI.Common.DTO.Request;
+using MismeAPI.Common.DTO.Request.Poll;
 using MismeAPI.Common.Exceptions;
 using MismeAPI.Data.Entities;
 using MismeAPI.Data.Entities.Enums;
@@ -133,6 +134,51 @@ namespace MismeAPI.Service.Impls
             userPoll.CompletedAt = DateTime.UtcNow;
             await _uow.UserPollRepository.AddAsync(userPoll);
             await _uow.CommitAsync();
+        }
+
+        public async Task SetPollResultByQuestionsAsync(int loggedUser, SetPollResultWithQuestionsRequest result)
+        {
+            foreach (var elem in result.QuestionsResults)
+            {
+                // not found poll?
+                var pda = await _uow.UserPollRepository.GetAll().Where(p => p.PollId == elem.PollId && p.CompletedAt.Date == DateTime.UtcNow.Date)
+                    .Include(p => p.Poll)
+                        .ThenInclude(p => p.Questions)
+                            .ThenInclude(q => q.Answers)
+                    .FirstOrDefaultAsync();
+                //today is not answered yet
+                if (pda == null)
+                {
+                    foreach (var item in result.QuestionsResults)
+                    {
+                        var re = new UserAnswer();
+
+                        re.CreatedAt = DateTime.UtcNow;
+                        re.UserId = loggedUser;
+                        re.AnswerId = item.AnswerId;
+                        await _uow.UserAnswerRepository.AddAsync(re);
+                    }
+
+                    //// CALCULATE THE RESULT OF THE POLL
+                }
+                // we need to update the values
+                else
+                {
+                    foreach (var item in result.QuestionsResults)
+                    {
+                        var re = await _uow.UserAnswerRepository.GetAll().Where(u => u.UserId == loggedUser && u.Answer.QuestionId == item.QuestionId && u.CreatedAt.Date == DateTime.UtcNow.Date)
+                            .Include(u => u.Answer)
+                            .FirstOrDefaultAsync();
+                        if (re != null)
+                        {
+                            re.AnswerId = item.AnswerId;
+                            _uow.UserAnswerRepository.Update(re);
+                        }
+                    }
+
+                    //// CALCULATE THE RESULT OF THE POLL
+                }
+            }
         }
 
         public async Task<Poll> UpdatePollDataAsync(int loggedUser, UpdatePollRequest poll)

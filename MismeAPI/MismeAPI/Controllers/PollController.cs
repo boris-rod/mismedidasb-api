@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MismeAPI.BasicResponses;
 using MismeAPI.Common.DTO.Request;
+using MismeAPI.Common.DTO.Request.Poll;
 using MismeAPI.Common.DTO.Response;
 using MismeAPI.Service;
 using MismeAPI.Utils;
@@ -116,7 +117,7 @@ namespace MismeAPI.Controllers
         {
             var loggedUser = User.GetUserIdFromToken();
             await _pollService.SetPollResultAsync(loggedUser, pollResult);
-            return Ok(new ApiOkResponse(null));
+            return Ok();
         }
 
         /// <summary>
@@ -135,6 +136,21 @@ namespace MismeAPI.Controllers
             var result = await _pollService.UpdatePollTitleAsync(loggedUser, title, id);
             var mapped = _mapper.Map<PollResponse>(result);
             return Ok(new ApiOkResponse(mapped));
+        }
+
+        /// <summary>
+        /// Set a poll result based on question answers. Requires authentication.
+        /// </summary>
+        /// <param name="result">Poll result request object.</param>
+        [HttpPost("set-poll-result")]
+        [Authorize]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
+        public async Task<IActionResult> SetPollResultBasedRequest([FromBody] SetPollResultWithQuestionsRequest result)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            await _pollService.SetPollResultByQuestionsAsync(loggedUser, result);
+            return Ok();
         }
     }
 }
