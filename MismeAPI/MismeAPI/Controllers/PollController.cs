@@ -146,7 +146,7 @@ namespace MismeAPI.Controllers
         [Authorize]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> SetPollResultBasedRequest([FromBody] SetPollResultWithQuestionsRequest result)
+        public async Task<IActionResult> SetPollResultBasedRequest([FromBody] ListOfPollResultsRequest result)
         {
             var loggedUser = User.GetUserIdFromToken();
             await _pollService.SetPollResultByQuestionsAsync(loggedUser, result);

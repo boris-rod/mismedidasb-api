@@ -136,9 +136,9 @@ namespace MismeAPI.Service.Impls
             await _uow.CommitAsync();
         }
 
-        public async Task SetPollResultByQuestionsAsync(int loggedUser, SetPollResultWithQuestionsRequest result)
+        public async Task SetPollResultByQuestionsAsync(int loggedUser, ListOfPollResultsRequest result)
         {
-            foreach (var elem in result.QuestionsResults)
+            foreach (var elem in result.PollDatas)
             {
                 // not found poll?
                 var pda = await _uow.UserPollRepository.GetAll().Where(p => p.PollId == elem.PollId && p.CompletedAt.Date == DateTime.UtcNow.Date)
@@ -149,7 +149,7 @@ namespace MismeAPI.Service.Impls
                 //today is not answered yet
                 if (pda == null)
                 {
-                    foreach (var item in result.QuestionsResults)
+                    foreach (var item in elem.QuestionsResults)
                     {
                         var re = new UserAnswer();
 
@@ -164,7 +164,7 @@ namespace MismeAPI.Service.Impls
                 // we need to update the values
                 else
                 {
-                    foreach (var item in result.QuestionsResults)
+                    foreach (var item in elem.QuestionsResults)
                     {
                         var re = await _uow.UserAnswerRepository.GetAll().Where(u => u.UserId == loggedUser && u.Answer.QuestionId == item.QuestionId && u.CreatedAt.Date == DateTime.UtcNow.Date)
                             .Include(u => u.Answer)
