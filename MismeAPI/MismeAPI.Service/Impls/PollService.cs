@@ -86,6 +86,7 @@ namespace MismeAPI.Service.Impls
         public async Task<IEnumerable<Poll>> GetAllPollsAsync()
         {
             var result = await _uow.PollRepository.GetAll()
+                .Include(p => p.Concept)
                 .Include(p => p.Questions)
                     .ThenInclude(q => q.Answers)
                 .ToListAsync();
@@ -95,6 +96,7 @@ namespace MismeAPI.Service.Impls
         public async Task<IEnumerable<Poll>> GetAllPollsByConceptAsync(int conceptId)
         {
             var result = await _uow.PollRepository.GetAll().Where(p => p.ConceptId == conceptId)
+                .Include(p => p.Concept)
                 .Include(p => p.Questions)
                     .ThenInclude(q => q.Answers)
                 .ToListAsync();
@@ -105,6 +107,7 @@ namespace MismeAPI.Service.Impls
         {
             var poll = await _uow.PollRepository.GetAll()
                 .Where(p => p.Id == id)
+                .Include(p => p.Concept)
                 .Include(p => p.Questions)
                     .ThenInclude(q => q.Answers)
                 .FirstOrDefaultAsync();
@@ -159,6 +162,7 @@ namespace MismeAPI.Service.Impls
             pd.ModifiedAt = DateTime.UtcNow;
             pd.Name = poll.Name;
             pd.Description = poll.Description;
+            pd.ConceptId = poll.ConceptId;
 
             _uow.PollRepository.Update(pd);
             await _uow.CommitAsync();
@@ -175,7 +179,9 @@ namespace MismeAPI.Service.Impls
             }
             // not found poll?
             var pd = await _uow.PollRepository.GetAll().Where(p => p.Id == id)
-                .Include(q => q.Questions)
+                .Include(p => p.Concept)
+                .Include(p => p.Questions)
+                    .ThenInclude(q => q.Answers)
                 .FirstOrDefaultAsync();
             if (pd == null)
             {
