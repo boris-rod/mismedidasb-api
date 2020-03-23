@@ -36,6 +36,7 @@ namespace MismeAPI.Utils
                 .ForMember(d => d.Image, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Image) ? "" : _amazonS3Service.GetPresignUrl(source.Image)));
 
             CreateMap<Tag, TagResponse>();
+            CreateMap<Tip, TipResponse>();
 
             CreateMap<Dish, DishResponse>()
                 .ForMember(d => d.Tags, opts => opts.MapFrom(source => source.DishTags))

@@ -11,6 +11,7 @@ namespace MismeAPI.Data.Entities
         {
             Questions = new HashSet<Question>();
             UserPolls = new HashSet<UserPoll>();
+            Tips = new HashSet<Tip>();
         }
 
         public int Id { get; set; }
@@ -22,7 +23,9 @@ namespace MismeAPI.Data.Entities
         public DateTime ModifiedAt { get; set; }
         public int Order { get; set; }
         public bool IsReadOnly { get; set; }
+        public string HtmlContent { get; set; }
         public virtual ICollection<Question> Questions { get; set; }
         public virtual ICollection<UserPoll> UserPolls { get; set; }
+        public virtual ICollection<Tip> Tips { get; set; }
     }
 }
