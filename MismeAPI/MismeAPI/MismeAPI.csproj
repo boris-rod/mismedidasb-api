@@ -50,6 +50,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Update="web.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="Templates\AccountActivation.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
