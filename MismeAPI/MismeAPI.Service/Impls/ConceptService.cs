@@ -131,7 +131,7 @@ namespace MismeAPI.Service.Impls
             }
 
             conceptDb.Title = concept.Title;
-            conceptDb.Description = concept.Description;
+            conceptDb.Description = string.IsNullOrWhiteSpace(concept.Description) || concept.Description == "null" ? "" : concept.Description;
             conceptDb.ModifiedAt = DateTime.UtcNow;
 
             if (!string.IsNullOrWhiteSpace(concept.RemovedImage) && concept.RemovedImage != "null")
