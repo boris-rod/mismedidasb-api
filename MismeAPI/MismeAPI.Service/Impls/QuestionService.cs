@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MismeAPI.Common;
 using MismeAPI.Common.DTO.Request;
+using MismeAPI.Common.DTO.Request.Question;
 using MismeAPI.Common.Exceptions;
 using MismeAPI.Data.Entities;
 using MismeAPI.Data.Entities.Enums;
@@ -28,7 +29,9 @@ namespace MismeAPI.Service.Impls
             {
                 throw new NotFoundException(ExceptionConstants.NOT_FOUND, "Poll");
             }
-            var questions = await _uow.QuestionRepository.GetAll().Where(q => q.PollId == pd.Id).ToListAsync();
+            var questions = await _uow.QuestionRepository.GetAll().Where(q => q.PollId == pd.Id)
+                .Include(q => q.Answers)
+                .ToListAsync();
             return questions;
         }
 
@@ -114,8 +117,112 @@ namespace MismeAPI.Service.Impls
                 throw new NotAllowedException(ExceptionConstants.NOT_ALLOWED);
             }
 
+            var questionsToUpdateOrder = await _uow.QuestionRepository.GetAll().Where(q => q.Order > pd.Order).ToListAsync();
+            foreach (var q in questionsToUpdateOrder)
+            {
+                q.Order = q.Order - 1;
+                await _uow.QuestionRepository.UpdateAsync(q, q.Id);
+            }
             _uow.QuestionRepository.Delete(pd);
             await _uow.CommitAsync();
+        }
+
+        public async Task<Question> UpdateQuestionTitleAsync(int loggedUser, int id, string title)
+        {
+            // not found question?
+            var pd = await _uow.QuestionRepository.GetAsync(id);
+            if (pd == null)
+            {
+                throw new NotFoundException(ExceptionConstants.NOT_FOUND, "Question");
+            }
+
+            // validate admin user
+            var user = await _uow.UserRepository.FindByAsync(u => u.Id == loggedUser && u.Role == RoleEnum.ADMIN);
+            if (user.Count == 0)
+            {
+                throw new NotAllowedException(ExceptionConstants.NOT_ALLOWED);
+            }
+
+            var exist = await _uow.QuestionRepository.FindByAsync(q => q.Title.ToLower() == title && q.PollId == pd.PollId);
+            if (exist.Count > 0)
+            {
+                throw new InvalidDataException(ExceptionConstants.INVALID_DATA);
+            }
+            pd.Title = title;
+            await _uow.QuestionRepository.UpdateAsync(pd, pd.Id);
+            await _uow.CommitAsync();
+            return pd;
+        }
+
+        public async Task<Question> AddOrUpdateQuestionWithAnswersAsync(int loggedUser, AddOrUpdateQuestionWithAnswersRequest question)
+        {
+            // validate admin user
+            var user = await _uow.UserRepository.FindByAsync(u => u.Id == loggedUser && u.Role == RoleEnum.ADMIN);
+            if (user.Count == 0)
+            {
+                throw new NotAllowedException(ExceptionConstants.NOT_ALLOWED);
+            }
+
+            if (question.QuestionId > -1)
+            {
+                // not found question?
+                var pd = await _uow.QuestionRepository.GetAsync(question.QuestionId);
+                if (pd == null)
+                {
+                    throw new NotFoundException(ExceptionConstants.NOT_FOUND, "Question");
+                }
+                pd.ModifiedAt = DateTime.UtcNow;
+                pd.Title = question.QuestionName;
+                pd.Order = question.QuestionOrder;
+
+                pd.Answers = await GetNewAnswersAsync(question);
+                await _uow.QuestionRepository.UpdateAsync(pd, pd.Id);
+                await _uow.CommitAsync();
+                return pd;
+            }
+            else
+            {
+                var q = new Question();
+                q.ModifiedAt = DateTime.UtcNow;
+                q.CreatedAt = DateTime.UtcNow;
+                q.Title = question.QuestionName;
+                q.PollId = question.PollId;
+
+                var orderMax = await _uow.QuestionRepository.GetAll().Where(q => q.PollId == question.PollId).MaxAsync(p => p.Order);
+                q.Order = orderMax + 1;
+
+                q.Answers = await GetNewAnswersAsync(question);
+                await _uow.QuestionRepository.AddAsync(q);
+                await _uow.CommitAsync();
+                return q;
+            }
+        }
+
+        private async Task<ICollection<Answer>> GetNewAnswersAsync(AddOrUpdateQuestionWithAnswersRequest question)
+        {
+            var answers = new List<Answer>();
+            //remove previous answers
+            if (question.QuestionId > -1)
+            {
+                var previousAnswers = await _uow.AnswerRepository.GetAll().Where(a => a.QuestionId == question.QuestionId).ToListAsync();
+                foreach (var item in previousAnswers)
+                {
+                    _uow.AnswerRepository.Delete(item);
+                }
+                await _uow.CommitAsync();
+            }
+
+            foreach (var a in question.Answers)
+            {
+                var ans = new Answer();
+                ans.CreatedAt = DateTime.UtcNow;
+                ans.ModifiedAt = DateTime.UtcNow;
+                ans.Order = a.Order;
+                ans.Title = a.Title;
+                ans.Weight = a.Weight;
+                answers.Add(ans);
+            }
+            return answers;
         }
     }
 }

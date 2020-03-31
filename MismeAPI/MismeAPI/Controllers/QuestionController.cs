@@ -3,11 +3,13 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MismeAPI.BasicResponses;
 using MismeAPI.Common.DTO.Request;
+using MismeAPI.Common.DTO.Request.Question;
 using MismeAPI.Common.DTO.Response;
 using MismeAPI.Service;
 using MismeAPI.Utils;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -37,6 +39,7 @@ namespace MismeAPI.Controllers
         {
             var result = await _questionService.GetQuestionsByPollIdAsync(pollId);
             var mapped = _mapper.Map<IEnumerable<QuestionResponse>>(result);
+            mapped = mapped.OrderBy(m => m.Order);
             return Ok(new ApiOkResponse(mapped));
         }
 
@@ -59,13 +62,12 @@ namespace MismeAPI.Controllers
         /// Add a question to a poll. Only an admin can do this operation. Requires authentication.
         /// </summary>
         /// <param name="question">Question request object.</param>
-        /// <param name="id">Poll id.</param>
         [HttpPost]
         [Authorize]
         [ProducesResponseType(typeof(QuestionResponse), (int)HttpStatusCode.Created)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
-        public async Task<IActionResult> AddQuestion([FromQuery]int id, [FromBody] CreateQuestionRequest question)
+        public async Task<IActionResult> AddQuestion([FromBody] CreateQuestionRequest question)
         {
             var loggedUser = User.GetUserIdFromToken();
             var result = await _questionService.CreateQuestionAsync(loggedUser, question);
@@ -105,6 +107,41 @@ namespace MismeAPI.Controllers
             var loggedUser = User.GetUserIdFromToken();
             await _questionService.DeleteQuestionAsync(loggedUser, id);
             return Ok();
+        }
+
+        /// <summary>
+        /// Update a question title. Only an admin can do this operation. Requires authentication.
+        /// </summary>
+        /// <param name="title">Question title.</param>
+        /// <param name="id">Question id.</param>
+        [HttpPatch("{id}/change-title")]
+        [Authorize]
+        [ProducesResponseType(typeof(QuestionResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
+        public async Task<IActionResult> UpdateTitle([FromRoute] int id, [FromQuery] string title)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            var result = await _questionService.UpdateQuestionTitleAsync(loggedUser, id, title);
+            var mapped = _mapper.Map<QuestionResponse>(result);
+            return Ok(new ApiOkResponse(mapped));
+        }
+
+        /// <summary>
+        /// Add or update question with its answers. Only an admin can do this operation. Requires authentication.
+        /// </summary>
+        /// <param name="question">Question request object.</param>
+        [HttpPost("add-or-update")]
+        [Authorize]
+        [ProducesResponseType(typeof(QuestionResponse), (int)HttpStatusCode.Created)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
+        public async Task<IActionResult> AddQuestionWithAnswers([FromBody] AddOrUpdateQuestionWithAnswersRequest question)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            var result = await _questionService.AddOrUpdateQuestionWithAnswersAsync(loggedUser, question);
+            var mapped = _mapper.Map<QuestionResponse>(result);
+            return Created("", new ApiOkResponse(mapped));
         }
     }
 }

@@ -22,6 +22,36 @@ namespace MismeAPI.Service.Impls
             _uow = uow ?? throw new ArgumentNullException(nameof(uow));
         }
 
+        public async Task ChangePollQuestionOrderAsync(int loggedUser, QuestionOrderRequest questionOrderRequest, int id)
+        {
+            // validate admin user
+            var user = await _uow.UserRepository.FindByAsync(u => u.Id == loggedUser && u.Role == RoleEnum.ADMIN);
+            if (user.Count == 0)
+            {
+                throw new NotAllowedException(ExceptionConstants.NOT_ALLOWED);
+            }
+            var poll = await _uow.PollRepository.GetAll().Where(c => c.Id == id)
+                .Include(c => c.Questions).FirstOrDefaultAsync();
+            if (poll == null)
+            {
+                throw new NotFoundException(ExceptionConstants.NOT_FOUND, "Poll");
+            }
+            var questionOne = poll.Questions.Where(p => p.Id == questionOrderRequest.QuestionOneId).FirstOrDefault();
+            if (questionOne != null)
+            {
+                questionOne.Order = questionOrderRequest.QuestionOneOrder;
+                await _uow.QuestionRepository.UpdateAsync(questionOne, questionOne.Id);
+            }
+
+            var questionTwo = poll.Questions.Where(p => p.Id == questionOrderRequest.QuestionTwoId).FirstOrDefault();
+            if (questionTwo != null)
+            {
+                questionTwo.Order = questionOrderRequest.QuestionTwoOrder;
+                await _uow.QuestionRepository.UpdateAsync(questionTwo, questionTwo.Id);
+            }
+            await _uow.CommitAsync();
+        }
+
         public async Task<Poll> CreatePollAsync(int loggedUser, CreatePollRequest poll)
         {
             // validate admin user
@@ -84,14 +114,18 @@ namespace MismeAPI.Service.Impls
             await _uow.CommitAsync();
         }
 
-        public async Task<IEnumerable<Poll>> GetAllPollsAsync()
+        public async Task<IEnumerable<Poll>> GetAllPollsAsync(int conceptId)
         {
-            var result = await _uow.PollRepository.GetAll()
+            var result = _uow.PollRepository.GetAll()
                 .Include(p => p.Concept)
                 .Include(p => p.Questions)
                     .ThenInclude(q => q.Answers)
-                .ToListAsync();
-            return result;
+                .AsQueryable();
+            if (conceptId != -1)
+            {
+                result = result.Where(p => p.ConceptId == conceptId);
+            }
+            return await result.ToListAsync();
         }
 
         public async Task<IEnumerable<Poll>> GetAllPollsByConceptAsync(int conceptId)

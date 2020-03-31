@@ -29,12 +29,14 @@ namespace MismeAPI.Controllers
         /// <summary>
         /// Get all polls definition. Requires authentication.
         /// </summary>
+        /// <param name="conceptId">Concept id filter.</param>
         [HttpGet]
         [Authorize]
         [ProducesResponseType(typeof(IEnumerable<PollResponse>), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll(int? conceptId)
         {
-            var result = await _pollService.GetAllPollsAsync();
+            var concept = conceptId ?? -1;
+            var result = await _pollService.GetAllPollsAsync(concept);
             var mapped = _mapper.Map<IEnumerable<PollResponse>>(result);
             return Ok(new ApiOkResponse(mapped));
         }
@@ -150,6 +152,22 @@ namespace MismeAPI.Controllers
         {
             var loggedUser = User.GetUserIdFromToken();
             await _pollService.SetPollResultByQuestionsAsync(loggedUser, result);
+            return Ok();
+        }
+
+        /// <summary>
+        /// Change a poll questions order. Only an admin can do this operation. Requires authentication.
+        /// </summary>
+        /// <param name="questionOrderRequest">Poll question order request object.</param>
+        /// <param name="id">Poll id.</param>
+        [HttpPost("{id}/questions-order")]
+        [Authorize]
+        [ProducesResponseType(typeof(ConceptResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
+        public async Task<IActionResult> ChangePollQuestionsOrder([FromRoute] int id, [FromBody]QuestionOrderRequest questionOrderRequest)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            await _pollService.ChangePollQuestionOrderAsync(loggedUser, questionOrderRequest, id);
             return Ok();
         }
     }

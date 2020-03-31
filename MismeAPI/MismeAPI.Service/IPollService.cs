@@ -8,7 +8,7 @@ namespace MismeAPI.Service
 {
     public interface IPollService
     {
-        Task<IEnumerable<Poll>> GetAllPollsAsync();
+        Task<IEnumerable<Poll>> GetAllPollsAsync(int conceptId);
 
         Task<Poll> GetPollByIdAsync(int id);
 
@@ -25,5 +25,7 @@ namespace MismeAPI.Service
         Task<Poll> UpdatePollTitleAsync(int loggedUser, string title, int id);
 
         Task SetPollResultByQuestionsAsync(int loggedUser, ListOfPollResultsRequest result);
+
+        Task ChangePollQuestionOrderAsync(int loggedUser, QuestionOrderRequest questionOrderRequest, int id);
     }
 }
