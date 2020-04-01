@@ -16,10 +16,12 @@ namespace MismeAPI.Service.Impls
     public class PollService : IPollService
     {
         private readonly IUnitOfWork _uow;
+        private readonly IQuestionService _questionService;
 
-        public PollService(IUnitOfWork uow)
+        public PollService(IUnitOfWork uow, IQuestionService questionService)
         {
             _uow = uow ?? throw new ArgumentNullException(nameof(uow));
+            _questionService = questionService ?? throw new ArgumentNullException(nameof(questionService));
         }
 
         public async Task ChangePollQuestionOrderAsync(int loggedUser, QuestionOrderRequest questionOrderRequest, int id)
@@ -49,6 +51,45 @@ namespace MismeAPI.Service.Impls
                 questionTwo.Order = questionOrderRequest.QuestionTwoOrder;
                 await _uow.QuestionRepository.UpdateAsync(questionTwo, questionTwo.Id);
             }
+            await _uow.CommitAsync();
+        }
+
+        public async Task ChangePollReadOnlyAsync(int loggedUser, PollReadOnlyRequest pollReadOnlyRequest, int id)
+        {
+            // validate admin user
+            var user = await _uow.UserRepository.FindByAsync(u => u.Id == loggedUser && u.Role == RoleEnum.ADMIN);
+            if (user.Count == 0)
+            {
+                throw new NotAllowedException(ExceptionConstants.NOT_ALLOWED);
+            }
+
+            var poll = await _uow.PollRepository.GetAll().Where(c => c.Id == id)
+                .Include(c => c.Questions).FirstOrDefaultAsync();
+            if (poll == null)
+            {
+                throw new NotFoundException(ExceptionConstants.NOT_FOUND, "Poll");
+            }
+
+            if (pollReadOnlyRequest.ReadOnly == true)
+            {
+                poll.HtmlContent = pollReadOnlyRequest.HtmlContent;
+                poll.IsReadOnly = true;
+                foreach (var item in poll.Questions)
+                {
+                    _uow.QuestionRepository.Delete(item);
+                }
+                await _uow.PollRepository.UpdateAsync(poll, id);
+            }
+            //else
+            //{
+            //    poll.IsReadOnly = false;
+            //    poll.HtmlContent = "";
+
+            // var internalRequest = pollReadOnlyRequest.QuestionWithAnswers; internalRequest.PollId
+            // = id;
+
+            //    await _questionService.AddOrUpdateQuestionWithAnswersAsync(loggedUser, internalRequest);
+            //}
             await _uow.CommitAsync();
         }
 

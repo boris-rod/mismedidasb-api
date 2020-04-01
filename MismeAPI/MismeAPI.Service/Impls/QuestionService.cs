@@ -188,10 +188,19 @@ namespace MismeAPI.Service.Impls
                 q.Title = question.QuestionName;
                 q.PollId = question.PollId;
 
-                var orderMax = await _uow.QuestionRepository.GetAll().Where(q => q.PollId == question.PollId).MaxAsync(p => p.Order);
-                q.Order = orderMax + 1;
+                var orderMax = await _uow.QuestionRepository.GetAll().Where(q => q.PollId == question.PollId).OrderByDescending(p => p.Order).ToListAsync();
+                q.Order = orderMax.Count > 0 ? orderMax.ElementAt(0).Order + 1 : 1;
 
                 q.Answers = await GetNewAnswersAsync(question);
+
+                var poll = await _uow.PollRepository.GetAsync(question.PollId);
+                if (poll != null && poll.IsReadOnly == true)
+                {
+                    poll.IsReadOnly = false;
+                    poll.HtmlContent = "";
+                    await _uow.PollRepository.UpdateAsync(poll, poll.Id);
+                }
+
                 await _uow.QuestionRepository.AddAsync(q);
                 await _uow.CommitAsync();
                 return q;

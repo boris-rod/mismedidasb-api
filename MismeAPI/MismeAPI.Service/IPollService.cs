@@ -27,5 +27,6 @@ namespace MismeAPI.Service
         Task SetPollResultByQuestionsAsync(int loggedUser, ListOfPollResultsRequest result);
 
         Task ChangePollQuestionOrderAsync(int loggedUser, QuestionOrderRequest questionOrderRequest, int id);
+        Task ChangePollReadOnlyAsync(int loggedUser, PollReadOnlyRequest pollReadOnlyRequest, int id);
     }
 }

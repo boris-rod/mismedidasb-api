@@ -162,12 +162,29 @@ namespace MismeAPI.Controllers
         /// <param name="id">Poll id.</param>
         [HttpPost("{id}/questions-order")]
         [Authorize]
-        [ProducesResponseType(typeof(ConceptResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
         public async Task<IActionResult> ChangePollQuestionsOrder([FromRoute] int id, [FromBody]QuestionOrderRequest questionOrderRequest)
         {
             var loggedUser = User.GetUserIdFromToken();
             await _pollService.ChangePollQuestionOrderAsync(loggedUser, questionOrderRequest, id);
+            return Ok();
+        }
+
+        /// <summary>
+        /// Change a poll to read-only and viceversa. Only an admin can do this operation. Requires authentication.
+        /// </summary>
+        /// <param name="pollReadOnlyRequest">Poll readonly request object.</param>
+        /// <param name="id">Poll id.</param>
+        [HttpPost("{id}/read-only")]
+        [Authorize]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
+        public async Task<IActionResult> ReadOnlyPoll([FromRoute] int id, [FromBody]PollReadOnlyRequest pollReadOnlyRequest)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            await _pollService.ChangePollReadOnlyAsync(loggedUser, pollReadOnlyRequest, id);
             return Ok();
         }
     }
