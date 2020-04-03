@@ -196,6 +196,13 @@ namespace MismeAPI.Service.Impls
                 var poll = await _uow.PollRepository.GetAsync(question.PollId);
                 if (poll != null && poll.IsReadOnly == true)
                 {
+                    // remove tips because only read only poll have them
+                    var tips = await _uow.TipRepository.GetAll().Where(t => t.PollId == poll.Id).ToListAsync();
+                    foreach (var tip in tips)
+                    {
+                        _uow.TipRepository.Delete(tip);
+                    }
+
                     poll.IsReadOnly = false;
                     poll.HtmlContent = "";
                     await _uow.PollRepository.UpdateAsync(poll, poll.Id);

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using MismeAPI.BasicResponses;
 using MismeAPI.Common.DTO.Request;
 using MismeAPI.Common.DTO.Request.Poll;
+using MismeAPI.Common.DTO.Request.Tip;
 using MismeAPI.Common.DTO.Response;
 using MismeAPI.Service;
 using MismeAPI.Utils;
@@ -185,6 +186,73 @@ namespace MismeAPI.Controllers
         {
             var loggedUser = User.GetUserIdFromToken();
             await _pollService.ChangePollReadOnlyAsync(loggedUser, pollReadOnlyRequest, id);
+            return Ok();
+        }
+
+        /// <summary>
+        /// Add poll's tip. Only an admin can do this operation. Requires authentication.
+        /// </summary>
+        /// <param name="tipRequest">Tip request object.</param>
+        [HttpPost("tips")]
+        [Authorize]
+        [ProducesResponseType(typeof(TipResponse), (int)HttpStatusCode.Created)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
+        public async Task<IActionResult> AddTip([FromBody]AddTipRequest tipRequest)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            var tip = await _pollService.AddTipRequestAsync(loggedUser, tipRequest);
+            var mapped = _mapper.Map<TipResponse>(tip);
+            return Created("", new ApiOkResponse(mapped));
+        }
+
+        /// <summary>
+        /// Delete a tip. Only an admin can do this operation. Requires authentication.
+        /// </summary>
+        /// <param name="id">Id of the tip.</param>
+        [HttpDelete("tips/delete/{id}")]
+        [Authorize]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
+        public async Task<IActionResult> DeleteTip([FromRoute]int id)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            await _pollService.DeleteTipAsync(loggedUser, id);
+            return Ok();
+        }
+
+        /// <summary>
+        /// Update tip content. Only an admin can do this operation. Requires authentication.
+        /// </summary>
+        /// <param name="id">Tip id.</param>
+        /// <param name="content">Tip content.</param>
+        [HttpPatch("tips/{id}")]
+        [Authorize]
+        [ProducesResponseType(typeof(TipResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
+        public async Task<IActionResult> UpdateTipContent([FromRoute] int id, [FromQuery] string content)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            var result = await _pollService.UpdateTipContentAsync(loggedUser, content, id);
+            var mapped = _mapper.Map<TipResponse>(result);
+            return Ok(new ApiOkResponse(mapped));
+        }
+
+        /// <summary>
+        /// Activate a tip. Only an admin can do this operation. Requires authentication.
+        /// </summary>
+        /// <param name="id">Tip id.</param>
+        /// <param name="pollId">Poll id.</param>
+        /// <param name="position">Position.</param>
+        [HttpPost("tips/activate/{id}")]
+        [Authorize]
+        [ProducesResponseType(typeof(TipResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
+        public async Task<IActionResult> ActivateTipContent([FromRoute] int id, [FromQuery] int pollId, [FromQuery] int position)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            await _pollService.ActivateTipAsync(loggedUser, id, pollId, position);
             return Ok();
         }
     }

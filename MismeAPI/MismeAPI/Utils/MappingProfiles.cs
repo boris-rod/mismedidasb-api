@@ -25,7 +25,8 @@ namespace MismeAPI.Utils
                         .ForMember(d => d.Avatar, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Avatar) ? "" : _amazonS3Service.GetPresignUrl(source.Avatar)));
 
             CreateMap<Poll, PollResponse>()
-                .ForMember(d => d.Questions, opts => opts.MapFrom(source => source.Questions.OrderBy(q => q.Order)));
+                .ForMember(d => d.Questions, opts => opts.MapFrom(source => source.Questions.OrderBy(q => q.Order)))
+                .ForMember(d => d.Tips, opts => opts.MapFrom(source => source.Tips));
 
             CreateMap<Question, QuestionResponse>()
                  .ForMember(d => d.Answers, opts => opts.MapFrom(source => source.Answers.OrderBy(q => q.Order)));
@@ -36,7 +37,9 @@ namespace MismeAPI.Utils
                 .ForMember(d => d.Image, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Image) ? "" : _amazonS3Service.GetPresignUrl(source.Image)));
 
             CreateMap<Tag, TagResponse>();
-            CreateMap<Tip, TipResponse>();
+            CreateMap<Tip, TipResponse>()
+                .ForMember(d => d.TipPosition, opts => opts.MapFrom(source => (int)source.TipPosition))
+                .ForMember(d => d.TipPositionString, opts => opts.MapFrom(source => source.TipPosition.ToString()));
 
             CreateMap<Dish, DishResponse>()
                 .ForMember(d => d.Tags, opts => opts.MapFrom(source => source.DishTags))

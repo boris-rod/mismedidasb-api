@@ -2,6 +2,7 @@
 using MismeAPI.Common;
 using MismeAPI.Common.DTO.Request;
 using MismeAPI.Common.DTO.Request.Poll;
+using MismeAPI.Common.DTO.Request.Tip;
 using MismeAPI.Common.Exceptions;
 using MismeAPI.Data.Entities;
 using MismeAPI.Data.Entities.Enums;
@@ -22,6 +23,54 @@ namespace MismeAPI.Service.Impls
         {
             _uow = uow ?? throw new ArgumentNullException(nameof(uow));
             _questionService = questionService ?? throw new ArgumentNullException(nameof(questionService));
+        }
+
+        public async Task ActivateTipAsync(int loggedUser, int id, int pollId, int position)
+        {
+            var user = await _uow.UserRepository.FindByAsync(u => u.Id == loggedUser && u.Role == RoleEnum.ADMIN);
+            if (user.Count == 0)
+            {
+                throw new NotAllowedException(ExceptionConstants.NOT_ALLOWED);
+            }
+
+            var tip = await _uow.TipRepository.GetAsync(id);
+            if (tip == null)
+            {
+                throw new NotFoundException(ExceptionConstants.NOT_FOUND, "Tip");
+            }
+
+            tip.IsActive = true;
+
+            var otherTips = await _uow.TipRepository.GetAll().Where(t => t.PollId == pollId && t.TipPosition == (TipPositionEnum)position && t.Id != id).ToListAsync();
+            foreach (var item in otherTips)
+            {
+                item.IsActive = false;
+                await _uow.TipRepository.UpdateAsync(item, item.Id);
+            }
+
+            await _uow.TipRepository.UpdateAsync(tip, tip.Id);
+            await _uow.CommitAsync();
+        }
+
+        public async Task<Tip> AddTipRequestAsync(int loggedUser, AddTipRequest tipRequest)
+        {
+            // validate admin user
+            var user = await _uow.UserRepository.FindByAsync(u => u.Id == loggedUser && u.Role == RoleEnum.ADMIN);
+            if (user.Count == 0)
+            {
+                throw new NotAllowedException(ExceptionConstants.NOT_ALLOWED);
+            }
+            var tip = new Tip();
+            tip.Content = tipRequest.Content;
+            tip.PollId = tipRequest.PollId;
+            tip.IsActive = tipRequest.IsActive;
+            tip.TipPosition = (TipPositionEnum)tipRequest.TipPosition;
+            tip.CreatedAt = DateTime.UtcNow;
+            tip.ModifiedAt = DateTime.UtcNow;
+
+            await _uow.TipRepository.AddAsync(tip);
+            await _uow.CommitAsync();
+            return tip;
         }
 
         public async Task ChangePollQuestionOrderAsync(int loggedUser, QuestionOrderRequest questionOrderRequest, int id)
@@ -155,12 +204,30 @@ namespace MismeAPI.Service.Impls
             await _uow.CommitAsync();
         }
 
+        public async Task DeleteTipAsync(int loggedUser, int id)
+        {
+            // validate admin user
+            var user = await _uow.UserRepository.FindByAsync(u => u.Id == loggedUser && u.Role == RoleEnum.ADMIN);
+            if (user.Count == 0)
+            {
+                throw new NotAllowedException(ExceptionConstants.NOT_ALLOWED);
+            }
+            var tip = await _uow.TipRepository.GetAsync(id);
+            if (tip == null)
+            {
+                throw new NotFoundException(ExceptionConstants.NOT_FOUND, "Tip");
+            }
+            _uow.TipRepository.Delete(tip);
+            await _uow.CommitAsync();
+        }
+
         public async Task<IEnumerable<Poll>> GetAllPollsAsync(int conceptId)
         {
             var result = _uow.PollRepository.GetAll()
                 .Include(p => p.Concept)
                 .Include(p => p.Questions)
                     .ThenInclude(q => q.Answers)
+                .Include(p => p.Tips)
                 .AsQueryable();
             if (conceptId != -1)
             {
@@ -175,6 +242,7 @@ namespace MismeAPI.Service.Impls
                 .Include(p => p.Concept)
                 .Include(p => p.Questions)
                     .ThenInclude(q => q.Answers)
+                .Include(p => p.Tips)
                 .ToListAsync();
             return result;
         }
@@ -186,6 +254,7 @@ namespace MismeAPI.Service.Impls
                 .Include(p => p.Concept)
                 .Include(p => p.Questions)
                     .ThenInclude(q => q.Answers)
+                .Include(p => p.Tips)
                 .FirstOrDefaultAsync();
             if (poll == null)
             {
@@ -220,6 +289,8 @@ namespace MismeAPI.Service.Impls
                     .Include(p => p.Poll)
                         .ThenInclude(p => p.Questions)
                             .ThenInclude(q => q.Answers)
+                    .Include(p => p.Poll)
+                        .ThenInclude(p => p.Tips)
                     .FirstOrDefaultAsync();
                 //today is not answered yet
                 if (pda == null)
@@ -303,6 +374,7 @@ namespace MismeAPI.Service.Impls
                 .Include(p => p.Concept)
                 .Include(p => p.Questions)
                     .ThenInclude(q => q.Answers)
+                .Include(p => p.Tips)
                 .FirstOrDefaultAsync();
             if (pd == null)
             {
@@ -317,6 +389,28 @@ namespace MismeAPI.Service.Impls
             }
             pd.Name = title;
             await _uow.PollRepository.UpdateAsync(pd, id);
+            await _uow.CommitAsync();
+
+            return pd;
+        }
+
+        public async Task<Tip> UpdateTipContentAsync(int loggedUser, string content, int id)
+        {
+            // validate admin user
+            var user = await _uow.UserRepository.FindByAsync(u => u.Id == loggedUser && u.Role == RoleEnum.ADMIN);
+            if (user.Count == 0)
+            {
+                throw new NotAllowedException(ExceptionConstants.NOT_ALLOWED);
+            }
+            // not found tip?
+            var pd = await _uow.TipRepository.GetAll().Where(p => p.Id == id)
+                .FirstOrDefaultAsync();
+            if (pd == null)
+            {
+                throw new NotFoundException(ExceptionConstants.NOT_FOUND, "Tip");
+            }
+            pd.Content = content;
+            await _uow.TipRepository.UpdateAsync(pd, id);
             await _uow.CommitAsync();
 
             return pd;
