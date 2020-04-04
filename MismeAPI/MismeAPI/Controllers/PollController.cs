@@ -10,6 +10,7 @@ using MismeAPI.Service;
 using MismeAPI.Utils;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -39,6 +40,7 @@ namespace MismeAPI.Controllers
             var concept = conceptId ?? -1;
             var result = await _pollService.GetAllPollsAsync(concept);
             var mapped = _mapper.Map<IEnumerable<PollResponse>>(result);
+            mapped = mapped.OrderBy(m => m.Order);
             return Ok(new ApiOkResponse(mapped));
         }
 
