@@ -8,6 +8,7 @@ using MismeAPI.Service;
 using MismeAPI.Utils;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -50,6 +51,7 @@ namespace MismeAPI.Controllers
         {
             var result = await _pollService.GetAllPollsByConceptAsync(id);
             var mapped = _mapper.Map<IEnumerable<PollResponse>>(result);
+            mapped = mapped.OrderBy(p => p.Order);
             return Ok(new ApiOkResponse(mapped));
         }
 
