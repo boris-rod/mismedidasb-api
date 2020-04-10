@@ -162,5 +162,61 @@ namespace MismeAPI.Service.Impls
             await _uow.CommitAsync();
             return e;
         }
+
+        public async Task CreateBulkEatAsync(int loggedUser, CreateBulkEatRequest eat)
+        {
+            var userEats = await _uow.EatRepository.GetAll().Where(e => e.UserId == loggedUser && e.CreatedAt.Date == eat.DateInUtc.Date).ToListAsync();
+
+            //this days not eat yet
+            if (userEats.Count == 0)
+            {
+                foreach (var item in eat.Eats)
+                {
+                    var e = new Eat();
+                    e.CreatedAt = DateTime.UtcNow;
+                    e.ModifiedAt = DateTime.UtcNow;
+                    e.EatType = (EatTypeEnum)item.EatType;
+                    e.UserId = loggedUser;
+                    await _uow.EatRepository.AddAsync(e);
+                    foreach (var d in item.Dishes)
+                    {
+                        var ed = new EatDish();
+                        ed.DishId = d.DishId;
+                        ed.Eat = e;
+                        ed.Qty = d.Qty;
+
+                        await _uow.EatDishRepository.AddAsync(ed);
+                    }
+                }
+            }
+            //needs to update or add
+            else
+            {
+                foreach (var item in eat.Eats)
+                {
+                    var ue = userEats.Where(u => u.EatType == (EatTypeEnum)item.EatType).FirstOrDefault();
+                    if (ue != null)
+                    {
+                        ue.ModifiedAt = DateTime.UtcNow;
+                        foreach (var ud in ue.EatDishes)
+                        {
+                            _uow.EatDishRepository.Delete(ud);
+                        }
+
+                        foreach (var ud in item.Dishes)
+                        {
+                            var ed = new EatDish();
+                            ed.DishId = ud.DishId;
+                            ed.EatId = ue.Id;
+                            ed.Qty = ud.Qty;
+
+                            await _uow.EatDishRepository.AddAsync(ed);
+                        }
+                    }
+                    _uow.EatRepository.Update(ue);
+                }
+            }
+            await _uow.CommitAsync();
+        }
     }
 }

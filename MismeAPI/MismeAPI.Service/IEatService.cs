@@ -18,5 +18,7 @@ namespace MismeAPI.Service
         Task<Eat> CreateEatAsync(int loggedUser, CreateEatRequest eat);
 
         Task<Eat> UpdateEatAsync(int loggedUser, UpdateEatRequest eat);
+
+        Task CreateBulkEatAsync(int loggedUser, CreateBulkEatRequest eat);
     }
 }

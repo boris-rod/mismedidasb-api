@@ -138,5 +138,22 @@ namespace MismeAPI.Controllers
             var mapped = _mapper.Map<EatResponse>(result);
             return Created("", new ApiOkResponse(mapped));
         }
+
+        /// <summary>
+        /// Add or update bulk eats. Requires authentication.
+        /// </summary>
+        /// <param name="eat">Eat request object.</param>
+        [HttpPost("bulk-eats")]
+        [Authorize]
+        [ProducesResponseType(typeof(EatResponse), (int)HttpStatusCode.Created)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> AddEats([FromBody]CreateBulkEatRequest eat)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            await _eatService.CreateBulkEatAsync(loggedUser, eat);
+            //var mapped = _mapper.Map<EatResponse>(result);
+            //return Ok(new ApiOkResponse(mapped));
+            return Ok();
+        }
     }
 }
