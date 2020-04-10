@@ -91,6 +91,7 @@ namespace APITaxi.API.Controllers
             HttpContext.Response.Headers["RefreshToken"] = result.refreshToken;
             HttpContext.Response.Headers["Access-Control-Expose-Headers"] = "Authorization, RefreshToken";
             var user = _mapper.Map<UserResponse>(result.user);
+            user.KCal = result.kcal;
             return Ok(new ApiOkResponse(user));
         }
 

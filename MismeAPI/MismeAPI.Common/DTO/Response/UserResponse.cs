@@ -18,5 +18,6 @@ namespace MismeAPI.Common.DTO.Response
         public DateTime ModifiedAt { get; set; }
         public DateTime? ActivatedAt { get; set; }
         public DateTime? DisabledAt { get; set; }
+        public double KCal { get; set; }
     }
 }
