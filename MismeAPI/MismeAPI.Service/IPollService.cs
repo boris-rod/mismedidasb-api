@@ -21,11 +21,11 @@ namespace MismeAPI.Service
 
         Task<IEnumerable<Poll>> GetAllPollsByConceptAsync(int conceptId);
 
-        Task SetPollResultAsync(int loggedUser, SetPollResultRequest pollResult);
+        //Task SetPollResultAsync(int loggedUser, SetPollResultRequest pollResult);
 
         Task<Poll> UpdatePollTitleAsync(int loggedUser, string title, int id);
 
-        Task SetPollResultByQuestionsAsync(int loggedUser, ListOfPollResultsRequest result);
+        Task<string> SetPollResultByQuestionsAsync(int loggedUser, ListOfPollResultsRequest result);
 
         Task ChangePollQuestionOrderAsync(int loggedUser, QuestionOrderRequest questionOrderRequest, int id);
 

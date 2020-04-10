@@ -3,14 +3,14 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MismeAPI.Data.Entities
 {
-    [Table("userpoll")]
-    public class UserPoll
+    [Table("userconcept")]
+    public class UserConcept
     {
         public int Id { get; set; }
         public int UserId { get; set; }
         public User User { get; set; }
-        public int PollId { get; set; }
-        public Poll Poll { get; set; }
+        public int ConceptId { get; set; }
+        public Concept Concept { get; set; }
         public string Result { get; set; }
         public DateTime CompletedAt { get; set; }
     }

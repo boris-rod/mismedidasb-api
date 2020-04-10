@@ -110,20 +110,20 @@ namespace MismeAPI.Controllers
             return Ok();
         }
 
-        /// <summary>
-        /// Set a poll result. Requires authentication.
-        /// </summary>
-        /// <param name="pollResult">Poll result request object.</param>
-        [HttpPost("set-result")]
-        [Authorize]
-        [ProducesResponseType((int)HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
-        public async Task<IActionResult> SetPollResult([FromBody] SetPollResultRequest pollResult)
-        {
-            var loggedUser = User.GetUserIdFromToken();
-            await _pollService.SetPollResultAsync(loggedUser, pollResult);
-            return Ok();
-        }
+        ///// <summary>
+        ///// Set a poll result. Requires authentication.
+        ///// </summary>
+        ///// <param name="pollResult">Poll result request object.</param>
+        //[HttpPost("set-result")]
+        //[Authorize]
+        //[ProducesResponseType((int)HttpStatusCode.OK)]
+        //[ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
+        //public async Task<IActionResult> SetPollResult([FromBody] SetPollResultRequest pollResult)
+        //{
+        //    var loggedUser = User.GetUserIdFromToken();
+        //    await _pollService.SetPollResultAsync(loggedUser, pollResult);
+        //    return Ok();
+        //}
 
         /// <summary>
         /// Update a poll title. Only an admin can do this operation. Requires authentication.
@@ -154,8 +154,10 @@ namespace MismeAPI.Controllers
         public async Task<IActionResult> SetPollResultBasedRequest([FromBody] ListOfPollResultsRequest result)
         {
             var loggedUser = User.GetUserIdFromToken();
-            await _pollService.SetPollResultByQuestionsAsync(loggedUser, result);
-            return Ok();
+            var message = await _pollService.SetPollResultByQuestionsAsync(loggedUser, result);
+            var obj = new { response = message };
+
+            return Ok(new ApiOkResponse(obj));
         }
 
         /// <summary>

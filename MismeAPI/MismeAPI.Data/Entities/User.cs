@@ -14,6 +14,7 @@ namespace MismeAPI.Data.Entities
             UserTokens = new HashSet<UserToken>();
             Eats = new HashSet<Eat>();
             Devices = new HashSet<Device>();
+            UserConcepts = new HashSet<UserConcept>();
         }
 
         public int Id { get; set; }
@@ -45,5 +46,6 @@ namespace MismeAPI.Data.Entities
         public virtual ICollection<UserToken> UserTokens { get; set; }
         public virtual ICollection<Eat> Eats { get; set; }
         public virtual ICollection<Device> Devices { get; set; }
+        public virtual ICollection<UserConcept> UserConcepts { get; set; }
     }
 }

@@ -10,6 +10,7 @@ namespace MismeAPI.Data.Entities
         public Concept()
         {
             Polls = new HashSet<Poll>();
+            UserConcepts = new HashSet<UserConcept>();
         }
 
         public int Id { get; set; }
@@ -20,5 +21,6 @@ namespace MismeAPI.Data.Entities
         public DateTime CreatedAt { get; set; }
         public DateTime ModifiedAt { get; set; }
         public virtual ICollection<Poll> Polls { get; set; }
+        public virtual ICollection<UserConcept> UserConcepts { get; set; }
     }
 }

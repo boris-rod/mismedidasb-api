@@ -10,7 +10,6 @@ namespace MismeAPI.Data.Entities
         public Poll()
         {
             Questions = new HashSet<Question>();
-            UserPolls = new HashSet<UserPoll>();
             Tips = new HashSet<Tip>();
         }
 
@@ -25,7 +24,6 @@ namespace MismeAPI.Data.Entities
         public bool IsReadOnly { get; set; }
         public string HtmlContent { get; set; }
         public virtual ICollection<Question> Questions { get; set; }
-        public virtual ICollection<UserPoll> UserPolls { get; set; }
         public virtual ICollection<Tip> Tips { get; set; }
     }
 }
