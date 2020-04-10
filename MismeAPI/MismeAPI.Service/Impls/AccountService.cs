@@ -42,7 +42,7 @@ namespace MismeAPI.Services.Impls
             _fileService = fileService ?? throw new ArgumentNullException(nameof(fileService));
         }
 
-        public async Task<(User user, string accessToken, string refreshToken, double kcal)> LoginAsync(LoginRequest loginRequest)
+        public async Task<(User user, string accessToken, string refreshToken, double kcal, int IMC)> LoginAsync(LoginRequest loginRequest)
         {
             var hashedPass = GetSha256Hash(loginRequest.Password);
 
@@ -96,7 +96,8 @@ namespace MismeAPI.Services.Impls
             await _uow.CommitAsync();
 
             var kcal = GetKCal(user.Id);
-            return (user, token, refreshToken, kcal);
+            var imc = GetIMC(user.Id);
+            return (user, token, refreshToken, kcal, imc);
         }
 
         private double GetKCal(int userId)
@@ -242,6 +243,72 @@ namespace MismeAPI.Services.Impls
                 return 0.0;
             }
             return 0.0;
+        }
+
+        private int GetIMC(int userId)
+        {
+            try
+            {
+                var concept = _uow.ConceptRepository.GetAll().Where(c => c.Codename == CodeNamesConstants.HEALTH_MEASURES).FirstOrDefault();
+                if (concept != null)
+                {
+                    var polls = _uow.PollRepository.GetAll().Where(p => p.ConceptId == concept.Id)
+                      .Include(p => p.Questions)
+                      .OrderBy(p => p.Order)
+                      .ToList();
+                    // this is hardcoded but is the way it is.
+
+                    // poll 1- personal data
+                    var questions = polls.ElementAt(0).Questions.OrderBy(q => q.Order);
+
+                    var age = 0;
+                    var weight = 0;
+                    var height = 0;
+                    var sex = 0;
+
+                    var count = 0;
+                    foreach (var q in questions)
+                    {
+                        var ua = _uow.UserAnswerRepository.GetAll().Where(u => u.UserId == userId && u.Answer.QuestionId == q.Id)
+                            .Include(u => u.Answer)
+                                .ThenInclude(a => a.Question)
+                            .OrderByDescending(ua => ua.CreatedAt)
+                            .FirstOrDefault();
+                        //age
+                        if (count == 0 && ua != null)
+                        {
+                            age = ua.Answer.Weight;
+                        }
+                        //weight
+                        else if (count == 1 && ua != null)
+                        {
+                            weight = ua.Answer.Weight;
+                        }
+                        //height
+                        else if (count == 2 && ua != null)
+                        {
+                            height = ua.Answer.Weight;
+                        }
+                        //sex
+                        else
+                        {
+                            sex = ua.Answer.Weight;
+                        }
+
+                        count += 1;
+                    }
+
+                    // other values
+                    var IMC = weight / ((height / 100) * ((height / 100)));
+
+                    return IMC;
+                }
+            }
+            catch (Exception)
+            {
+                return 0;
+            }
+            return 0;
         }
 
         private string GetRefreshToken()

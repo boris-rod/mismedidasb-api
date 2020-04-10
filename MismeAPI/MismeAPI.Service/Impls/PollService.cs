@@ -334,6 +334,7 @@ namespace MismeAPI.Service.Impls
                 }
                 else if (poll.Concept.Codename == CodeNamesConstants.VALUE_MEASURES)
                 {
+                    message = GetValueMeasureMessage(poll.ConceptId, loggedUser);
                 }
                 else if (poll.Concept.Codename == CodeNamesConstants.WELLNESS_MEASURES)
                 {
@@ -1353,6 +1354,156 @@ namespace MismeAPI.Service.Impls
                 result.Add(resp2);
                 result.Add(resp3);
                 result.Add(resp4);
+            }
+
+            return result;
+        }
+
+        private List<string> GetValueMeasureMessage(int conceptId, int userId)
+        {
+            var result = new List<string>();
+
+            // this assume only one poll, it is hardcoded
+            var poll = _uow.PollRepository.GetAll().Where(p => p.ConceptId == conceptId)
+              .Include(p => p.Questions)
+              .OrderBy(p => p.Order)
+              .FirstOrDefault();
+            if (poll != null)
+            {
+                var value1 = 0;
+                var value2 = 0;
+                var value3 = 0;
+                var value4 = 0;
+                var value5 = 0;
+                var value6 = 0;
+                var value7 = 0;
+                var value8 = 0;
+                var value9 = 0;
+                var value10 = 0;
+
+                var questions = poll.Questions.OrderBy(q => q.Order);
+                var count = 0;
+                foreach (var q in questions)
+                {
+                    var ua = _uow.UserAnswerRepository.GetAll().Where(u => u.UserId == userId && u.Answer.QuestionId == q.Id)
+                           .Include(u => u.Answer)
+                               .ThenInclude(a => a.Question)
+                           .OrderByDescending(ua => ua.CreatedAt)
+                           .FirstOrDefault();
+
+                    switch (count)
+                    {
+                        case 0:
+                            value1 = ua.Answer.Weight;
+                            break;
+
+                        case 1:
+                            value2 = ua.Answer.Weight;
+                            break;
+
+                        case 2:
+                            value3 = ua.Answer.Weight;
+                            break;
+
+                        case 3:
+                            value4 = ua.Answer.Weight;
+                            break;
+
+                        case 4:
+                            value5 = ua.Answer.Weight;
+                            break;
+
+                        case 5:
+                            value6 = ua.Answer.Weight;
+                            break;
+
+                        case 6:
+                            value7 = ua.Answer.Weight;
+                            break;
+
+                        case 7:
+                            value8 = ua.Answer.Weight;
+                            break;
+
+                        case 8:
+                            value9 = ua.Answer.Weight;
+                            break;
+
+                        default:
+                            value10 = ua.Answer.Weight;
+                            break;
+                    }
+
+                    count += 1;
+                }
+
+                var resp1 = "";
+                var resp2 = "";
+                var resp3 = "";
+                var resp4 = "";
+                var resp5 = "";
+                var resp6 = "";
+                var resp7 = "";
+                var resp8 = "";
+                var resp9 = "";
+                var resp10 = "";
+
+                resp1 = value1 >= 6 ? "1. Elevada tendencia a mostrar comportamientos socialmente esperados."
+                        : (value1 > 4 && value1 < 6
+                        ? "1. Tendencia moderada a mostrar comportamientos socialmente esperados."
+                        : "1. Escasa tendencia a mostrar comportamientos socialmente esperados.");
+                resp2 = value1 >= 6
+                    ? "2. Profunda aceptación de las costumbres y tradiciones de su cultura."
+                    : (value2 > 4 && value2 < 6
+                        ? "2. Respeta las costumbres y tradiciones de su cultura."
+                        : "2. Dificultades para aceptar las costumbres y tradiciones de su cultura.");
+                resp3 = value3 >= 6
+                    ? "3. Alta lealtad, honestidad, y compasión hacia personas cercanas."
+                    : "3. Lealtad, honestidad y compasión no son sus valores primarios.";
+                resp4 = value4 >= 6
+                    ? "4. Gran compromiso con la protección de la naturaleza y la vida."
+                    : (value4 > 4 && value4 < 6
+                        ? "4. Considera relevante la protección naturaleza y la vida."
+                        : "4. Poco compromiso con la protección de la naturaleza y la vida.");
+                resp5 = value5 >= 6
+                    ? "5. Elevada independencia de pensamiento y acción."
+                    : "5. La independencia de pensamiento y acción no su punto fuerte.";
+                resp6 = value6 >= 6
+                    ? "6. Muy orientado hacia la búsqueda de nuevos retos y experiencias excitantes."
+                    : (value6 > 4 && value6 < 6
+                        ? "6. Le gustan los retos y las vivencias novedosas."
+                        : "6. La búsqueda de retos y experiencias nuevas no es su punto fuerte.");
+                resp7 = value7 >= 6
+                    ? "7. Elevada búsqueda de placer y gratificación sensorial."
+                    : (value7 > 4 && value7 < 6
+                        ? "7. Otorga importancia al placer y la gratificación sensorial."
+                        : "7. Otorga poca importancia al placer y la gratificación sensorial.");
+                resp8 = value8 == 7
+                    ? "8. El sacrificio y el trabajo duro son valores primarios."
+                    : (value8 > 5 && value8 < 7
+                        ? "8. Otorga importancia al sacrificio y al trabajo duro."
+                        : "8. El sacrificio y el trabajo duro no son sus puntos fuertes.");
+                resp9 = value9 >= 6
+                    ? "9. Alta orientación hacia la obtención de estatus y/o prestigio."
+                    : (value9 > 4 && value9 < 6
+                    ? "9. Otorga importancia a la obtención de estatus y/o prestigio."
+                    : "9. Otorga poca importancia a la obtención de estatus y/o prestigio.");
+                resp10 = value10 == 7
+                    ? "10. Alta orientación hacia la búsqueda de seguridad y estabilidad."
+                    : (value10 > 5 && value10 < 7
+                    ? "10. La seguridad y la estabilidad son valores importantes para usted."
+                    : "10. Poca orientación hacia la búsqueda de seguridad y estabilidad.");
+
+                result.Add(resp1);
+                result.Add(resp2);
+                result.Add(resp3);
+                result.Add(resp4);
+                result.Add(resp5);
+                result.Add(resp6);
+                result.Add(resp7);
+                result.Add(resp8);
+                result.Add(resp9);
+                result.Add(resp10);
             }
 
             return result;
