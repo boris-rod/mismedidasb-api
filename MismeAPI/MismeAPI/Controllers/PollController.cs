@@ -155,9 +155,8 @@ namespace MismeAPI.Controllers
         {
             var loggedUser = User.GetUserIdFromToken();
             var message = await _pollService.SetPollResultByQuestionsAsync(loggedUser, result);
-            var obj = new { response = message };
 
-            return Ok(new ApiOkResponse(obj));
+            return Ok(new ApiOkResponse(message));
         }
 
         /// <summary>

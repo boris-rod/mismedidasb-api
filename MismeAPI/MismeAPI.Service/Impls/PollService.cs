@@ -280,9 +280,9 @@ namespace MismeAPI.Service.Impls
         //    await _uow.CommitAsync();
         //}
 
-        public async Task<string> SetPollResultByQuestionsAsync(int loggedUser, ListOfPollResultsRequest result)
+        public async Task<List<string>> SetPollResultByQuestionsAsync(int loggedUser, ListOfPollResultsRequest result)
         {
-            var message = "";
+            var message = new List<string>();
             var poll = await _uow.PollRepository.GetAll().Where(p => p.Id == result.PollDatas.ElementAt(0).PollId)
                   .Include(p => p.Concept)
                   .FirstOrDefaultAsync();
@@ -331,28 +331,28 @@ namespace MismeAPI.Service.Impls
                 if (poll.Concept.Codename == CodeNamesConstants.HEALTH_MEASURES)
                 {
                     message = GetHealthMeasureMessage(poll.ConceptId, loggedUser);
-                    var conceptToUpdate = await _uow.UserConceptRepository.GetAll().Where(c => c.Id == poll.ConceptId
-                                && c.UserId == loggedUser
-                                && c.CompletedAt.Date == DateTime.UtcNow.Date)
-                        .FirstOrDefaultAsync();
-                    if (conceptToUpdate != null)
-                    {
-                        conceptToUpdate.Result = message;
-                        _uow.UserConceptRepository.Update(conceptToUpdate);
-                    }
-                    else
-                    {
-                        var conc = new UserConcept();
-                        conc.CompletedAt = DateTime.UtcNow;
-                        conc.ConceptId = poll.ConceptId;
-                        conc.Result = message;
-                        conc.UserId = loggedUser;
-                        await _uow.UserConceptRepository.AddAsync(conceptToUpdate);
-                    }
-                    await _uow.CommitAsync();
                 }
                 else if (poll.Concept.Codename == CodeNamesConstants.VALUE_MEASURES)
                 {
+                }
+                else if (poll.Concept.Codename == CodeNamesConstants.WELLNESS_MEASURES)
+                {
+                    message = GetWellnessMeasureMessage(poll.ConceptId, loggedUser);
+                }
+
+                // set concept result
+                var conceptToUpdate = await _uow.UserConceptRepository.GetAll().Where(c => c.Id == poll.ConceptId
+                               && c.UserId == loggedUser
+                               && c.CompletedAt.Date == DateTime.UtcNow.Date)
+                       .FirstOrDefaultAsync();
+                if (conceptToUpdate == null)
+                {
+                    var conc = new UserConcept();
+                    conc.CompletedAt = DateTime.UtcNow;
+                    conc.ConceptId = poll.ConceptId;
+                    conc.UserId = loggedUser;
+                    await _uow.UserConceptRepository.AddAsync(conceptToUpdate);
+                    await _uow.CommitAsync();
                 }
             }
 
@@ -448,9 +448,9 @@ namespace MismeAPI.Service.Impls
             return pd;
         }
 
-        private string GetHealthMeasureMessage(int conceptId, int userId)
+        private List<string> GetHealthMeasureMessage(int conceptId, int userId)
         {
-            var result = "";
+            var result = new List<string>();
             var polls = _uow.PollRepository.GetAll().Where(p => p.ConceptId == conceptId)
                 .Include(p => p.Questions)
                 .OrderBy(p => p.Order)
@@ -586,13 +586,11 @@ namespace MismeAPI.Service.Impls
 
             if (IMC < 15)
             {
-                result =
-                    "Usted presenta BAJO PESO EXTREMO (" + IMCString + " Kg/m2) ¡Consulte a un médico!";
+                result.Add("Usted presenta BAJO PESO EXTREMO (" + IMCString + " Kg/m2) ¡Consulte a un médico!");
             }
             else if (IMC >= 15 && IMC < 16)
             {
-                result =
-                    "Usted presenta BAJO PESO GRAVE (" + IMCString + " Kg/m2) ¡Consulte a un médico!";
+                result.Add("Usted presenta BAJO PESO GRAVE (" + IMCString + " Kg/m2) ¡Consulte a un médico!");
             }
 
             //Resultados bajo peso 16-17 con deporte y wc<7
@@ -601,40 +599,36 @@ namespace MismeAPI.Service.Impls
                 dietSummary <= 7 &&
                 physicalExercise == 1)
             {
-                result =
-                    "Usted presenta BAJO PESO MODERADO (" + IMCString + " Kg/m2): Su ingesta de calorías debe estar por encima de " + dailyKalString + " Kcal/día. Se sugiere consultar a un médico.";
+                result.Add("Usted presenta BAJO PESO MODERADO (" + IMCString + " Kg/m2): Su ingesta de calorías debe estar por encima de " + dailyKalString + " Kcal/día. Se sugiere consultar a un médico.");
             }
             else if (IMC >= 16 &&
               IMC < 17 &&
               dietSummary <= 7 &&
               physicalExercise == 2)
             {
-                result =
-                    "Usted presenta BAJO PESO MODERADO (" + IMCString + " Kg/m2): Su ingesta de calorías debe estar por encima de " + dailyKalString + " Kcal/día. Debería realizar ejercicios centrados en incrementar masa muscular, siempre bajo supervisión. Se sugiere consultar a un médico.";
+                result.Add("Usted presenta BAJO PESO MODERADO (" + IMCString + " Kg/m2): Su ingesta de calorías debe estar por encima de " + dailyKalString + " Kcal/día. Debería realizar ejercicios centrados en incrementar masa muscular, siempre bajo supervisión. Se sugiere consultar a un médico.");
             }
             else if (IMC >= 16 &&
               IMC < 17 &&
               dietSummary <= 7 &&
               physicalExercise == 3)
             {
-                result =
-                    "Usted presenta BAJO PESO MODERADO (" + IMCString + " Kg/m2): Su ingesta de calorías debe estar por encima de " + dailyKalString + " Kcal/día. Hacer ejercicios parece ser un hábito, debería hacerlos con supervisión de un especialista. Se sugiere consultar a un médico.";
+                result.Add(
+                     "Usted presenta BAJO PESO MODERADO (" + IMCString + " Kg/m2): Su ingesta de calorías debe estar por encima de " + dailyKalString + " Kcal/día. Hacer ejercicios parece ser un hábito, debería hacerlos con supervisión de un especialista. Se sugiere consultar a un médico.");
             }
             else if (IMC >= 16 &&
               IMC < 17 &&
               dietSummary <= 7 &&
               physicalExercise == 4)
             {
-                result =
-                    "Usted presenta BAJO PESO MODERADO (" + IMCString + " Kg/m2): Su ingesta de calorías debe estar por encima de " + dailyKalString + " Kcal/día. Hacer ejercicios parece ser un medio para gestionar emociones y afrontar los problemas.";
+                result.Add("Usted presenta BAJO PESO MODERADO (" + IMCString + " Kg/m2): Su ingesta de calorías debe estar por encima de " + dailyKalString + " Kcal/día. Hacer ejercicios parece ser un medio para gestionar emociones y afrontar los problemas.");
             }
             else if (IMC >= 16 &&
               IMC < 17 &&
               dietSummary <= 7 &&
               physicalExercise == 5)
             {
-                result =
-                    "Usted presenta BAJO PESO MODERADO (" + IMCString + " Kg/m2): Su ingesta de calorías debe estar por encima de " + dailyKalString + " Kcal/día. Podría estar haciendo ejercicios de forma compulsiva (a menos que sea un deportista activo). Se sugiere consultar a un médico.";
+                result.Add("Usted presenta BAJO PESO MODERADO (" + IMCString + " Kg/m2): Su ingesta de calorías debe estar por encima de " + dailyKalString + " Kcal/día. Podría estar haciendo ejercicios de forma compulsiva (a menos que sea un deportista activo). Se sugiere consultar a un médico.");
             }
 
             //Resultados bajo peso 16-17 con deporte y wc>7
@@ -643,40 +637,35 @@ namespace MismeAPI.Service.Impls
                 dietSummary > 7 &&
                 physicalExercise == 1)
             {
-                result =
-                    "Usted presenta BAJO PESO MODERADO (" + IMCString + " Kg/m2): Su ingesta de calorías debe estar por encima de " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Se sugiere consultar a un médico.";
+                result.Add("Usted presenta BAJO PESO MODERADO (" + IMCString + " Kg/m2): Su ingesta de calorías debe estar por encima de " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Se sugiere consultar a un médico.");
             }
             else if (IMC >= 16 &&
               IMC < 17 &&
               dietSummary > 7 &&
               physicalExercise == 2)
             {
-                result =
-                    "Usted presenta BAJO PESO MODERADO (" + IMCString + " Kg/m2): Su ingesta de calorías debe estar por encima de " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Debería realizar ejercicios centrados en incrementar masa muscular, siempre bajo supervisión. Se sugiere consultar a un médico.";
+                result.Add("Usted presenta BAJO PESO MODERADO (" + IMCString + " Kg/m2): Su ingesta de calorías debe estar por encima de " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Debería realizar ejercicios centrados en incrementar masa muscular, siempre bajo supervisión. Se sugiere consultar a un médico.");
             }
             else if (IMC >= 16 &&
               IMC < 17 &&
               dietSummary > 7 &&
               physicalExercise == 3)
             {
-                result =
-                    "Usted presenta BAJO PESO MODERADO (" + IMCString + " Kg/m2): Su ingesta de calorías debe estar por encima de " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Hacer ejercicios parece ser un hábito, debería realizarlos con supervisión de un especialista. Se sugiere consultar a un médico.";
+                result.Add("Usted presenta BAJO PESO MODERADO (" + IMCString + " Kg/m2): Su ingesta de calorías debe estar por encima de " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Hacer ejercicios parece ser un hábito, debería realizarlos con supervisión de un especialista. Se sugiere consultar a un médico.");
             }
             else if (IMC >= 16 &&
               IMC < 17 &&
               dietSummary > 7 &&
               physicalExercise == 4)
             {
-                result =
-                    "Usted presenta BAJO PESO MODERADO (" + IMCString + " Kg/m2): Su ingesta de calorías debe estar por encima de " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Hacer ejercicios parece ser un medio para gestionar emociones y afrontar los problemas, debería realizarlos con supervisión de un especialista. Se sugiere consultar a un médico.";
+                result.Add("Usted presenta BAJO PESO MODERADO (" + IMCString + " Kg/m2): Su ingesta de calorías debe estar por encima de " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Hacer ejercicios parece ser un medio para gestionar emociones y afrontar los problemas, debería realizarlos con supervisión de un especialista. Se sugiere consultar a un médico.");
             }
             else if (IMC >= 16 &&
               IMC < 17 &&
               dietSummary > 7 &&
               physicalExercise == 5)
             {
-                result =
-                    "Usted presenta BAJO PESO MODERADO (" + IMCString + " Kg/m2): Su ingesta de calorías debe estar por encima de " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Podría estar haciendo ejercicios de forma compulsiva (a menos que sea un deportista activo). Se sugiere consultar a un médico.";
+                result.Add("Usted presenta BAJO PESO MODERADO (" + IMCString + " Kg/m2): Su ingesta de calorías debe estar por encima de " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Podría estar haciendo ejercicios de forma compulsiva (a menos que sea un deportista activo). Se sugiere consultar a un médico.");
             }
 
             //Resultados bajo peso 17-18 con deporte y wc<7
@@ -685,40 +674,35 @@ namespace MismeAPI.Service.Impls
                 dietSummary <= 7 &&
                 physicalExercise == 1)
             {
-                result =
-                    "Usted presenta BAJO PESO LIGERO (" + IMCString + " Kg/m2): Su ingesta de calorías debe estar por encima de " + dailyKalString + " Kcal/día. Debería realizar ejercicios centrados en incrementar masa muscular, siempre bajo supervisión. Se sugiere consultar un médico.";
+                result.Add("Usted presenta BAJO PESO LIGERO (" + IMCString + " Kg/m2): Su ingesta de calorías debe estar por encima de " + dailyKalString + " Kcal/día. Debería realizar ejercicios centrados en incrementar masa muscular, siempre bajo supervisión. Se sugiere consultar un médico.");
             }
             else if (IMC >= 17 &&
               IMC < 18.5 &&
               dietSummary <= 7 &&
               physicalExercise == 2)
             {
-                result =
-                    "Usted presenta BAJO PESO LIGERO (" + IMCString + " Kg/m2): Su ingesta de calorías debe estar por encima de " + dailyKalString + " Kcal/día y ajustada al gasto. Debería realizar ejercicios centrados en incrementar masa muscular, siempre bajo supervisión. Se sugiere consultar a un médico.";
+                result.Add("Usted presenta BAJO PESO LIGERO (" + IMCString + " Kg/m2): Su ingesta de calorías debe estar por encima de " + dailyKalString + " Kcal/día y ajustada al gasto. Debería realizar ejercicios centrados en incrementar masa muscular, siempre bajo supervisión. Se sugiere consultar a un médico.");
             }
             else if (IMC >= 17 &&
               IMC < 18.5 &&
               dietSummary <= 7 &&
               physicalExercise == 3)
             {
-                result =
-                    "Usted presenta BAJO PESO LIGERO (" + IMCString + " Kg/m2): Su ingesta de calorías debe estar por encima de " + dailyKalString + " Kcal/día y ajustada al gasto. Hacer ejercicios parece ser un hábito, debería realizar ejercicios centrados en incrementar masa muscular, siempre bajo supervisión. Se sugiere consultar a un médico.";
+                result.Add("Usted presenta BAJO PESO LIGERO (" + IMCString + " Kg/m2): Su ingesta de calorías debe estar por encima de " + dailyKalString + " Kcal/día y ajustada al gasto. Hacer ejercicios parece ser un hábito, debería realizar ejercicios centrados en incrementar masa muscular, siempre bajo supervisión. Se sugiere consultar a un médico.");
             }
             else if (IMC >= 17 &&
               IMC < 18.5 &&
               dietSummary <= 7 &&
               physicalExercise == 4)
             {
-                result =
-                    "Usted presenta BAJO PESO LIGERO (" + IMCString + " Kg/m2): Su ingesta de calorías debe estar por encima de " + dailyKalString + " Kcal/día y ajustada al gasto. Hacer ejercicios parece ser un medio para gestionar emociones y afrontar los problemas, debería realizarlos bajo supervisión de un especialista. Se sugiere consultar a un médico.";
+                result.Add("Usted presenta BAJO PESO LIGERO (" + IMCString + " Kg/m2): Su ingesta de calorías debe estar por encima de " + dailyKalString + " Kcal/día y ajustada al gasto. Hacer ejercicios parece ser un medio para gestionar emociones y afrontar los problemas, debería realizarlos bajo supervisión de un especialista. Se sugiere consultar a un médico.");
             }
             else if (IMC >= 17 &&
               IMC < 18.5 &&
               dietSummary <= 7 &&
               physicalExercise == 5)
             {
-                result =
-                    "(" + IMCString + " Kg/m2): (BAJO PESO MODERADO): Su ingesta de calorías debería estar por encima de " + dailyKalString + " Kcal/día y ajustada al gasto. Podría estar haciendo ejercicios de forma compulsiva (a menos que sea un deportista activo). Se sugiere consultar a un médico.";
+                result.Add("(" + IMCString + " Kg/m2): (BAJO PESO MODERADO): Su ingesta de calorías debería estar por encima de " + dailyKalString + " Kcal/día y ajustada al gasto. Podría estar haciendo ejercicios de forma compulsiva (a menos que sea un deportista activo). Se sugiere consultar a un médico.");
             }
 
             //Resultados bajo peso 17-18 con deporte y wc>7 //Instrucciones para Peso Normal
@@ -727,40 +711,35 @@ namespace MismeAPI.Service.Impls
                 dietSummary > 7 &&
                 physicalExercise == 1)
             {
-                result =
-                    "Usted presenta BAJO PESO LIGERO (" + IMCString + " Kg/m2): Su ingesta de calorías debería estar por encima de " + dailyKalString + " Kcal/día Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Debería realizar ejercicios centrados en incrementar masa muscular, siempre bajo supervisión. Se sugiere consultar un médico.";
+                result.Add("Usted presenta BAJO PESO LIGERO (" + IMCString + " Kg/m2): Su ingesta de calorías debería estar por encima de " + dailyKalString + " Kcal/día Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Debería realizar ejercicios centrados en incrementar masa muscular, siempre bajo supervisión. Se sugiere consultar un médico.");
             }
             else if (IMC >= 17 &&
               IMC < 18.5 &&
               dietSummary > 7 &&
               physicalExercise == 2)
             {
-                result =
-                    "Usted presenta BAJO PESO LIGERO (" + IMCString + " Kg/m2):  Su ingesta de calorías debería estar por encima de " + dailyKalString + " Kcal/día y ajustada al gasto. Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Debería realizar ejercicios centrados en incrementar masa muscular, siempre bajo supervisión. Se sugiere consultar un médico.";
+                result.Add("Usted presenta BAJO PESO LIGERO (" + IMCString + " Kg/m2):  Su ingesta de calorías debería estar por encima de " + dailyKalString + " Kcal/día y ajustada al gasto. Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Debería realizar ejercicios centrados en incrementar masa muscular, siempre bajo supervisión. Se sugiere consultar un médico.");
             }
             else if (IMC >= 17 &&
               IMC < 18.5 &&
               dietSummary > 7 &&
               physicalExercise == 3)
             {
-                result =
-                    "Usted presenta BAJO PESO LIGERO (" + IMCString + " Kg/m2): Su ingesta de calorías debería estar por encima de " + dailyKalString + " Kcal/día y ajustada al gasto. Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Hacer ejercicios parece ser un hábito, debería realizar ejercicios centrados en incrementar masa muscular, siempre bajo supervisión. Se sugiere consultar a un médico.";
+                result.Add("Usted presenta BAJO PESO LIGERO (" + IMCString + " Kg/m2): Su ingesta de calorías debería estar por encima de " + dailyKalString + " Kcal/día y ajustada al gasto. Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Hacer ejercicios parece ser un hábito, debería realizar ejercicios centrados en incrementar masa muscular, siempre bajo supervisión. Se sugiere consultar a un médico.");
             }
             else if (IMC >= 17 &&
               IMC < 18.5 &&
               dietSummary > 7 &&
               physicalExercise == 4)
             {
-                result =
-                    "Usted presenta BAJO PESO LIGERO (" + IMCString + " Kg/m2): Su ingesta de calorías debería estar por encima de " + dailyKalString + " Kcal/día y ajustada al gasto. Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Hacer ejercicios parece ser un medio para gestionar emociones y afrontar los problemas, debería realizarlos bajo supervisión. Se sugiere consultar a un médico.";
+                result.Add("Usted presenta BAJO PESO LIGERO (" + IMCString + " Kg/m2): Su ingesta de calorías debería estar por encima de " + dailyKalString + " Kcal/día y ajustada al gasto. Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Hacer ejercicios parece ser un medio para gestionar emociones y afrontar los problemas, debería realizarlos bajo supervisión. Se sugiere consultar a un médico.");
             }
             else if (IMC >= 17 &&
               IMC < 18.5 &&
               dietSummary > 7 &&
               physicalExercise == 5)
             {
-                result =
-                    "Usted presenta BAJO PESO LIGERO (" + IMCString + " Kg/m2): Su ingesta de calorías debería estar por encima de " + dailyKalString + " Kcal/día y ajustada al gasto. Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Hacer ejercicios parece ser un medio para gestionar emociones y afrontar los problemas, debería realizarlos bajo supervisión. Se sugiere consultar a un médico.";
+                result.Add("Usted presenta BAJO PESO LIGERO (" + IMCString + " Kg/m2): Su ingesta de calorías debería estar por encima de " + dailyKalString + " Kcal/día y ajustada al gasto. Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Hacer ejercicios parece ser un medio para gestionar emociones y afrontar los problemas, debería realizarlos bajo supervisión. Se sugiere consultar a un médico.");
             }
 
             //Instrucciones para Peso Normal deporte wc<4
@@ -769,40 +748,35 @@ namespace MismeAPI.Service.Impls
                 dietSummary <= 4 &&
                 physicalExercise == 1)
             {
-                result =
-                    "Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Le recomendamos hacer ejercicios al menos 3 veces a la semana, para potenciar la salud y prevenir enfermedades.";
+                result.Add("Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Le recomendamos hacer ejercicios al menos 3 veces a la semana, para potenciar la salud y prevenir enfermedades.");
             }
             else if (IMC >= 18.5 &&
               IMC < 25 &&
               dietSummary <= 4 &&
               physicalExercise == 2)
             {
-                result =
-                    "Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Se observa cierta regularidad en su práctica de ejercicio físico.";
+                result.Add("Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Se observa cierta regularidad en su práctica de ejercicio físico.");
             }
             else if (IMC >= 18.5 &&
               IMC < 25 &&
               dietSummary <= 4 &&
               physicalExercise == 3)
             {
-                result =
-                    "Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Hacer ejercicios parece ser un hábito.";
+                result.Add("Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Hacer ejercicios parece ser un hábito.");
             }
             else if (IMC >= 18.5 &&
               IMC < 25 &&
               dietSummary <= 4 &&
               physicalExercise == 4)
             {
-                result =
-                    "Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Hacer ejercicios parece ser un medio para gestionar emociones y afrontar los problemas.";
+                result.Add("Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Hacer ejercicios parece ser un medio para gestionar emociones y afrontar los problemas.");
             }
             else if (IMC >= 18.5 &&
               IMC < 25 &&
               dietSummary <= 4 &&
               physicalExercise == 5)
             {
-                result =
-                    "Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Podría estar haciendo ejercicios de forma compulsiva (a menos que sea un deportista activo).";
+                result.Add("Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Podría estar haciendo ejercicios de forma compulsiva (a menos que sea un deportista activo).");
             }
 
             //Instrucciones para Peso Normal deporte wc entre 4 y 7
@@ -812,8 +786,7 @@ namespace MismeAPI.Service.Impls
                 dietSummary <= 7 &&
                 physicalExercise == 1)
             {
-                result =
-                    "Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Muestra indicadores de fluctuaciones del peso y uso moderado de dietas en su historia vital. Le recomendamos hacer ejercicios al menos 3 veces a la semana, para potenciar la salud y prevenir enfermedades.";
+                result.Add("Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Muestra indicadores de fluctuaciones del peso y uso moderado de dietas en su historia vital. Le recomendamos hacer ejercicios al menos 3 veces a la semana, para potenciar la salud y prevenir enfermedades.");
             }
             else if (IMC >= 18.5 &&
               IMC < 25 &&
@@ -821,8 +794,7 @@ namespace MismeAPI.Service.Impls
               dietSummary <= 7 &&
               physicalExercise == 2)
             {
-                result =
-                    "Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Muestra indicadores de fluctuaciones del peso y uso moderado de dietas en su historia vital. Se observa cierta regularidad en su práctica de ejercicio físico.";
+                result.Add("Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Muestra indicadores de fluctuaciones del peso y uso moderado de dietas en su historia vital. Se observa cierta regularidad en su práctica de ejercicio físico.");
             }
             else if (IMC >= 18.5 &&
               IMC < 25 &&
@@ -830,8 +802,7 @@ namespace MismeAPI.Service.Impls
               dietSummary <= 7 &&
               physicalExercise == 3)
             {
-                result =
-                    "Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Muestra indicadores de fluctuaciones del peso y uso moderado de dietas en su historia vital. Hacer ejercicios parece ser un hábito.";
+                result.Add("Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Muestra indicadores de fluctuaciones del peso y uso moderado de dietas en su historia vital. Hacer ejercicios parece ser un hábito.");
             }
             else if (IMC >= 18.5 &&
               IMC < 25 &&
@@ -839,8 +810,7 @@ namespace MismeAPI.Service.Impls
               dietSummary <= 7 &&
               physicalExercise == 4)
             {
-                result =
-                    "Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Muestra indicadores de fluctuaciones del peso y uso moderado de dietas en su historia vital. Hacer ejercicios parece ser un medio para gestionar emociones y afrontar los problemas.";
+                result.Add("Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Muestra indicadores de fluctuaciones del peso y uso moderado de dietas en su historia vital. Hacer ejercicios parece ser un medio para gestionar emociones y afrontar los problemas.");
             }
             else if (IMC >= 18.5 &&
               IMC < 25 &&
@@ -848,8 +818,7 @@ namespace MismeAPI.Service.Impls
               dietSummary <= 7 &&
               physicalExercise == 5)
             {
-                result =
-                    "Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Muestra indicadores de fluctuaciones del peso y uso moderado de dietas en su historia vital. Podría estar haciendo ejercicios de forma compulsiva (a menos que sea un deportista activo).";
+                result.Add("Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Muestra indicadores de fluctuaciones del peso y uso moderado de dietas en su historia vital. Podría estar haciendo ejercicios de forma compulsiva (a menos que sea un deportista activo).");
             }
 
             //Instrucciones para Peso Normal deporte wc entre 7 y 12
@@ -859,8 +828,7 @@ namespace MismeAPI.Service.Impls
                 dietSummary <= 12 &&
                 physicalExercise == 1)
             {
-                result =
-                    "Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Le recomendamos hacer ejercicios al menos 3 veces a la semana, para potenciar la salud y prevenir enfermedades.";
+                result.Add("Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Le recomendamos hacer ejercicios al menos 3 veces a la semana, para potenciar la salud y prevenir enfermedades.");
             }
             else if (IMC >= 18.5 &&
               IMC < 25 &&
@@ -868,8 +836,7 @@ namespace MismeAPI.Service.Impls
               dietSummary <= 12 &&
               physicalExercise == 2)
             {
-                result =
-                    "Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Se observa cierta regularidad en su práctica de ejercicio físico.";
+                result.Add("Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Se observa cierta regularidad en su práctica de ejercicio físico.");
             }
             else if (IMC >= 18.5 &&
               IMC < 25 &&
@@ -877,8 +844,7 @@ namespace MismeAPI.Service.Impls
               dietSummary <= 12 &&
               physicalExercise == 3)
             {
-                result =
-                    "Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Hacer ejercicios parece ser un hábito.";
+                result.Add("Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Hacer ejercicios parece ser un hábito.");
             }
             else if (IMC >= 18.5 &&
               IMC < 25 &&
@@ -886,8 +852,7 @@ namespace MismeAPI.Service.Impls
               dietSummary <= 12 &&
               physicalExercise == 4)
             {
-                result =
-                    "Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Hacer ejercicios parece ser un medio para gestionar emociones y afrontar los problemas.";
+                result.Add("Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Hacer ejercicios parece ser un medio para gestionar emociones y afrontar los problemas.");
             }
             else if (IMC >= 18.5 &&
               IMC < 25 &&
@@ -895,8 +860,7 @@ namespace MismeAPI.Service.Impls
               dietSummary <= 12 &&
               physicalExercise == 5)
             {
-                result =
-                    "Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Podría estar haciendo ejercicios de forma compulsiva (a menos que sea un deportista activo).";
+                result.Add("Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Podría estar haciendo ejercicios de forma compulsiva (a menos que sea un deportista activo).");
             }
 
             //Instrucciones para Peso Normal deporte wc > 12
@@ -905,40 +869,35 @@ namespace MismeAPI.Service.Impls
                 dietSummary > 12 &&
                 physicalExercise == 1)
             {
-                result =
-                    "Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Muestra indicadores de severas fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Le recomendamos hacer ejercicios al menos 3 veces a la semana, para potenciar la salud y prevenir enfermedades.";
+                result.Add("Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Muestra indicadores de severas fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Le recomendamos hacer ejercicios al menos 3 veces a la semana, para potenciar la salud y prevenir enfermedades.");
             }
             else if (IMC >= 18.5 &&
               IMC < 25 &&
               dietSummary > 12 &&
               physicalExercise == 2)
             {
-                result =
-                    "Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Muestra indicadores de severas fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Se observa cierta regularidad en su práctica de ejercicio físico.";
+                result.Add("Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Muestra indicadores de severas fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Se observa cierta regularidad en su práctica de ejercicio físico.");
             }
             else if (IMC >= 18.5 &&
               IMC < 25 &&
               dietSummary > 12 &&
               physicalExercise == 3)
             {
-                result =
-                    "Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Muestra indicadores de severas fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Hacer ejercicios parece ser un hábito.";
+                result.Add("Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Muestra indicadores de severas fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Hacer ejercicios parece ser un hábito.");
             }
             else if (IMC >= 18.5 &&
               IMC < 25 &&
               dietSummary > 12 &&
               physicalExercise == 4)
             {
-                result =
-                    "Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Muestra indicadores de severas fluctuaciones del peso, un uso crónico de la dietas o restricción y la práctica de ejercios como mecanismos para regular emociones y afrontar problemas.";
+                result.Add("Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Muestra indicadores de severas fluctuaciones del peso, un uso crónico de la dietas o restricción y la práctica de ejercios como mecanismos para regular emociones y afrontar problemas.");
             }
             else if (IMC >= 18.5 &&
               IMC < 25 &&
               dietSummary > 12 &&
               physicalExercise == 5)
             {
-                result =
-                    "Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Muestra indicadores de severas fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Podría estar haciendo ejercicios de forma compulsiva (a menos que sea un deportista activo).";
+                result.Add("Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Muestra indicadores de severas fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Podría estar haciendo ejercicios de forma compulsiva (a menos que sea un deportista activo).");
             }
 
             //Instrucciones para Sobrepeso deporte wc<4
@@ -947,40 +906,35 @@ namespace MismeAPI.Service.Impls
                 dietSummary <= 4 &&
                 physicalExercise == 1)
             {
-                result =
-                    "Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Debería realizar ejercicio físico moderado. Ej. 4 veces por semana, 45 minutos por sesión.";
+                result.Add("Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Debería realizar ejercicio físico moderado. Ej. 4 veces por semana, 45 minutos por sesión.");
             }
             else if (IMC >= 25 &&
               IMC < 30 &&
               dietSummary <= 4 &&
               physicalExercise == 2)
             {
-                result =
-                    "Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Hacer ejercicios con cierta regularidad, quizás deba incrementar su práctica a 4 veces por semana, 45 minutos por sesión.";
+                result.Add("Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Hacer ejercicios con cierta regularidad, quizás deba incrementar su práctica a 4 veces por semana, 45 minutos por sesión.");
             }
             else if (IMC >= 25 &&
               IMC < 30 &&
               dietSummary <= 4 &&
               physicalExercise == 3)
             {
-                result =
-                    "Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Hacer ejercicios parece ser un hábito, asegúrese de no realizar menos de 45 minutos por sesión. También debería revisar sus hábitos alimentarios.";
+                result.Add("Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Hacer ejercicios parece ser un hábito, asegúrese de no realizar menos de 45 minutos por sesión. También debería revisar sus hábitos alimentarios.");
             }
             else if (IMC >= 25 &&
               IMC < 30 &&
               dietSummary <= 4 &&
               physicalExercise == 4)
             {
-                result =
-                    "Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Practicar ejercicios parece haberse convertido en un medio de afrontar dificultades y gestionar emociones. Es probable que deba revisar su pauta ejercicios y/o de alimentación.";
+                result.Add("Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Practicar ejercicios parece haberse convertido en un medio de afrontar dificultades y gestionar emociones. Es probable que deba revisar su pauta ejercicios y/o de alimentación.");
             }
             else if (IMC >= 25 &&
               IMC < 30 &&
               dietSummary <= 4 &&
               physicalExercise == 5)
             {
-                result =
-                    "Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Podría estar haciendo ejercicios de forma compulsiva (a menos que sea un deportista activo). Es probable que deba revisar su pauta ejercicios y/o de alimentación.";
+                result.Add("Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Podría estar haciendo ejercicios de forma compulsiva (a menos que sea un deportista activo). Es probable que deba revisar su pauta ejercicios y/o de alimentación.");
             }
 
             //Instrucciones para Sobrepeso deporte wc entre 4 y 7
@@ -990,8 +944,7 @@ namespace MismeAPI.Service.Impls
                 dietSummary <= 7 &&
                 physicalExercise == 1)
             {
-                result =
-                    "Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de dietas en su historia vital. Debería realizar ejercicio físico moderado. Ej. 4 veces por semana, 45 minutos por sesión.";
+                result.Add("Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de dietas en su historia vital. Debería realizar ejercicio físico moderado. Ej. 4 veces por semana, 45 minutos por sesión.");
             }
             else if (IMC >= 25 &&
               IMC < 30 &&
@@ -999,8 +952,7 @@ namespace MismeAPI.Service.Impls
               dietSummary <= 7 &&
               physicalExercise == 2)
             {
-                result =
-                    "Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de dietas en su historia vital. Hace ejercicios con cierta regularidad, quizás deba incrementar su práctica a 4 veces por semana, 45 minutos por sesión.";
+                result.Add("Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de dietas en su historia vital. Hace ejercicios con cierta regularidad, quizás deba incrementar su práctica a 4 veces por semana, 45 minutos por sesión.");
             }
             else if (IMC >= 25 &&
               IMC < 30 &&
@@ -1008,8 +960,7 @@ namespace MismeAPI.Service.Impls
               dietSummary <= 7 &&
               physicalExercise == 3)
             {
-                result =
-                    "Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de dietas en su historia vital. Hacer ejercicios parece ser un hábito, asegúrese de no realizar menos de 45 minutos por sesión. También debería revisar sus hábitos aliemntarios.";
+                result.Add("Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de dietas en su historia vital. Hacer ejercicios parece ser un hábito, asegúrese de no realizar menos de 45 minutos por sesión. También debería revisar sus hábitos aliemntarios.");
             }
             else if (IMC >= 25 &&
               IMC < 30 &&
@@ -1017,8 +968,7 @@ namespace MismeAPI.Service.Impls
               dietSummary <= 7 &&
               physicalExercise == 4)
             {
-                result =
-                    "Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de dietas en su historia vital. Practicar ejercicios parece haberse convertido en un medio de afrontar dificultades y gestionar emociones. Debe revisar su de pauta ejercicios y/o de alimentación.";
+                result.Add("Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de dietas en su historia vital. Practicar ejercicios parece haberse convertido en un medio de afrontar dificultades y gestionar emociones. Debe revisar su de pauta ejercicios y/o de alimentación.");
             }
             else if (IMC >= 25 &&
               IMC < 30 &&
@@ -1026,8 +976,7 @@ namespace MismeAPI.Service.Impls
               dietSummary <= 7 &&
               physicalExercise == 5)
             {
-                result =
-                    "Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de dietas en su historia vital. Podría estar haciendo ejercicios de forma compulsiva (a menos que sea un deportista activo). Debe revisar su pauta de ejercicios y/o de alimentación.";
+                result.Add("Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de dietas en su historia vital. Podría estar haciendo ejercicios de forma compulsiva (a menos que sea un deportista activo). Debe revisar su pauta de ejercicios y/o de alimentación.");
             }
 
             //Instrucciones para Sobrepeso deporte wc entre 7 y 12
@@ -1037,8 +986,7 @@ namespace MismeAPI.Service.Impls
                 dietSummary <= 12 &&
                 physicalExercise == 1)
             {
-                result =
-                    "Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Se observan fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Debería realizar ejercicio físico moderado (Ej. 4 veces por semana, 45 minutos por sesión) y revisar su conducta alimentaria.";
+                result.Add("Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Se observan fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Debería realizar ejercicio físico moderado (Ej. 4 veces por semana, 45 minutos por sesión) y revisar su conducta alimentaria.");
             }
             else if (IMC >= 25 &&
               IMC < 30 &&
@@ -1046,8 +994,7 @@ namespace MismeAPI.Service.Impls
               dietSummary <= 12 &&
               physicalExercise == 2)
             {
-                result =
-                    "Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Se observan fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Hace ejercicios con cierta regularidad, quizás deba incrementar su práctica a 4 veces por semana, 45 minutos por sesión y revisar su conducta alimentaria.";
+                result.Add("Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Se observan fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Hace ejercicios con cierta regularidad, quizás deba incrementar su práctica a 4 veces por semana, 45 minutos por sesión y revisar su conducta alimentaria.");
             }
             else if (IMC >= 25 &&
               IMC < 30 &&
@@ -1055,8 +1002,7 @@ namespace MismeAPI.Service.Impls
               dietSummary <= 12 &&
               physicalExercise == 3)
             {
-                result =
-                    "Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Se observan fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Hacer ejercicios parece ser un hábito, asegúrese de no realizar menos de 45 minutos por sesión. También debe revisar su conducta alimentaria.";
+                result.Add("Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Se observan fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Hacer ejercicios parece ser un hábito, asegúrese de no realizar menos de 45 minutos por sesión. También debe revisar su conducta alimentaria.");
             }
             else if (IMC >= 25 &&
               IMC < 30 &&
@@ -1064,8 +1010,7 @@ namespace MismeAPI.Service.Impls
               dietSummary <= 12 &&
               physicalExercise == 4)
             {
-                result =
-                    "Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Se observan fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Practicar ejercicios parece haberse convertido en un medio de afrontar dificultades y gestionar emociones. Debe revisar su pauta de ejercicios y conducta alimentaria.";
+                result.Add("Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Se observan fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Practicar ejercicios parece haberse convertido en un medio de afrontar dificultades y gestionar emociones. Debe revisar su pauta de ejercicios y conducta alimentaria.");
             }
             else if (IMC >= 25 &&
               IMC < 30 &&
@@ -1073,8 +1018,7 @@ namespace MismeAPI.Service.Impls
               dietSummary <= 12 &&
               physicalExercise == 5)
             {
-                result =
-                    "Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Se observan fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Podría estar haciendo ejercicios de forma compulsiva (a menos que sea un deportista activo). Debe revisar su pauta de ejercicios y conducta alimentaria.";
+                result.Add("Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Se observan fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Podría estar haciendo ejercicios de forma compulsiva (a menos que sea un deportista activo). Debe revisar su pauta de ejercicios y conducta alimentaria.");
             }
 
             //Instrucciones para Sobrepeso deporte wc >12
@@ -1083,40 +1027,35 @@ namespace MismeAPI.Service.Impls
                 dietSummary > 12 &&
                 physicalExercise == 1)
             {
-                result =
-                    "Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de severas fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Debería realizar ejercicio físico moderado (Ej. 4 veces por semana, 45 minutos por sesión) y revisar su conducta alimentaria.";
+                result.Add("Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de severas fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Debería realizar ejercicio físico moderado (Ej. 4 veces por semana, 45 minutos por sesión) y revisar su conducta alimentaria.");
             }
             else if (IMC >= 25 &&
               IMC < 30 &&
               dietSummary > 12 &&
               physicalExercise == 2)
             {
-                result =
-                    "Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de severas fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Hace ejercicios con cierta regularidad, quizás deba incrementar su práctica a 4 veces por semana, 45 minutos por sesión y revisar su conducta alimentaria.";
+                result.Add("Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de severas fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Hace ejercicios con cierta regularidad, quizás deba incrementar su práctica a 4 veces por semana, 45 minutos por sesión y revisar su conducta alimentaria.");
             }
             else if (IMC >= 25 &&
               IMC < 30 &&
               dietSummary > 12 &&
               physicalExercise == 3)
             {
-                result =
-                    "Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de severas fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Hacer ejercicios parece ser un hábito, asegúrese de no realizar menos de 45 minutos por sesión. También debe revisar su conducta alimentaria.";
+                result.Add("Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de severas fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Hacer ejercicios parece ser un hábito, asegúrese de no realizar menos de 45 minutos por sesión. También debe revisar su conducta alimentaria.");
             }
             else if (IMC >= 25 &&
               IMC < 30 &&
               dietSummary > 12 &&
               physicalExercise == 4)
             {
-                result =
-                    "Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de severas fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Practicar ejercicios parece haberse convertido en un medio de afrontar dificultades y gestionar emociones. Debe revisar su pauta de ejercicios y conducta alimentaria.";
+                result.Add("Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de severas fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Practicar ejercicios parece haberse convertido en un medio de afrontar dificultades y gestionar emociones. Debe revisar su pauta de ejercicios y conducta alimentaria.");
             }
             else if (IMC >= 25 &&
               IMC < 30 &&
               dietSummary > 12 &&
               physicalExercise == 5)
             {
-                result =
-                    "Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de severas fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Podría estar haciendo ejercicios de forma compulsiva (a menos que sea un deportista activo). Debe revisar su pauta de ejercicios y conducta alimentaria.";
+                result.Add("Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de severas fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Podría estar haciendo ejercicios de forma compulsiva (a menos que sea un deportista activo). Debe revisar su pauta de ejercicios y conducta alimentaria.");
             }
 
             //Instrucciones para Obesidad <40 deporte wc<4
@@ -1125,40 +1064,35 @@ namespace MismeAPI.Service.Impls
                 dietSummary <= 4 &&
                 physicalExercise == 1)
             {
-                result =
-                    "Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Debería realizar ejercicio físico moderado (Ej. 4 veces por semana, 45 minutos por sesión) y revisar su conducta alimentaria.";
+                result.Add("Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Debería realizar ejercicio físico moderado (Ej. 4 veces por semana, 45 minutos por sesión) y revisar su conducta alimentaria.");
             }
             else if (IMC >= 30 &&
               IMC < 40 &&
               dietSummary <= 4 &&
               physicalExercise == 2)
             {
-                result =
-                    "Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Hace ejercicios con cierta regularidad, debería incrementar su práctica a 4 veces por semana, 45 minutos por sesión y revisar su conducta alimentaria.";
+                result.Add("Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Hace ejercicios con cierta regularidad, debería incrementar su práctica a 4 veces por semana, 45 minutos por sesión y revisar su conducta alimentaria.");
             }
             else if (IMC >= 30 &&
               IMC < 40 &&
               dietSummary <= 4 &&
               physicalExercise == 3)
             {
-                result =
-                    "Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Hacer ejercicios parece ser un hábito, asegúrese de no realizar menos de 45 minutos por sesión. También debe revisar su conducta alimentaria.";
+                result.Add("Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Hacer ejercicios parece ser un hábito, asegúrese de no realizar menos de 45 minutos por sesión. También debe revisar su conducta alimentaria.");
             }
             else if (IMC >= 30 &&
               IMC < 40 &&
               dietSummary <= 4 &&
               physicalExercise == 4)
             {
-                result =
-                    "Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Practicar ejercicios parece haberse convertido en un medio de afrontar dificultades y gestionar emociones. Debe revisar su de pauta ejercicios y conducta alimentaria.";
+                result.Add("Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Practicar ejercicios parece haberse convertido en un medio de afrontar dificultades y gestionar emociones. Debe revisar su de pauta ejercicios y conducta alimentaria.");
             }
             else if (IMC >= 30 &&
               IMC < 40 &&
               dietSummary <= 4 &&
               physicalExercise == 5)
             {
-                result =
-                    "Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Podría estar haciendo ejercicios de forma compulsiva (a menos que sea un deportista activo). Debe revisar su pauta de ejercicios y conducta alimentaria.";
+                result.Add("Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Podría estar haciendo ejercicios de forma compulsiva (a menos que sea un deportista activo). Debe revisar su pauta de ejercicios y conducta alimentaria.");
             }
 
             //Instrucciones para Obesidad <40 deporte wc de 5 a 7
@@ -1168,8 +1102,7 @@ namespace MismeAPI.Service.Impls
                 dietSummary <= 7 &&
                 physicalExercise == 1)
             {
-                result =
-                    "Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de dietas en su historia vital. Debería realizar ejercicio físico moderado (Ej. 4 veces por semana, 45 minutos por sesión) y revisar su conducta alimentaria.";
+                result.Add("Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de dietas en su historia vital. Debería realizar ejercicio físico moderado (Ej. 4 veces por semana, 45 minutos por sesión) y revisar su conducta alimentaria.");
             }
             else if (IMC >= 30 &&
               IMC < 40 &&
@@ -1177,8 +1110,7 @@ namespace MismeAPI.Service.Impls
               dietSummary <= 7 &&
               physicalExercise == 2)
             {
-                result =
-                    "Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de dietas en su historia vital. Hace ejercicios con cierta regularidad, debería incrementar su práctica a 4 veces por semana, 45 minutos por sesión y revisar su conducta alimentaria.";
+                result.Add("Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de dietas en su historia vital. Hace ejercicios con cierta regularidad, debería incrementar su práctica a 4 veces por semana, 45 minutos por sesión y revisar su conducta alimentaria.");
             }
             else if (IMC >= 30 &&
               IMC < 40 &&
@@ -1186,8 +1118,7 @@ namespace MismeAPI.Service.Impls
               dietSummary <= 7 &&
               physicalExercise == 3)
             {
-                result =
-                    "Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de dietas en su historia vital. Hacer ejercicios parece ser un hábito, asegúrese de no realizar menos de 45 minutos por sesión. También debe revisar su conducta alimentaria.";
+                result.Add("Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de dietas en su historia vital. Hacer ejercicios parece ser un hábito, asegúrese de no realizar menos de 45 minutos por sesión. También debe revisar su conducta alimentaria.");
             }
             else if (IMC >= 30 &&
               IMC < 40 &&
@@ -1195,8 +1126,7 @@ namespace MismeAPI.Service.Impls
               dietSummary <= 7 &&
               physicalExercise == 4)
             {
-                result =
-                    "Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de dietas en su historia vital. Hacer ejercicios parece haberse convertido en un medio de afrontar dificultades y gestionar emociones. Debe revisar su pauta de ejercicios y conducta alimentaria.";
+                result.Add("Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de dietas en su historia vital. Hacer ejercicios parece haberse convertido en un medio de afrontar dificultades y gestionar emociones. Debe revisar su pauta de ejercicios y conducta alimentaria.");
             }
             else if (IMC >= 30 &&
               IMC < 40 &&
@@ -1204,8 +1134,7 @@ namespace MismeAPI.Service.Impls
               dietSummary <= 7 &&
               physicalExercise == 5)
             {
-                result =
-                    "Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de dietas en su historia vital. Podría estar haciendo ejercicios de forma compulsiva (a menos que sea un deportista activo). Debe revisar su pauta de ejercicios y conducta alimentaria.";
+                result.Add("Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de dietas en su historia vital. Podría estar haciendo ejercicios de forma compulsiva (a menos que sea un deportista activo). Debe revisar su pauta de ejercicios y conducta alimentaria.");
             }
 
             //Instrucciones para Obesidad <35 deporte wc de 7 a 12
@@ -1215,8 +1144,7 @@ namespace MismeAPI.Service.Impls
                 dietSummary <= 12 &&
                 physicalExercise == 1)
             {
-                result =
-                    "Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Debería realizar ejercicio físico moderado (Ej. 4 veces por semana, 45 minutos por sesión) y revisar su conducta alimentaria.";
+                result.Add("Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Debería realizar ejercicio físico moderado (Ej. 4 veces por semana, 45 minutos por sesión) y revisar su conducta alimentaria.");
             }
             else if (IMC >= 30 &&
               IMC < 40 &&
@@ -1224,8 +1152,7 @@ namespace MismeAPI.Service.Impls
               dietSummary <= 12 &&
               physicalExercise == 2)
             {
-                result =
-                    "Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Hace ejercicios con cierta regularidad, debería incrementar su práctica a 4 veces por semana, 45 minutos por sesión y revisar su conducta alimentaria.";
+                result.Add("Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Hace ejercicios con cierta regularidad, debería incrementar su práctica a 4 veces por semana, 45 minutos por sesión y revisar su conducta alimentaria.");
             }
             else if (IMC >= 30 &&
               IMC < 40 &&
@@ -1233,8 +1160,7 @@ namespace MismeAPI.Service.Impls
               dietSummary <= 12 &&
               physicalExercise == 3)
             {
-                result =
-                    "Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Hacer ejercicios parece ser un hábito, asegúrese de no realizar menos de 45 minutos por sesión. También debe revisar su conducta alimentaria.";
+                result.Add("Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Hacer ejercicios parece ser un hábito, asegúrese de no realizar menos de 45 minutos por sesión. También debe revisar su conducta alimentaria.");
             }
             else if (IMC >= 30 &&
               IMC < 40 &&
@@ -1242,8 +1168,7 @@ namespace MismeAPI.Service.Impls
               dietSummary <= 12 &&
               physicalExercise == 4)
             {
-                result =
-                    "Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Hacer ejercicios parece haberse convertido en un medio de afrontar dificultades y gestionar emociones. Debe revisar su pauta de ejercicios y conducta alimentaria.";
+                result.Add("Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Hacer ejercicios parece haberse convertido en un medio de afrontar dificultades y gestionar emociones. Debe revisar su pauta de ejercicios y conducta alimentaria.");
             }
             else if (IMC >= 30 &&
               IMC < 40 &&
@@ -1251,8 +1176,7 @@ namespace MismeAPI.Service.Impls
               dietSummary <= 12 &&
               physicalExercise == 5)
             {
-                result =
-                    "Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Podría estar haciendo ejercicios de forma compulsiva (a menos que sea un deportista activo). Debe revisar su pauta de ejercicios y conducta alimentaria.";
+                result.Add("Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Podría estar haciendo ejercicios de forma compulsiva (a menos que sea un deportista activo). Debe revisar su pauta de ejercicios y conducta alimentaria.");
             }
 
             //Instrucciones para Obesidad <40 deporte wc>12
@@ -1261,53 +1185,175 @@ namespace MismeAPI.Service.Impls
                 dietSummary > 12 &&
                 physicalExercise == 1)
             {
-                result =
-                    "Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Se observan severas fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Debería realizar ejercicio físico moderado (Ej. 4 veces por semana, 45 minutos por sesión) y revisar su conducta alimentaria.";
+                result.Add("Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Se observan severas fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Debería realizar ejercicio físico moderado (Ej. 4 veces por semana, 45 minutos por sesión) y revisar su conducta alimentaria.");
             }
             else if (IMC >= 30 &&
               IMC < 40 &&
               dietSummary > 12 &&
               physicalExercise == 2)
             {
-                result =
-                    "Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Se observan severas fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Hace ejercicios con cierta regularidad, debería incrementar su práctica a 4 veces por semana, 45 minutos por sesión y revisar su conducta alimentaria.";
+                result.Add("Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Se observan severas fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Hace ejercicios con cierta regularidad, debería incrementar su práctica a 4 veces por semana, 45 minutos por sesión y revisar su conducta alimentaria.");
             }
             else if (IMC >= 30 &&
               IMC < 40 &&
               dietSummary > 12 &&
               physicalExercise == 3)
             {
-                result =
-                    "Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Se observan severas fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Hacer ejercicios parece ser un hábito, asegúrese de no realizar menos de 45 minutos por sesión. También debe revisar su conducta alimentaria.";
+                result.Add("Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Se observan severas fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Hacer ejercicios parece ser un hábito, asegúrese de no realizar menos de 45 minutos por sesión. También debe revisar su conducta alimentaria.");
             }
             else if (IMC >= 30 &&
               IMC < 40 &&
               dietSummary > 12 &&
               physicalExercise == 4)
             {
-                result =
-                    "Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Se observan severas fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Hacer ejercicios parece haberse convertido en un medio de afrontar dificultades y gestionar emociones. Debe revisar su pauta de ejercicios y conducta alimentaria.";
+                result.Add("Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Se observan severas fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Hacer ejercicios parece haberse convertido en un medio de afrontar dificultades y gestionar emociones. Debe revisar su pauta de ejercicios y conducta alimentaria.");
             }
             else if (IMC >= 30 &&
               IMC < 40 &&
               dietSummary > 12 &&
               physicalExercise == 5)
             {
-                result =
-                    "Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Se observan severas fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Podría estar haciendo ejercicios de forma compulsiva (a menos que sea un deportista activo). Debe revisar su pauta de ejercicios y conducta alimentaria.";
+                result.Add("Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Se observan severas fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Podría estar haciendo ejercicios de forma compulsiva (a menos que sea un deportista activo). Debe revisar su pauta de ejercicios y conducta alimentaria.");
             }
 
             //Instrucciones para obesidad mórbida y extrema
             else if (IMC >= 40 && IMC < 50)
             {
-                result =
-                    "IMC " + IMCString + " Kg/m2 (OBESIDAD MÓRBIDA): ¡Consulte a un médico!";
+                result.Add("IMC " + IMCString + " Kg/m2 (OBESIDAD MÓRBIDA): ¡Consulte a un médico!");
             }
             //else if (IMC >= 50)
             //{
             //    result =
             //        "IMC $IMCString Kg/m2 (OBESIDAD MÓRBIDA): ¡Consulte a un médico!";
             //}
+
+            return result;
+        }
+
+        private List<string> GetWellnessMeasureMessage(int conceptId, int userId)
+        {
+            var result = new List<string>();
+
+            // this assume only one poll, it is hardcoded
+            var poll = _uow.PollRepository.GetAll().Where(p => p.ConceptId == conceptId)
+              .Include(p => p.Questions)
+              .OrderBy(p => p.Order)
+              .FirstOrDefault();
+            if (poll != null)
+            {
+                var value1 = 0;
+                var value2 = 0;
+                var value3 = 0;
+                var value4 = 0;
+                var vGeneral = 0;
+
+                var questions = poll.Questions.OrderBy(q => q.Order);
+                var count = 0;
+                foreach (var q in questions)
+                {
+                    var ua = _uow.UserAnswerRepository.GetAll().Where(u => u.UserId == userId && u.Answer.QuestionId == q.Id)
+                           .Include(u => u.Answer)
+                               .ThenInclude(a => a.Question)
+                           .OrderByDescending(ua => ua.CreatedAt)
+                           .FirstOrDefault();
+                    if (ua != null)
+                    {
+                        switch (count)
+                        {
+                            case 0:
+                            case 2:
+                            case 8:
+                                value1 += ua.Answer.Weight;
+                                break;
+
+                            case 3:
+                            case 5:
+                            case 9:
+                                value2 += ua.Answer.Weight;
+                                break;
+
+                            case 6:
+                            case 7:
+                                value3 += ua.Answer.Weight;
+                                break;
+
+                            default:
+                                value4 += ua.Answer.Weight;
+                                break;
+                        }
+                    }
+                    count += 1;
+                }
+
+                vGeneral = value1 + value2 + value3 + value4;
+
+                var general = "";
+                var resp1 = "";
+                var resp2 = "";
+                var resp3 = "";
+                var resp4 = "";
+                //var additional = "";
+
+                if (vGeneral >= 44)
+                    general = "Elevados niveles de bienestar, caracterizado por:";
+                else if (vGeneral < 44 && vGeneral >= 34)
+                    general = "Percepción de bienestar caracterizada por:";
+                else
+                    general = "Bajos niveles de bienestar, caracterizado por:";
+
+                if (value1 >= 14)
+                {
+                    resp1 = "1. Elevada búsqueda de ocio y diversión.";
+                }
+                else if (value1 > 10 && value1 < 14)
+                {
+                    resp1 = "1. Adecuado manejo del ocio y el tiempo libre.";
+                }
+                else
+                    resp1 = "1. Actividades de ocio escasas o poco gratificantes.";
+
+                if (value2 >= 13)
+                {
+                    resp2 = "2. Elevada satisfacción consigo mismo.";
+                }
+                else if (value2 > 9 && value2 < 13)
+                {
+                    resp2 = "2. Adecuada satisfacción consigo mismo.";
+                }
+                else
+                    resp2 = "2. Baja satisfacción consigo mismo.";
+
+                if (value3 >= 10)
+                {
+                    resp3 = "3. Elevada satisfacción con la actividad que realiza.";
+                }
+                else if (value3 > 7 && value3 < 10)
+                {
+                    resp3 = "3. Adecuada satisfacción con la actividad que realiza.";
+                }
+                else
+                    resp3 = "3. Baja satisfacción con la actividad que realiza.";
+
+                if (value4 >= 10)
+                {
+                    resp4 = "4. Se percibe como una persona muy saludable.";
+                }
+                else if (value4 > 6 && value4 < 10)
+                {
+                    resp4 = "4. Se percibe como una persona saludable.";
+                }
+                else
+                    resp4 = "4. No se percibe como una persona saludable.";
+
+                //additional =
+                //    "Total $vGeneral, Hed = $value1, Si mismo = $value2, Activ = $value3, AutoI = $value4";
+
+                result.Add(general);
+                result.Add(resp1);
+                result.Add(resp2);
+                result.Add(resp3);
+                result.Add(resp4);
+            }
 
             return result;
         }
