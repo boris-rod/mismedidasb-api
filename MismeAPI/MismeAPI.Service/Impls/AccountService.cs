@@ -184,8 +184,8 @@ namespace MismeAPI.Services.Impls
                     }
 
                     // other values
-                    var IMC = weight / ((height / 100) * ((height / 100)));
-                    var TMB_PROV = 10 * weight + 6.25 * height - 5 * age;
+                    var IMC = Convert.ToDouble(weight) / ((Convert.ToDouble(height) / 100) * ((Convert.ToDouble(height) / 100)));
+                    var TMB_PROV = 10 * Convert.ToDouble(weight) + 6.25 * Convert.ToDouble(height) - 5 * age;
 
                     var dailyKalDouble = 0.0;
 
@@ -299,7 +299,7 @@ namespace MismeAPI.Services.Impls
                     }
 
                     // other values
-                    var IMC = weight / ((height / 100) * ((height / 100)));
+                    var IMC = Convert.ToDouble(weight) / ((Convert.ToDouble(height) / 100) * ((Convert.ToDouble(height) / 100)));
 
                     return IMC;
                 }
@@ -725,10 +725,12 @@ namespace MismeAPI.Services.Impls
             return user;
         }
 
-        public async Task<User> GetUserProfileUseAsync(int loggedUser)
+        public async Task<(User user, double kcal, double IMC)> GetUserProfileUseAsync(int loggedUser)
         {
             var user = await _uow.UserRepository.GetAsync(loggedUser);
-            return user;
+            var kcal = GetKCal(user.Id);
+            var imc = GetIMC(user.Id);
+            return (user, kcal, imc);
         }
     }
 }

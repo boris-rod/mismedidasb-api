@@ -342,7 +342,9 @@ namespace APITaxi.API.Controllers
         {
             var loggedUser = User.GetUserIdFromToken();
             var result = await _accountService.GetUserProfileUseAsync(loggedUser);
-            var user = _mapper.Map<UserResponse>(result);
+            var user = _mapper.Map<UserResponse>(result.user);
+            user.KCal = result.kcal;
+            user.IMC = result.IMC;
 
             return Ok(new ApiOkResponse(user));
         }

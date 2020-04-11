@@ -40,6 +40,6 @@ namespace MismeAPI.Services
 
         Task<User> RemoveAvatarAsync(int loggedUser);
 
-        Task<User> GetUserProfileUseAsync(int loggedUser);
+        Task<(User user, double kcal, double IMC)> GetUserProfileUseAsync(int loggedUser);
     }
 }
