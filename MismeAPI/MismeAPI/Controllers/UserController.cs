@@ -70,9 +70,9 @@ namespace MismeAPI.Controllers
         }
 
         /// <summary>
-        /// Get users stats by dates. Requires authentication. Admin access. <param
-        /// name="dateType">Date type. 0- Today, 1- Week, 2- Month, 3- Year</param>
+        /// Get users stats by dates. Requires authentication. Admin access.
         /// </summary>
+        ///<param name="dateType">Date type. 0- Today, 1- Week, 2- Month, 3- Year</param>
         [HttpGet("stats-by-date")]
         [ProducesResponseType(typeof(IEnumerable<UsersByDateSeriesResponse>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
@@ -82,6 +82,40 @@ namespace MismeAPI.Controllers
             var loggedUser = User.GetUserIdFromToken();
 
             var result = await _userService.GetUsersStatsByDateAsync(loggedUser, type);
+
+            return Ok(new ApiOkResponse(result));
+        }
+
+        /// <summary>
+        /// Enable user. Requires authentication. Admin access.
+        /// </summary>
+        /// <param name="id">User id</param>
+        [HttpPost("{id}/enable")]
+        [ProducesResponseType(typeof(UserResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
+        public async Task<IActionResult> EnableUser([FromRoute] int id)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+
+            var result = await _userService.EnableUserAsync(loggedUser, id);
+
+            return Ok(new ApiOkResponse(result));
+        }
+
+        /// <summary>
+        /// Disable user. Requires authentication. Admin access.
+        /// </summary>
+        /// <param name="id">User id</param>
+        [HttpPost("{id}/disable")]
+        [ProducesResponseType(typeof(UserResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
+        public async Task<IActionResult> DisableUser([FromRoute] int id)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+
+            var result = await _userService.DisableUserAsync(loggedUser, id);
 
             return Ok(new ApiOkResponse(result));
         }

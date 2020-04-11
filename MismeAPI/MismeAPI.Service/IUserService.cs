@@ -13,5 +13,9 @@ namespace MismeAPI.Service
         Task<dynamic> GetUsersStatsAsync(int loggedUser);
 
         Task<IEnumerable<UsersByDateSeriesResponse>> GetUsersStatsByDateAsync(int loggedUser, int type);
+
+        Task<User> EnableUserAsync(int loggedUser, int id);
+
+        Task<User> DisableUserAsync(int loggedUser, int id);
     }
 }

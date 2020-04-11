@@ -322,5 +322,43 @@ namespace MismeAPI.Service.Impls
 
             return seriesToReturn;
         }
+
+        public async Task<User> EnableUserAsync(int loggedUser, int id)
+        {
+            var user = await _uow.UserRepository.GetAsync(loggedUser);
+            if (user.Role == RoleEnum.NORMAL)
+            {
+                throw new NotAllowedException("User");
+            }
+            var userToUpdate = await _uow.UserRepository.GetAsync(id);
+            if (userToUpdate == null)
+            {
+                throw new NotFoundException("User");
+            }
+            userToUpdate.Status = StatusEnum.ACTIVE;
+            userToUpdate.DisabledAt = null;
+            _uow.UserRepository.Update(userToUpdate);
+            await _uow.CommitAsync();
+            return user;
+        }
+
+        public async Task<User> DisableUserAsync(int loggedUser, int id)
+        {
+            var user = await _uow.UserRepository.GetAsync(loggedUser);
+            if (user.Role == RoleEnum.NORMAL)
+            {
+                throw new NotAllowedException("User");
+            }
+            var userToUpdate = await _uow.UserRepository.GetAsync(id);
+            if (userToUpdate == null)
+            {
+                throw new NotFoundException("User");
+            }
+            userToUpdate.Status = StatusEnum.INACTIVE;
+            userToUpdate.DisabledAt = DateTime.UtcNow;
+            _uow.UserRepository.Update(userToUpdate);
+            await _uow.CommitAsync();
+            return user;
+        }
     }
 }
