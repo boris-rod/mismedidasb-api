@@ -42,7 +42,7 @@ namespace MismeAPI.Services.Impls
             _fileService = fileService ?? throw new ArgumentNullException(nameof(fileService));
         }
 
-        public async Task<(User user, string accessToken, string refreshToken, double kcal, int IMC)> LoginAsync(LoginRequest loginRequest)
+        public async Task<(User user, string accessToken, string refreshToken, double kcal, double IMC)> LoginAsync(LoginRequest loginRequest)
         {
             var hashedPass = GetSha256Hash(loginRequest.Password);
 
@@ -245,7 +245,7 @@ namespace MismeAPI.Services.Impls
             return 0.0;
         }
 
-        private int GetIMC(int userId)
+        private double GetIMC(int userId)
         {
             try
             {
@@ -306,9 +306,9 @@ namespace MismeAPI.Services.Impls
             }
             catch (Exception)
             {
-                return 0;
+                return 0.0;
             }
-            return 0;
+            return 0.0;
         }
 
         private string GetRefreshToken()

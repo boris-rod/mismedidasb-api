@@ -10,7 +10,7 @@ namespace MismeAPI.Services
     {
         Task<User> SignUpAsync(SignUpRequest suRequest);
 
-        Task<(User user, string accessToken, string refreshToken, double kcal, int IMC)> LoginAsync(LoginRequest loginRequest);
+        Task<(User user, string accessToken, string refreshToken, double kcal, double IMC)> LoginAsync(LoginRequest loginRequest);
 
         Task LogoutAsync(int userIdValue, string accessToken);
 

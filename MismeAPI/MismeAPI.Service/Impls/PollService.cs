@@ -352,7 +352,7 @@ namespace MismeAPI.Service.Impls
                     conc.CompletedAt = DateTime.UtcNow;
                     conc.ConceptId = poll.ConceptId;
                     conc.UserId = loggedUser;
-                    await _uow.UserConceptRepository.AddAsync(conceptToUpdate);
+                    await _uow.UserConceptRepository.AddAsync(conc);
                     await _uow.CommitAsync();
                 }
             }
@@ -1222,11 +1222,10 @@ namespace MismeAPI.Service.Impls
             {
                 result.Add("IMC " + IMCString + " Kg/m2 (OBESIDAD MÓRBIDA): ¡Consulte a un médico!");
             }
-            //else if (IMC >= 50)
-            //{
-            //    result =
-            //        "IMC $IMCString Kg/m2 (OBESIDAD MÓRBIDA): ¡Consulte a un médico!";
-            //}
+            else
+            {
+                result.Add("IMC " + IMCString + " Kg/m2 (OBESIDAD MÓRBIDA): ¡Consulte a un médico!");
+            }
 
             return result;
         }
