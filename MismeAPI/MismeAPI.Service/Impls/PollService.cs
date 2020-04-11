@@ -529,8 +529,8 @@ namespace MismeAPI.Service.Impls
             }
 
             // other values
-            var IMC = weight / ((height / 100) * ((height / 100)));
-            var TMB_PROV = 10 * weight + 6.25 * height - 5 * age;
+            var IMC = Convert.ToDouble(weight) / ((Convert.ToDouble(height) / 100) * ((Convert.ToDouble(height) / 100)));
+            var TMB_PROV = 10 * Convert.ToDouble(weight) + 6.25 * Convert.ToDouble(height) - 5 * Convert.ToDouble(age);
 
             var dailyKalDouble = 0.0;
 
@@ -1222,7 +1222,8 @@ namespace MismeAPI.Service.Impls
             {
                 result.Add("IMC " + IMCString + " Kg/m2 (OBESIDAD MÓRBIDA): ¡Consulte a un médico!");
             }
-            else
+            else if (IMC >= 50)
+
             {
                 result.Add("IMC " + IMCString + " Kg/m2 (OBESIDAD MÓRBIDA): ¡Consulte a un médico!");
             }
