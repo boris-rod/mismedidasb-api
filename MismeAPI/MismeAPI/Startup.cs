@@ -94,6 +94,8 @@ namespace MismeAPI
             recurringJobs.AddOrUpdate<IMismeBackgroundService>("ExpiredTokens", (e) => e.CleanExpiredTokensAsync(), "0 3 * * *");
             //recurringJobs.AddOrUpdate<IMismeBackgroundService>("Notifications", (e) => e.SendFireBaseNotificationsAsync(), "* * * * *");
 
+            //recurringJobs.AddOrUpdate<IMismeBackgroundService>("Notifications", (e) => e.SendFireBaseNotificationsRemindersAsync(), "* * * * *");
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

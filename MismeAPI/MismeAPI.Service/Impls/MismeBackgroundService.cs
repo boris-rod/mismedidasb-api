@@ -79,5 +79,45 @@ namespace MismeAPI.Service.Impls
                 }
             }
         }
+
+        public async Task SendFireBaseNotificationsRemindersAsync()
+        {
+            var serverKey = _config["Firebase:ServerKey"];
+            var senderId = _config["Firebase:SenderId"];
+
+            var tomorrow = DateTime.UtcNow.AddDays(1);
+            var usersWithoutPlans = await _uow.UserRepository.GetAll()
+                .Include(u => u.Eats)
+                .Include(u => u.Devices)
+                .Where(u => !u.Eats.Any(e => e.CreatedAt.Date == tomorrow.Date))
+                .ToListAsync();
+
+            foreach (var us in usersWithoutPlans)
+            {
+                foreach (var device in us.Devices)
+                {
+                    using (var fcm = new FcmSender(serverKey, senderId))
+                    {
+                        Message message = new Message()
+                        {
+                            Notification = new Notification
+                            {
+                                Title = "Reminder",
+                                Body = "Recuerde planificar sus comidas."
+                            }
+                            ,
+                            Token = device.Token
+                        };
+                        try
+                        {
+                            var response = await fcm.SendAsync(device.Token, message);
+                        }
+                        catch (Exception)
+                        {
+                        }
+                    }
+                }
+            }
+        }
     }
 }
