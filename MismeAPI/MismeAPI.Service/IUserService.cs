@@ -1,4 +1,5 @@
-﻿using MismeAPI.Common.DTO.Response;
+﻿using MismeAPI.Common.DTO.Request;
+using MismeAPI.Common.DTO.Response;
 using MismeAPI.Data.Entities;
 using MismeAPI.Services.Utils;
 using System.Collections.Generic;
@@ -17,5 +18,7 @@ namespace MismeAPI.Service
         Task<User> EnableUserAsync(int loggedUser, int id);
 
         Task<User> DisableUserAsync(int loggedUser, int id);
+
+        Task SendUserNotificationAsync(int loggedUser, int id, UserNotificationRequest notif);
     }
 }

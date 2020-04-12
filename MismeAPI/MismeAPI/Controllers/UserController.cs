@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MismeAPI.BasicResponses;
+using MismeAPI.Common.DTO.Request;
 using MismeAPI.Common.DTO.Response;
 using MismeAPI.Service;
 using MismeAPI.Utils;
@@ -118,6 +119,23 @@ namespace MismeAPI.Controllers
             var result = await _userService.DisableUserAsync(loggedUser, id);
 
             return Ok(new ApiOkResponse(result));
+        }
+
+        /// <summary>
+        /// Send user notification. Requires authentication. Admin access.
+        /// </summary>
+        /// <param name="id">User id</param>
+        /// <param name="notif">Notification request obj</param>
+        [HttpPost("{id}/notification")]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
+        public async Task<IActionResult> UserNotification([FromRoute] int id, [FromBody] UserNotificationRequest notif)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            await _userService.SendUserNotificationAsync(loggedUser, id, notif);
+
+            return Ok();
         }
     }
 }

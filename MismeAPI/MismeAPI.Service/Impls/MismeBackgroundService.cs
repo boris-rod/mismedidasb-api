@@ -102,9 +102,10 @@ namespace MismeAPI.Service.Impls
                         {
                             Notification = new Notification
                             {
-                                Title = "Reminder",
-                                Body = "Recuerde planificar sus comidas."
+                                Title = "Recordatorio",
+                                Body = "Recuerde planificar lo que va a comer mañana."
                             }
+
                             ,
                             Token = device.Token
                         };

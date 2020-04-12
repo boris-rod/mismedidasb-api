@@ -1,4 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using CorePush.Google;
+using FirebaseAdmin.Messaging;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using MismeAPI.Common.DTO.Request;
 using MismeAPI.Common.DTO.Response;
 using MismeAPI.Common.Exceptions;
 using MismeAPI.Data.Entities;
@@ -16,10 +20,12 @@ namespace MismeAPI.Service.Impls
     public class UserService : IUserService
     {
         private readonly IUnitOfWork _uow;
+        private readonly IConfiguration _config;
 
-        public UserService(IUnitOfWork uow)
+        public UserService(IUnitOfWork uow, IConfiguration config)
         {
             _uow = uow ?? throw new ArgumentNullException(nameof(uow));
+            _config = config ?? throw new ArgumentNullException(nameof(config));
         }
 
         public async Task<PaginatedList<User>> GetUsersAsync(int loggedUser, int pag, int perPag, string sortOrder, int statusFilter, string search)
@@ -359,6 +365,48 @@ namespace MismeAPI.Service.Impls
             _uow.UserRepository.Update(userToUpdate);
             await _uow.CommitAsync();
             return user;
+        }
+
+        public async Task SendUserNotificationAsync(int loggedUser, int id, UserNotificationRequest notif)
+        {
+            var user = await _uow.UserRepository.GetAsync(loggedUser);
+            if (user.Role == RoleEnum.NORMAL)
+            {
+                throw new NotAllowedException("User");
+            }
+            var userToUpdate = await _uow.UserRepository.GetAll()
+                .Include(u => u.Devices)
+                .Where(u => u.Id == id)
+                .FirstOrDefaultAsync();
+            if (userToUpdate == null)
+            {
+                throw new NotFoundException("User");
+            }
+            var serverKey = _config["Firebase:ServerKey"];
+            var senderId = _config["Firebase:SenderId"];
+
+            foreach (var dev in userToUpdate.Devices)
+            {
+                using (var fcm = new FcmSender(serverKey, senderId))
+                {
+                    Message message = new Message()
+                    {
+                        Notification = new Notification
+                        {
+                            Title = notif.Title,
+                            Body = notif.Body
+                        },
+                        Token = dev.Token
+                    };
+                    try
+                    {
+                        var response = await fcm.SendAsync(dev.Token, message);
+                    }
+                    catch (Exception)
+                    {
+                    }
+                }
+            }
         }
     }
 }
