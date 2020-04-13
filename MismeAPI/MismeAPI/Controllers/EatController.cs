@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MismeAPI.BasicResponses;
+using MismeAPI.Common.DTO;
 using MismeAPI.Common.DTO.Request;
 using MismeAPI.Common.DTO.Response;
 using MismeAPI.Service;
@@ -9,6 +10,7 @@ using MismeAPI.Utils;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -58,21 +60,46 @@ namespace MismeAPI.Controllers
         /// Get all logged user eats by date. Requires authentication.
         /// </summary>
         /// <param name="date">Specific date to filter. Must be in UTC format.</param>
+        /// <param name="endDate">Specific end date to filter. Must be in UTC format.</param>
         /// <param name="eatType">
         /// Eat by type: 0- Breakfast, 1- Snack1, 2- Lunch, 3- Snack2, 4- Dinner.
         /// </param>
         [HttpGet("by-date")]
         [Authorize]
         [ProducesResponseType(typeof(IEnumerable<EatResponse>), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> GetAllEatsByDate(DateTime date, int? eatType)
+        public async Task<IActionResult> GetAllEatsByDate(DateTime date, DateTime endDate, int? eatType)
         {
             var userId = User.GetUserIdFromToken();
 
             var eatTyp = eatType ?? -1;
 
-            var result = await _eatService.GetAllUserEatsByDateAsync(userId, date, eatTyp);
+            var result = await _eatService.GetAllUserEatsByDateAsync(userId, date, endDate, eatTyp);
 
             var mapped = _mapper.Map<IEnumerable<EatResponse>>(result);
+
+            var dict = new Dictionary<DateTime, FoodValues>();
+            foreach (var item in mapped)
+            {
+                var val = dict.Keys.FirstOrDefault(k => k.Date == item.CreatedAt.Date);
+                if (val != null)
+                {
+                    item.IMC = dict.GetValueOrDefault(val).IMC;
+                    item.KCal = dict.GetValueOrDefault(val).KCal;
+                }
+                else
+                {
+                    var res = await _eatService.GetKCalImcAsync(userId, item.CreatedAt);
+                    dict.Add(item.CreatedAt, new FoodValues
+                    {
+                        IMC = res.imc,
+                        KCal = res.kcal
+                    });
+
+                    item.IMC = res.imc;
+                    item.KCal = res.kcal;
+                }
+            }
+
             return Ok(new ApiOkResponse(mapped));
         }
 

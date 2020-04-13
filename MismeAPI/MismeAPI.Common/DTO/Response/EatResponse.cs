@@ -11,5 +11,8 @@ namespace MismeAPI.Common.DTO.Response
         public string EatType { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime ModifiedAt { get; set; }
+
+        public double IMC { get; set; }
+        public double KCal { get; set; }
     }
 }

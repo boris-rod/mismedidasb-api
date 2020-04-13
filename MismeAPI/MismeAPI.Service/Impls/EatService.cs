@@ -88,9 +88,9 @@ namespace MismeAPI.Service.Impls
             return await PaginatedList<Eat>.CreateAsync(results, pag, perPag);
         }
 
-        public async Task<List<Eat>> GetAllUserEatsByDateAsync(int userId, DateTime date, int eatTyp)
+        public async Task<List<Eat>> GetAllUserEatsByDateAsync(int userId, DateTime date, DateTime endDate, int eatTyp)
         {
-            var results = _uow.EatRepository.GetAll().Where(e => e.UserId == userId && e.CreatedAt.Date == date.Date)
+            var results = _uow.EatRepository.GetAll().Where(e => e.UserId == userId && (e.CreatedAt.Date >= date.Date || e.CreatedAt.Date <= endDate.Date))
                .Include(e => e.User)
                .Include(e => e.EatDishes)
                    .ThenInclude(ed => ed.Dish)
@@ -217,6 +217,152 @@ namespace MismeAPI.Service.Impls
                 }
             }
             await _uow.CommitAsync();
+        }
+
+        public async Task<(double imc, double kcal)> GetKCalImcAsync(int userId, DateTime date)
+        {
+            try
+            {
+                var concept = _uow.ConceptRepository.GetAll().Where(c => c.Codename == CodeNamesConstants.HEALTH_MEASURES).FirstOrDefault();
+                if (concept != null)
+                {
+                    var polls = _uow.PollRepository.GetAll().Where(p => p.ConceptId == concept.Id)
+                      .Include(p => p.Questions)
+                      .OrderBy(p => p.Order)
+                      .ToList();
+                    // this is hardcoded but is the way it is.
+
+                    // poll 1- personal data
+                    var questions = polls.ElementAt(0).Questions.OrderBy(q => q.Order);
+
+                    var age = 0;
+                    var weight = 0;
+                    var height = 0;
+                    var sex = 0;
+
+                    var count = 0;
+                    foreach (var q in questions)
+                    {
+                        var ua = await _uow.UserAnswerRepository.GetAll().Where(u => u.UserId == userId && u.Answer.QuestionId == q.Id && u.CreatedAt.Date <= date.Date)
+                            .Include(u => u.Answer)
+                                .ThenInclude(a => a.Question)
+                            .OrderByDescending(ua => ua.CreatedAt)
+                            .FirstOrDefaultAsync();
+                        //age
+                        if (count == 0 && ua != null)
+                        {
+                            age = ua.Answer.Weight;
+                        }
+                        //weight
+                        else if (count == 1 && ua != null)
+                        {
+                            weight = ua.Answer.Weight;
+                        }
+                        //height
+                        else if (count == 2 && ua != null)
+                        {
+                            height = ua.Answer.Weight;
+                        }
+                        //sex
+                        else
+                        {
+                            sex = ua.Answer.Weight;
+                        }
+
+                        count += 1;
+                    }
+
+                    //poll 2- Physical excersice
+                    var physicalExercise = 0;
+                    var physicalQuestion = polls.ElementAt(1).Questions.OrderBy(q => q.Order).FirstOrDefault();
+                    if (physicalQuestion != null)
+                    {
+                        var ua = await _uow.UserAnswerRepository.GetAll().Where(u => u.UserId == userId && u.Answer.QuestionId == physicalQuestion.Id && u.CreatedAt.Date <= date.Date)
+                                .Include(u => u.Answer)
+                                    .ThenInclude(a => a.Question)
+                                .OrderByDescending(ua => ua.CreatedAt)
+                                .FirstOrDefaultAsync();
+                        if (ua != null)
+                        {
+                            physicalExercise = ua.Answer.Weight;
+                        }
+                    }
+                    //poll 3- Diet
+                    var dietSummary = 0;
+                    questions = polls.ElementAt(2).Questions.OrderBy(q => q.Order);
+
+                    foreach (var q in questions)
+                    {
+                        var ua = await _uow.UserAnswerRepository.GetAll().Where(u => u.UserId == userId && u.Answer.QuestionId == q.Id && u.CreatedAt.Date <= date.Date)
+                            .Include(u => u.Answer)
+                                .ThenInclude(a => a.Question)
+                            .OrderByDescending(ua => ua.CreatedAt)
+                            .FirstOrDefaultAsync();
+
+                        dietSummary += ua.Answer.Weight;
+                    }
+
+                    // other values
+                    var IMC = Convert.ToDouble(weight) / ((Convert.ToDouble(height) / 100) * ((Convert.ToDouble(height) / 100)));
+                    var TMB_PROV = 10 * Convert.ToDouble(weight) + 6.25 * Convert.ToDouble(height) - 5 * age;
+
+                    var dailyKalDouble = 0.0;
+
+                    if (sex == 1)
+                    {
+                        if (physicalExercise == 1)
+                        {
+                            dailyKalDouble = (TMB_PROV + 5) * 1.2;
+                        }
+                        else if (physicalExercise == 2)
+                        {
+                            dailyKalDouble = (TMB_PROV + 5) * 1.375;
+                        }
+                        else if (physicalExercise == 3)
+                        {
+                            dailyKalDouble = (TMB_PROV + 5) * 1.55;
+                        }
+                        else if (physicalExercise == 4)
+                        {
+                            dailyKalDouble = (TMB_PROV + 5) * 1.725;
+                        }
+                        else
+                        {
+                            dailyKalDouble = (TMB_PROV + 5) * 1.9;
+                        }
+                    }
+                    else
+                    {
+                        if (physicalExercise == 1)
+                        {
+                            dailyKalDouble = (TMB_PROV - 161) * 1.2;
+                        }
+                        else if (physicalExercise == 2)
+                        {
+                            dailyKalDouble = (TMB_PROV - 161) * 1.375;
+                        }
+                        else if (physicalExercise == 3)
+                        {
+                            dailyKalDouble = (TMB_PROV - 161) * 1.55;
+                        }
+                        else if (physicalExercise == 4)
+                        {
+                            dailyKalDouble = (TMB_PROV - 161) * 1.725;
+                        }
+                        else
+                        {
+                            dailyKalDouble = (TMB_PROV - 161) * 1.9;
+                        }
+                    }
+
+                    return (IMC, dailyKalDouble);
+                }
+            }
+            catch (Exception)
+            {
+                return (0.0, 0.0);
+            }
+            return (0.0, 0.0);
         }
     }
 }
