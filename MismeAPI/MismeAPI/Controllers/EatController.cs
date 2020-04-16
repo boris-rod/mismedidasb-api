@@ -10,7 +10,6 @@ using MismeAPI.Utils;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -80,16 +79,21 @@ namespace MismeAPI.Controllers
             var dict = new Dictionary<DateTime, FoodValues>();
             foreach (var item in mapped)
             {
-                var val = dict.Keys.FirstOrDefault(k => k.Date == item.CreatedAt.Date);
-                if (val != null)
+                //var val = dict.Keys.FirstOrDefault(k => k.Date == item.CreatedAt.Date);
+                FoodValues value;
+
+                var key = dict.ContainsKey(item.CreatedAt.Date);
+
+                if (key == true)
                 {
-                    item.IMC = dict.GetValueOrDefault(val).IMC;
-                    item.KCal = dict.GetValueOrDefault(val).KCal;
+                    dict.TryGetValue(item.CreatedAt.Date, out value);
+                    item.IMC = value.IMC;
+                    item.KCal = value.KCal;
                 }
                 else
                 {
                     var res = await _eatService.GetKCalImcAsync(userId, item.CreatedAt);
-                    dict.Add(item.CreatedAt, new FoodValues
+                    dict.Add(item.CreatedAt.Date, new FoodValues
                     {
                         IMC = res.imc,
                         KCal = res.kcal

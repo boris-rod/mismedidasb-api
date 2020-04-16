@@ -86,6 +86,43 @@ namespace MismeAPI.Service.Impls
             await _uow.CommitAsync();
         }
 
+        public async Task ChangeConceptTranslationAsync(int loggedUser, ConceptTranslationRequest concetpTranslationRequest, int id)
+        {
+            // validate admin user
+            var user = await _uow.UserRepository.FindByAsync(u => u.Id == loggedUser && u.Role == RoleEnum.ADMIN);
+            if (user.Count == 0)
+            {
+                throw new NotAllowedException(ExceptionConstants.NOT_ALLOWED);
+            }
+            var concept = await _uow.ConceptRepository.GetAll().Where(c => c.Id == id)
+                .FirstOrDefaultAsync();
+            if (concept == null)
+            {
+                throw new NotFoundException(ExceptionConstants.NOT_FOUND, "Concept");
+            }
+
+            switch (concetpTranslationRequest.Lang)
+            {
+                case "en":
+                    concept.TitleEN = concetpTranslationRequest.Title;
+                    concept.DescriptionEN = concetpTranslationRequest.Description;
+                    break;
+
+                case "it":
+                    concept.TitleIT = concetpTranslationRequest.Title;
+                    concept.DescriptionIT = concetpTranslationRequest.Description;
+                    break;
+
+                default:
+                    concept.Title = concetpTranslationRequest.Title;
+                    concept.Description = concetpTranslationRequest.Description;
+                    break;
+            }
+
+            _uow.ConceptRepository.Update(concept);
+            await _uow.CommitAsync();
+        }
+
         public async Task DeleteConceptAsync(int loggedUser, int id)
         {
             // validate admin user
@@ -149,6 +186,18 @@ namespace MismeAPI.Service.Impls
             await _uow.CommitAsync();
 
             return conceptDb;
+        }
+
+        public async Task<IEnumerable<Concept>> GetConceptsAdminAsync(int loggedUser)
+        {
+            // validate admin user
+            var user = await _uow.UserRepository.FindByAsync(u => u.Id == loggedUser && u.Role == RoleEnum.ADMIN);
+            if (user.Count == 0)
+            {
+                throw new NotAllowedException(ExceptionConstants.NOT_ALLOWED);
+            }
+            var result = await _uow.ConceptRepository.GetAll().Include(c => c.Polls).ToListAsync();
+            return result;
         }
 
         public async Task<IEnumerable<Concept>> GetConceptsAsync()

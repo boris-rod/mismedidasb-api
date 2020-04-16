@@ -42,7 +42,7 @@ namespace MismeAPI.Services.Impls
             _fileService = fileService ?? throw new ArgumentNullException(nameof(fileService));
         }
 
-        public async Task<(User user, string accessToken, string refreshToken, double kcal, double IMC)> LoginAsync(LoginRequest loginRequest)
+        public async Task<(User user, string accessToken, string refreshToken, double kcal, double IMC, DateTime? firstHealtMeasured)> LoginAsync(LoginRequest loginRequest)
         {
             var hashedPass = GetSha256Hash(loginRequest.Password);
 
@@ -97,7 +97,8 @@ namespace MismeAPI.Services.Impls
 
             var kcal = GetKCal(user.Id);
             var imc = GetIMC(user.Id);
-            return (user, token, refreshToken, kcal, imc);
+            var first = GetFirstHealthMeasured(user.Id);
+            return (user, token, refreshToken, kcal, imc, first);
         }
 
         private double GetKCal(int userId)
@@ -243,6 +244,22 @@ namespace MismeAPI.Services.Impls
                 return 0.0;
             }
             return 0.0;
+        }
+
+        private DateTime? GetFirstHealthMeasured(int userId)
+        {
+            var concept = _uow.ConceptRepository.GetAll().Where(c => c.Codename == CodeNamesConstants.HEALTH_MEASURES).FirstOrDefault();
+
+            if (concept != null)
+            {
+                var c = _uow.UserConceptRepository.GetAll().Where(c => c.UserId == userId && c.ConceptId == concept.Id).FirstOrDefault();
+                if (c != null)
+                {
+                    return c.CompletedAt;
+                }
+            }
+
+            return null;
         }
 
         private double GetIMC(int userId)
@@ -538,9 +555,9 @@ namespace MismeAPI.Services.Impls
 
             var dd = new DeviceDetector(ua.ToString());
 
-            // OPTIONAL: Set caching method By default static cache is used, which works best within one
-            // php process (memory array caching) To cache across requests use caching in files or
-            // memcache add using DeviceDetectorNET.Cache;
+            // OPTIONAL: Set caching method By default static cache is used, which works best within
+            // one php process (memory array caching) To cache across requests use caching in files
+            // or memcache add using DeviceDetectorNET.Cache;
             dd.SetCache(new DictionaryCache());
 
             // OPTIONAL: If called, GetBot() will only return true if a bot was detected (speeds up
@@ -725,12 +742,13 @@ namespace MismeAPI.Services.Impls
             return user;
         }
 
-        public async Task<(User user, double kcal, double IMC)> GetUserProfileUseAsync(int loggedUser)
+        public async Task<(User user, double kcal, double IMC, DateTime? firstHealtMeasured)> GetUserProfileUseAsync(int loggedUser)
         {
             var user = await _uow.UserRepository.GetAsync(loggedUser);
             var kcal = GetKCal(user.Id);
             var imc = GetIMC(user.Id);
-            return (user, kcal, imc);
+            var first = GetFirstHealthMeasured(user.Id);
+            return (user, kcal, imc, first);
         }
     }
 }

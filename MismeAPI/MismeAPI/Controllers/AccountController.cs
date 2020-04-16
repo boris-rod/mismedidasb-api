@@ -93,6 +93,7 @@ namespace APITaxi.API.Controllers
             var user = _mapper.Map<UserResponse>(result.user);
             user.KCal = result.kcal;
             user.IMC = result.IMC;
+            user.FirstHealthMeasured = result.firstHealtMeasured;
             return Ok(new ApiOkResponse(user));
         }
 
@@ -345,6 +346,7 @@ namespace APITaxi.API.Controllers
             var user = _mapper.Map<UserResponse>(result.user);
             user.KCal = result.kcal;
             user.IMC = result.IMC;
+            user.FirstHealthMeasured = result.firstHealtMeasured;
 
             return Ok(new ApiOkResponse(user));
         }

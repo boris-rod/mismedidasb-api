@@ -1349,6 +1349,9 @@ namespace MismeAPI.Service.Impls
                 //additional =
                 //    "Total $vGeneral, Hed = $value1, Si mismo = $value2, Activ = $value3, AutoI = $value4";
 
+                // ad-hoc response
+                var defaultResp = "¡Muchas gracias! Su percepción de bienestar nos ayudará a comprender su estilo de vida y la forma en la que se relaciona con los alimentos.";
+                result.Add(defaultResp);
                 result.Add(general);
                 result.Add(resp1);
                 result.Add(resp2);
@@ -1494,6 +1497,9 @@ namespace MismeAPI.Service.Impls
                     ? "10. La seguridad y la estabilidad son valores importantes para usted."
                     : "10. Poca orientación hacia la búsqueda de seguridad y estabilidad.");
 
+                // ad-hoc response
+                var respDefault = "¡Muchas gracias! El análisis de sus valores nos ayudará a comprender su estilo de vida y la forma en la que se relaciona con los alimentos.";
+                result.Add(respDefault);
                 result.Add(resp1);
                 result.Add(resp2);
                 result.Add(resp3);

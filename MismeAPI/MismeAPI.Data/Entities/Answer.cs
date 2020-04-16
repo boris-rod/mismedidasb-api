@@ -14,5 +14,8 @@ namespace MismeAPI.Data.Entities
         public string Title { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime ModifiedAt { get; set; }
+
+        public string TitleEN { get; set; }
+        public string TitleIT { get; set; }
     }
 }

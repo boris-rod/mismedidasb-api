@@ -36,6 +36,9 @@ namespace MismeAPI.Utils
             CreateMap<Concept, ConceptResponse>()
                 .ForMember(d => d.Image, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Image) ? "" : _amazonS3Service.GetPresignUrl(source.Image)));
 
+            CreateMap<Concept, ConceptAdminResponse>()
+                .ForMember(d => d.Image, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Image) ? "" : _amazonS3Service.GetPresignUrl(source.Image)));
+
             CreateMap<Tag, TagResponse>();
             CreateMap<Tip, TipResponse>()
                 .ForMember(d => d.TipPosition, opts => opts.MapFrom(source => (int)source.TipPosition))

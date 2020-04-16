@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using MismeAPI.Common.DTO.Request;
 using MismeAPI.Data.Entities;
+using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
@@ -10,7 +11,7 @@ namespace MismeAPI.Services
     {
         Task<User> SignUpAsync(SignUpRequest suRequest);
 
-        Task<(User user, string accessToken, string refreshToken, double kcal, double IMC)> LoginAsync(LoginRequest loginRequest);
+        Task<(User user, string accessToken, string refreshToken, double kcal, double IMC, DateTime? firstHealtMeasured)> LoginAsync(LoginRequest loginRequest);
 
         Task LogoutAsync(int userIdValue, string accessToken);
 
@@ -40,6 +41,6 @@ namespace MismeAPI.Services
 
         Task<User> RemoveAvatarAsync(int loggedUser);
 
-        Task<(User user, double kcal, double IMC)> GetUserProfileUseAsync(int loggedUser);
+        Task<(User user, double kcal, double IMC, DateTime? firstHealtMeasured)> GetUserProfileUseAsync(int loggedUser);
     }
 }

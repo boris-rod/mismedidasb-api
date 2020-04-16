@@ -7,5 +7,7 @@ namespace MismeAPI.Service
         Task CleanExpiredTokensAsync();
 
         Task SendFireBaseNotificationsAsync();
+
+        Task SendFireBaseNotificationsRemindersAsync();
     }
 }

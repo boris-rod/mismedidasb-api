@@ -22,5 +22,10 @@ namespace MismeAPI.Data.Entities
         public DateTime ModifiedAt { get; set; }
         public virtual ICollection<Poll> Polls { get; set; }
         public virtual ICollection<UserConcept> UserConcepts { get; set; }
+
+        public string TitleEN { get; set; }
+        public string DescriptionEN { get; set; }
+        public string TitleIT { get; set; }
+        public string DescriptionIT { get; set; }
     }
 }

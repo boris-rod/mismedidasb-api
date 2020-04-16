@@ -25,5 +25,12 @@ namespace MismeAPI.Data.Entities
         public string HtmlContent { get; set; }
         public virtual ICollection<Question> Questions { get; set; }
         public virtual ICollection<Tip> Tips { get; set; }
+
+        public string NameEN { get; set; }
+        public string DescriptionEN { get; set; }
+        public string HtmlContentEN { get; set; }
+        public string NameIT { get; set; }
+        public string DescriptionIT { get; set; }
+        public string HtmlContentIT { get; set; }
     }
 }

@@ -42,6 +42,20 @@ namespace MismeAPI.Controllers
         }
 
         /// <summary>
+        /// Get concepts. Only an admin can do this operation. Requires authentication.
+        /// </summary>
+        [HttpGet("admin")]
+        [Authorize]
+        [ProducesResponseType(typeof(IEnumerable<ConceptAdminResponse>), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetConceptsAdmin()
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            var result = await _conceptService.GetConceptsAdminAsync(loggedUser);
+            var mapped = _mapper.Map<IEnumerable<ConceptAdminResponse>>(result);
+            return Ok(new ApiOkResponse(mapped));
+        }
+
+        /// <summary>
         /// Get all polls definition by concept id. Requires authentication.
         /// </summary>
         [HttpGet("{id}/polls")]
@@ -120,6 +134,23 @@ namespace MismeAPI.Controllers
         {
             var loggedUser = User.GetUserIdFromToken();
             await _conceptService.ChangeConceptPollOrderAsync(loggedUser, pollOrderRequest, id);
+            return Ok();
+        }
+
+        /// <summary>
+        /// Change a concept i18n. Only an admin can do this operation. Requires authentication.
+        /// </summary>
+        /// <param name="concetpTranslationRequest">Concept ttranslation request object.</param>
+        /// <param name="id">Concept id.</param>
+        [HttpPost("{id}/define-translation")]
+        [Authorize]
+        [ProducesResponseType(typeof(ConceptResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
+        public async Task<IActionResult> ConceptTranslation([FromRoute] int id, [FromBody]ConceptTranslationRequest concetpTranslationRequest)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            await _conceptService.ChangeConceptTranslationAsync(loggedUser, concetpTranslationRequest, id);
             return Ok();
         }
     }

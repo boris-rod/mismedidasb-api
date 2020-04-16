@@ -15,5 +15,7 @@ namespace MismeAPI.Data.Entities
         public TipPositionEnum TipPosition { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime ModifiedAt { get; set; }
+        public string ContentEN { get; set; }
+        public string ContentIT { get; set; }
     }
 }

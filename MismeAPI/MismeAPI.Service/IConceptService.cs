@@ -16,5 +16,9 @@ namespace MismeAPI.Service
         Task<Concept> EditConceptAsync(int loggedUser, UpdateConceptRequest concept, int id);
 
         Task ChangeConceptPollOrderAsync(int loggedUser, PollOrderRequest pollOrderRequest, int id);
+
+        Task<IEnumerable<Concept>> GetConceptsAdminAsync(int loggedUser);
+
+        Task ChangeConceptTranslationAsync(int loggedUser, ConceptTranslationRequest concetpTranslationRequest, int id);
     }
 }
