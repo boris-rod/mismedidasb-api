@@ -27,6 +27,7 @@ namespace MismeAPI.Utils
             CreateMap<Poll, PollResponse>()
                 .ForMember(d => d.Questions, opts => opts.MapFrom(source => source.Questions.OrderBy(q => q.Order)))
                 .ForMember(d => d.Tips, opts => opts.MapFrom(source => source.Tips));
+            CreateMap<Poll, PollAdminResponse>();
 
             CreateMap<Question, QuestionResponse>()
                  .ForMember(d => d.Answers, opts => opts.MapFrom(source => source.Answers.OrderBy(q => q.Order)));

@@ -1514,5 +1514,58 @@ namespace MismeAPI.Service.Impls
 
             return result;
         }
+
+        public async Task<List<Poll>> GetAllPollsAdminAsync(int loggedUser)
+        {
+            // validate admin user
+            var user = await _uow.UserRepository.FindByAsync(u => u.Id == loggedUser && u.Role == RoleEnum.ADMIN);
+            if (user.Count == 0)
+            {
+                throw new NotAllowedException(ExceptionConstants.NOT_ALLOWED);
+            }
+
+            var polls = await _uow.PollRepository.GetAll().Include(p => p.Concept).ToListAsync();
+            return polls;
+        }
+
+        public async Task ChangePollTranslationAsync(int loggedUser, PollTranslationRequest pollTranslationRequest, int id)
+        {
+            // validate admin user
+            var user = await _uow.UserRepository.FindByAsync(u => u.Id == loggedUser && u.Role == RoleEnum.ADMIN);
+            if (user.Count == 0)
+            {
+                throw new NotAllowedException(ExceptionConstants.NOT_ALLOWED);
+            }
+            var poll = await _uow.PollRepository.GetAll().Where(c => c.Id == id)
+                .FirstOrDefaultAsync();
+            if (poll == null)
+            {
+                throw new NotFoundException(ExceptionConstants.NOT_FOUND, "Poll");
+            }
+
+            switch (pollTranslationRequest.Lang)
+            {
+                case "en":
+                    poll.NameEN = pollTranslationRequest.Name;
+                    poll.DescriptionEN = pollTranslationRequest.Description;
+                    poll.HtmlContentEN = pollTranslationRequest.HtmlContent;
+                    break;
+
+                case "it":
+                    poll.NameIT = pollTranslationRequest.Name;
+                    poll.DescriptionIT = pollTranslationRequest.Description;
+                    poll.HtmlContentIT = pollTranslationRequest.HtmlContent;
+                    break;
+
+                default:
+                    poll.Name = pollTranslationRequest.Name;
+                    poll.Description = pollTranslationRequest.Description;
+                    poll.HtmlContent = pollTranslationRequest.HtmlContent;
+                    break;
+            }
+
+            _uow.PollRepository.Update(poll);
+            await _uow.CommitAsync();
+        }
     }
 }

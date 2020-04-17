@@ -38,5 +38,9 @@ namespace MismeAPI.Service
         Task<Tip> UpdateTipContentAsync(int loggedUser, string content, int id);
 
         Task ActivateTipAsync(int loggedUser, int id, int pollId, int position);
+
+        Task<List<Poll>> GetAllPollsAdminAsync(int loggedUser);
+
+        Task ChangePollTranslationAsync(int loggedUser, PollTranslationRequest pollTranslationRequest, int id);
     }
 }

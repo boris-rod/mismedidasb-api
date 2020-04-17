@@ -258,5 +258,38 @@ namespace MismeAPI.Controllers
             await _pollService.ActivateTipAsync(loggedUser, id, pollId, position);
             return Ok();
         }
+
+        /// <summary>
+        /// Get all polls definition for translation. Only an admin can do this operation. Requires authentication.
+        /// </summary>
+        [HttpGet("admin")]
+        [Authorize]
+        [ProducesResponseType(typeof(IEnumerable<PollAdminResponse>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(IEnumerable<ApiResponse>), (int)HttpStatusCode.Forbidden)]
+        public async Task<IActionResult> GetAllPollsForTranslate(int? conceptId)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            var result = await _pollService.GetAllPollsAdminAsync(loggedUser);
+            var mapped = _mapper.Map<IEnumerable<PollAdminResponse>>(result);
+            mapped = mapped.OrderBy(m => m.Order);
+            return Ok(new ApiOkResponse(mapped));
+        }
+
+        /// <summary>
+        /// Change a poll i18n. Only an admin can do this operation. Requires authentication.
+        /// </summary>
+        /// <param name="pollTranslationRequest">Poll translation request object.</param>
+        /// <param name="id">Poll id.</param>
+        [HttpPost("{id}/define-translation")]
+        [Authorize]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
+        public async Task<IActionResult> PollTranslation([FromRoute] int id, [FromBody]PollTranslationRequest pollTranslationRequest)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            await _pollService.ChangePollTranslationAsync(loggedUser, pollTranslationRequest, id);
+            return Ok();
+        }
     }
 }
