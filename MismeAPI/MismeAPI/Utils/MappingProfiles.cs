@@ -43,6 +43,10 @@ namespace MismeAPI.Utils
             CreateMap<Tip, TipResponse>()
                 .ForMember(d => d.TipPosition, opts => opts.MapFrom(source => (int)source.TipPosition))
                 .ForMember(d => d.TipPositionString, opts => opts.MapFrom(source => source.TipPosition.ToString()));
+            CreateMap<Tip, TipAdminResponse>()
+                .ForMember(d => d.PollName, opts => opts.MapFrom(source => source.Poll != null ? source.Poll.Name : ""))
+                .ForMember(d => d.TipPosition, opts => opts.MapFrom(source => (int)source.TipPosition))
+                .ForMember(d => d.TipPositionString, opts => opts.MapFrom(source => source.TipPosition.ToString()));
 
             CreateMap<Dish, DishResponse>()
                 .ForMember(d => d.Tags, opts => opts.MapFrom(source => source.DishTags))

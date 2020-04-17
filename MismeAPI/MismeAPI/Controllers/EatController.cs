@@ -182,8 +182,6 @@ namespace MismeAPI.Controllers
         {
             var loggedUser = User.GetUserIdFromToken();
             await _eatService.CreateBulkEatAsync(loggedUser, eat);
-            //var mapped = _mapper.Map<EatResponse>(result);
-            //return Ok(new ApiOkResponse(mapped));
             return Ok();
         }
     }

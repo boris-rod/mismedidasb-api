@@ -144,7 +144,7 @@ namespace MismeAPI.Controllers
         /// <param name="id">Concept id.</param>
         [HttpPost("{id}/define-translation")]
         [Authorize]
-        [ProducesResponseType(typeof(ConceptResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> ConceptTranslation([FromRoute] int id, [FromBody]ConceptTranslationRequest concetpTranslationRequest)
