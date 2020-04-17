@@ -180,7 +180,7 @@ namespace MismeAPI.Service.Impls
             foreach (var item in eat.Eats)
             {
                 var e = new Eat();
-                e.CreatedAt = DateTime.UtcNow;
+                e.CreatedAt = eat.DateInUtc;
                 e.ModifiedAt = DateTime.UtcNow;
                 e.EatType = (EatTypeEnum)item.EatType;
                 e.UserId = loggedUser;
