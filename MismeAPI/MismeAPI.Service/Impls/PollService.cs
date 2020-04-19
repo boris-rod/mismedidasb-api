@@ -289,7 +289,7 @@ namespace MismeAPI.Service.Impls
             if (poll != null)
             {
                 // not found poll?
-                var pda = await _uow.UserConceptRepository.GetAll().Where(p => p.ConceptId == poll.ConceptId && p.CompletedAt.Date == DateTime.UtcNow.Date)
+                var pda = await _uow.UserConceptRepository.GetAll().Where(p => p.ConceptId == poll.ConceptId && p.CompletedAt.Date == DateTime.UtcNow.Date && p.UserId == loggedUser)
                     .FirstOrDefaultAsync();
 
                 foreach (var elem in result.PollDatas)
