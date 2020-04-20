@@ -36,6 +36,8 @@ namespace MismeAPI.Utils
                  .ForMember(d => d.PollName, opts => opts.MapFrom(source => source.Poll.Name));
 
             CreateMap<Answer, AnswerResponse>();
+            CreateMap<Answer, AnswerAdminResponse>()
+                 .ForMember(d => d.PollName, opts => opts.MapFrom(source => source.Question.Poll.Name));
 
             CreateMap<Concept, ConceptResponse>()
                 .ForMember(d => d.Image, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Image) ? "" : _amazonS3Service.GetPresignUrl(source.Image)));
