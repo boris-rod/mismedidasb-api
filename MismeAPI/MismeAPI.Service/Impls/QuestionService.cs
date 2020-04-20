@@ -240,5 +240,71 @@ namespace MismeAPI.Service.Impls
             }
             return answers;
         }
+
+        public async Task<IEnumerable<Question>> GetQuestionsAdminAsync(int loggedUser)
+        {
+            // validate admin user
+            var user = await _uow.UserRepository.FindByAsync(u => u.Id == loggedUser && u.Role == RoleEnum.ADMIN);
+            if (user.Count == 0)
+            {
+                throw new NotAllowedException(ExceptionConstants.NOT_ALLOWED);
+            }
+
+            var questions = new List<Question>();
+
+            var ques = await _uow.QuestionRepository.GetAll().Where(q => q.Poll.Concept.Codename == CodeNamesConstants.HEALTH_MEASURES)
+                .Include(q => q.Poll)
+                    .ThenInclude(p => p.Concept)
+                .ToListAsync();
+            questions.AddRange(ques);
+
+            ques = await _uow.QuestionRepository.GetAll().Where(q => q.Poll.Concept.Codename == CodeNamesConstants.VALUE_MEASURES)
+                .Include(q => q.Poll)
+                    .ThenInclude(p => p.Concept)
+                .ToListAsync();
+            questions.AddRange(ques);
+
+            ques = await _uow.QuestionRepository.GetAll().Where(q => q.Poll.Concept.Codename == CodeNamesConstants.WELLNESS_MEASURES)
+                .Include(q => q.Poll)
+                    .ThenInclude(p => p.Concept)
+                .ToListAsync();
+            questions.AddRange(ques);
+
+            return questions;
+        }
+
+        public async Task ChangeQuestionTranslationAsync(int loggedUser, QuestionTranslationRequest questionTranslationRequest, int id)
+        {
+            // validate admin user
+            var user = await _uow.UserRepository.FindByAsync(u => u.Id == loggedUser && u.Role == RoleEnum.ADMIN);
+            if (user.Count == 0)
+            {
+                throw new NotAllowedException(ExceptionConstants.NOT_ALLOWED);
+            }
+            var question = await _uow.QuestionRepository.GetAll().Where(c => c.Id == id)
+                .FirstOrDefaultAsync();
+            if (question == null)
+            {
+                throw new NotFoundException(ExceptionConstants.NOT_FOUND, "Question");
+            }
+
+            switch (questionTranslationRequest.Lang)
+            {
+                case "en":
+                    question.TitleEN = questionTranslationRequest.Title;
+                    break;
+
+                case "it":
+                    question.TitleIT = questionTranslationRequest.Title;
+                    break;
+
+                default:
+                    question.Title = questionTranslationRequest.Title;
+                    break;
+            }
+
+            _uow.QuestionRepository.Update(question);
+            await _uow.CommitAsync();
+        }
     }
 }

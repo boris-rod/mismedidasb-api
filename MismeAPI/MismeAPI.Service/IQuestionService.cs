@@ -21,5 +21,9 @@ namespace MismeAPI.Service
         Task<Question> UpdateQuestionTitleAsync(int loggedUser, int id, string title);
 
         Task<Question> AddOrUpdateQuestionWithAnswersAsync(int loggedUser, AddOrUpdateQuestionWithAnswersRequest question);
+
+        Task<IEnumerable<Question>> GetQuestionsAdminAsync(int loggedUser);
+
+        Task ChangeQuestionTranslationAsync(int loggedUser, QuestionTranslationRequest questionTranslationRequest, int id);
     }
 }

@@ -32,6 +32,9 @@ namespace MismeAPI.Utils
             CreateMap<Question, QuestionResponse>()
                  .ForMember(d => d.Answers, opts => opts.MapFrom(source => source.Answers.OrderBy(q => q.Order)));
 
+            CreateMap<Question, QuestionAdminResponse>()
+                 .ForMember(d => d.PollName, opts => opts.MapFrom(source => source.Poll.Name));
+
             CreateMap<Answer, AnswerResponse>();
 
             CreateMap<Concept, ConceptResponse>()

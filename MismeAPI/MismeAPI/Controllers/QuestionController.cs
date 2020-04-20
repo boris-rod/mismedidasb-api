@@ -143,5 +143,36 @@ namespace MismeAPI.Controllers
             var mapped = _mapper.Map<QuestionResponse>(result);
             return Created("", new ApiOkResponse(mapped));
         }
+
+        /// <summary>
+        /// Get questions for translate. Only an admin can do this operation. Requires authentication.
+        /// </summary>
+        [HttpGet("admin")]
+        [Authorize]
+        [ProducesResponseType(typeof(IEnumerable<QuestionAdminResponse>), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetQuestionsAdmin()
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            var result = await _questionService.GetQuestionsAdminAsync(loggedUser);
+            var mapped = _mapper.Map<IEnumerable<QuestionAdminResponse>>(result);
+            return Ok(new ApiOkResponse(mapped));
+        }
+
+        /// <summary>
+        /// Change a question i18n. Only an admin can do this operation. Requires authentication.
+        /// </summary>
+        /// <param name="questionTranslationRequest">Question translation request object.</param>
+        /// <param name="id">Question id.</param>
+        [HttpPost("{id}/define-translation")]
+        [Authorize]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
+        public async Task<IActionResult> QuestionTranslation([FromRoute] int id, [FromBody]QuestionTranslationRequest questionTranslationRequest)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            await _questionService.ChangeQuestionTranslationAsync(loggedUser, questionTranslationRequest, id);
+            return Ok();
+        }
     }
 }
