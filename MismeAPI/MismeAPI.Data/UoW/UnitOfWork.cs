@@ -29,6 +29,7 @@ namespace MismeAPI.Data.UoW
             EatDishRepository = EatDishRepository ?? new GenericRepository<EatDish>(_context);
             DeviceRepository = DeviceRepository ?? new GenericRepository<Device>(_context);
             TipRepository = TipRepository ?? new GenericRepository<Tip>(_context);
+            ReminderRepository = ReminderRepository ?? new GenericRepository<Reminder>(_context);
         }
 
         public IGenericRepository<User> UserRepository { get; set; }
@@ -47,6 +48,7 @@ namespace MismeAPI.Data.UoW
         public IGenericRepository<EatDish> EatDishRepository { get; set; }
         public IGenericRepository<Device> DeviceRepository { get; set; }
         public IGenericRepository<Tip> TipRepository { get; set; }
+        public IGenericRepository<Reminder> ReminderRepository { get; set; }
 
         public async Task<int> CommitAsync()
         {
