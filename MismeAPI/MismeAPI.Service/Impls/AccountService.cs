@@ -47,6 +47,8 @@ namespace MismeAPI.Services.Impls
             var hashedPass = GetSha256Hash(loginRequest.Password);
 
             var user = await _uow.UserRepository.FindBy(u => u.Email == loginRequest.Email)
+                .Include(u => u.UserSettings)
+                    .ThenInclude(s => s.Setting)
                 .FirstOrDefaultAsync();
 
             if (user == null)
@@ -405,6 +407,19 @@ namespace MismeAPI.Services.Impls
 
             await _uow.UserRepository.AddAsync(user);
 
+            var setting = _uow.SettingRepository.GetAll().Where(s => s.Name == SettingsConstants.LANGUAGE).FirstOrDefault();
+            if (setting != null)
+            {
+                var uSett = new UserSetting();
+                uSett.Setting = setting;
+                uSett.User = user;
+                var lang = string.IsNullOrWhiteSpace(suRequest.Language) ? "ES" :
+                    ((suRequest.Language.ToLower() != "es" && suRequest.Language.ToLower() != "en" && suRequest.Language.ToLower() != "it") ? "ES" : suRequest.Language.ToUpper());
+                uSett.Value = lang;
+
+                await _uow.UserSettingRepository.AddAsync(uSett);
+            }
+
             await _uow.CommitAsync();
             return user;
         }
@@ -749,6 +764,38 @@ namespace MismeAPI.Services.Impls
             var imc = GetIMC(user.Id);
             var first = GetFirstHealthMeasured(user.Id);
             return (user, kcal, imc, first);
+        }
+
+        public async Task<IEnumerable<UserSetting>> GetUserSettingsAsync(int loggedUser)
+        {
+            return await _uow.UserSettingRepository.GetAll().Where(u => u.UserId == loggedUser)
+                .Include(u => u.Setting).ToListAsync();
+        }
+
+        public async Task UpdateUserSettingsAsync(int loggedUser, List<UpdateSettingRequest> request)
+        {
+            foreach (var item in request)
+            {
+                var set = await _uow.SettingRepository.GetAsync(item.SettingId);
+                if (set != null)
+                {
+                    var uSet = await _uow.UserSettingRepository.GetAll().Where(us => us.SettingId == item.SettingId && us.UserId == loggedUser).FirstOrDefaultAsync();
+                    if (uSet != null)
+                    {
+                        uSet.Value = item.Value;
+                        _uow.UserSettingRepository.Update(uSet);
+                    }
+                    else
+                    {
+                        uSet = new UserSetting();
+                        uSet.UserId = loggedUser;
+                        uSet.SettingId = item.SettingId;
+                        uSet.Value = item.Value;
+                        await _uow.UserSettingRepository.AddAsync(uSet);
+                    }
+                }
+            }
+            await _uow.CommitAsync();
         }
     }
 }

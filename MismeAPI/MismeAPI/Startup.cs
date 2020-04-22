@@ -80,6 +80,7 @@ namespace MismeAPI
             services.AddTransient<ITipService, TipService>();
             services.AddTransient<IReminderService, ReminderService>();
             services.AddTransient<IResultService, ResultService>();
+            services.AddTransient<ISettingService, SettingService>();
 
             var provider = services.BuildServiceProvider();
             var amazonS3Service = provider.GetService<IAmazonS3Service>();

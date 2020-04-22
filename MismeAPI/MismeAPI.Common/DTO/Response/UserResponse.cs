@@ -21,5 +21,6 @@ namespace MismeAPI.Common.DTO.Response
         public double KCal { get; set; }
         public double IMC { get; set; }
         public DateTime? FirstHealthMeasured { get; set; }
+        public string Language { get; set; }
     }
 }

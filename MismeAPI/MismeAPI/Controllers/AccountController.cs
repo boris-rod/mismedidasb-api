@@ -7,11 +7,13 @@ using Microsoft.AspNetCore.SignalR;
 using MismeAPI.BasicResponses;
 using MismeAPI.Common.DTO.Request;
 using MismeAPI.Common.DTO.Response;
+using MismeAPI.Common.DTO.Response.Settings;
 using MismeAPI.Data.Entities.Enums;
 using MismeAPI.Service.Hubs;
 using MismeAPI.Services;
 using MismeAPI.Utils;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -349,6 +351,36 @@ namespace APITaxi.API.Controllers
             user.FirstHealthMeasured = result.firstHealtMeasured;
 
             return Ok(new ApiOkResponse(user));
+        }
+
+        /// <summary>
+        /// Get user settings. Requires authentication.
+        /// </summary>
+        [Authorize]
+        [HttpGet("settings")]
+        [ProducesResponseType(typeof(IEnumerable<BasicSettingResponse>), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetUserSettings()
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            var result = await _accountService.GetUserSettingsAsync(loggedUser);
+            var mapped = _mapper.Map<IEnumerable<BasicSettingResponse>>(result);
+
+            return Ok(new ApiOkResponse(mapped));
+        }
+
+        /// <summary>
+        /// Update user settings. Requires authentication.
+        /// </summary>
+        /// <param name="request">Update setting request.</param>
+        [Authorize]
+        [HttpPost("settings")]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        public async Task<IActionResult> UpdateUserSettings([FromBody] List<UpdateSettingRequest> request)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            await _accountService.UpdateUserSettingsAsync(loggedUser, request);
+
+            return Ok();
         }
     }
 }

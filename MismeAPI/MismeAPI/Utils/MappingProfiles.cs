@@ -1,10 +1,13 @@
 using AutoMapper;
+using MismeAPI.Common;
 using MismeAPI.Common.DTO.Response;
 using MismeAPI.Common.DTO.Response.Reminder;
 using MismeAPI.Common.DTO.Response.Result;
+using MismeAPI.Common.DTO.Response.Settings;
 using MismeAPI.Data.Entities;
 using MismeAPI.Services;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace MismeAPI.Utils
@@ -22,6 +25,7 @@ namespace MismeAPI.Utils
             _amazonS3Service = amazonS3Service ?? throw new ArgumentNullException(nameof(amazonS3Service));
 
             CreateMap<User, UserResponse>()
+                .ForMember(d => d.Language, opts => opts.MapFrom(source => GetLanguage(source.UserSettings)))
                         .ForMember(d => d.StatusId, opts => opts.MapFrom(source => (int)source.Status))
                         .ForMember(d => d.Status, opts => opts.MapFrom(source => source.Status.ToString()))
                         .ForMember(d => d.Avatar, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Avatar) ? "" : _amazonS3Service.GetPresignUrl(source.Avatar)));
@@ -78,6 +82,33 @@ namespace MismeAPI.Utils
                        .ForMember(d => d.EatTypeId, opts => opts.MapFrom(source => (int)source.EatType))
                        .ForMember(d => d.EatType, opts => opts.MapFrom(source => source.EatType.ToString()))
                        .ForMember(d => d.EatDishResponse, opts => opts.MapFrom(source => source.EatDishes));
+
+            CreateMap<UserSetting, BasicSettingResponse>()
+                   .ForMember(d => d.Setting, opts => opts.MapFrom(source => source.Setting.Name))
+                   .ForMember(d => d.SettingId, opts => opts.MapFrom(source => source.SettingId))
+                   .ForMember(d => d.Value, opts => opts.MapFrom(source => source.Value));
+
+            CreateMap<Setting, ListSettingResponse>();
+        }
+
+        private string GetLanguage(ICollection<UserSetting> userSettings)
+        {
+            if (userSettings.Count == 0)
+            {
+                return "ES";
+            }
+            else
+            {
+                var lang = userSettings.Where(u => u.Setting.Name == SettingsConstants.LANGUAGE).FirstOrDefault();
+                if (lang != null)
+                {
+                    return string.IsNullOrWhiteSpace(lang.Value) ? "ES" : lang.Value;
+                }
+                else
+                {
+                    return "ES";
+                }
+            }
         }
     }
 }

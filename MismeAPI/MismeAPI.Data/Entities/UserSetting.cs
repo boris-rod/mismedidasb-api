@@ -10,5 +10,6 @@ namespace MismeAPI.Data.Entities
         public User User { get; set; }
         public int SettingId { get; set; }
         public Setting Setting { get; set; }
+        public string Value { get; set; }
     }
 }
