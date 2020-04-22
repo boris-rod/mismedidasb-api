@@ -20,5 +20,7 @@ namespace MismeAPI.Service
         Task<User> DisableUserAsync(int loggedUser, int id);
 
         Task SendUserNotificationAsync(int loggedUser, int id, UserNotificationRequest notif);
+
+        Task<string> GetUserLanguageFromUserIdAsync(int loggedUser);
     }
 }

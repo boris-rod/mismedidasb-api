@@ -17,10 +17,12 @@ namespace MismeAPI.Controllers
     public class AnswerController : Controller
     {
         private readonly IAnswerService _answerService;
+        private readonly IUserService _userService;
         private readonly IMapper _mapper;
 
-        public AnswerController(IAnswerService answerService, IMapper mapper)
+        public AnswerController(IAnswerService answerService, IUserService userService, IMapper mapper)
         {
+            _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _answerService = answerService ?? throw new ArgumentNullException(nameof(answerService));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
@@ -35,8 +37,14 @@ namespace MismeAPI.Controllers
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> GetAnswersByQuestion([FromQuery]int questionId)
         {
+            var loggedUser = User.GetUserIdFromToken();
+            var language = await _userService.GetUserLanguageFromUserIdAsync(loggedUser);
+
             var result = await _answerService.GetAnswersByQuestionIdAsync(questionId);
-            var mapped = _mapper.Map<IEnumerable<AnswerResponse>>(result);
+            var mapped = _mapper.Map<IEnumerable<AnswerResponse>>(result, opt =>
+            {
+                opt.Items["lang"] = language;
+            });
             return Ok(new ApiOkResponse(mapped));
         }
 

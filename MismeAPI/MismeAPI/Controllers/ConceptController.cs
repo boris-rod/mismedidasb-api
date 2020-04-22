@@ -20,12 +20,14 @@ namespace MismeAPI.Controllers
         private readonly IConceptService _conceptService;
         private readonly IPollService _pollService;
         private readonly IMapper _mapper;
+        private readonly IUserService _userService;
 
-        public ConceptController(IConceptService conceptService, IPollService pollService, IMapper mapper)
+        public ConceptController(IConceptService conceptService, IPollService pollService, IMapper mapper, IUserService userService)
         {
             _conceptService = conceptService ?? throw new ArgumentNullException(nameof(conceptService));
             _pollService = pollService ?? throw new ArgumentNullException(nameof(pollService));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _userService = userService ?? throw new ArgumentNullException(nameof(userService));
         }
 
         /// <summary>
@@ -36,8 +38,14 @@ namespace MismeAPI.Controllers
         [ProducesResponseType(typeof(IEnumerable<ConceptResponse>), (int)HttpStatusCode.OK)]
         public async Task<IActionResult> GetConcepts()
         {
+            var loggedUser = User.GetUserIdFromToken();
+            var language = await _userService.GetUserLanguageFromUserIdAsync(loggedUser);
+
             var result = await _conceptService.GetConceptsAsync();
-            var mapped = _mapper.Map<IEnumerable<ConceptResponse>>(result);
+            var mapped = _mapper.Map<IEnumerable<ConceptResponse>>(result, opt =>
+            {
+                opt.Items["lang"] = language;
+            });
             return Ok(new ApiOkResponse(mapped));
         }
 
@@ -50,6 +58,7 @@ namespace MismeAPI.Controllers
         public async Task<IActionResult> GetConceptsAdmin()
         {
             var loggedUser = User.GetUserIdFromToken();
+
             var result = await _conceptService.GetConceptsAdminAsync(loggedUser);
             var mapped = _mapper.Map<IEnumerable<ConceptAdminResponse>>(result);
             return Ok(new ApiOkResponse(mapped));
@@ -63,8 +72,14 @@ namespace MismeAPI.Controllers
         [ProducesResponseType(typeof(IEnumerable<PollResponse>), (int)HttpStatusCode.OK)]
         public async Task<IActionResult> GetAll([FromRoute]int id)
         {
+            var loggedUser = User.GetUserIdFromToken();
+            var language = await _userService.GetUserLanguageFromUserIdAsync(loggedUser);
+
             var result = await _pollService.GetAllPollsByConceptAsync(id);
-            var mapped = _mapper.Map<IEnumerable<PollResponse>>(result);
+            var mapped = _mapper.Map<IEnumerable<PollResponse>>(result, opt =>
+             {
+                 opt.Items["lang"] = language;
+             });
             mapped = mapped.OrderBy(p => p.Order);
             return Ok(new ApiOkResponse(mapped));
         }

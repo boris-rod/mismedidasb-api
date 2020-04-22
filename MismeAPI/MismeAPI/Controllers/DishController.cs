@@ -18,11 +18,13 @@ namespace MismeAPI.Controllers
     public class DishController : Controller
     {
         private readonly IDishService _dishService;
+        private readonly IUserService _userService;
         private readonly IMapper _mapper;
 
-        public DishController(IDishService dishService, IMapper mapper)
+        public DishController(IDishService dishService, IUserService userService, IMapper mapper)
         {
             _dishService = dishService ?? throw new ArgumentNullException(nameof(dishService));
+            _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
@@ -36,8 +38,16 @@ namespace MismeAPI.Controllers
         [ProducesResponseType(typeof(IEnumerable<DishResponse>), (int)HttpStatusCode.OK)]
         public async Task<IActionResult> GetAll(string search, List<int> tags)
         {
+            var loggedUser = User.GetUserIdFromToken();
+            var language = await _userService.GetUserLanguageFromUserIdAsync(loggedUser);
+
             var result = await _dishService.GetDishesAsync(search, tags);
-            var mapped = _mapper.Map<IEnumerable<DishResponse>>(result);
+
+            var mapped = _mapper.Map<IEnumerable<DishResponse>>(result, opt =>
+            {
+                opt.Items["lang"] = language;
+            });
+
             return Ok(new ApiOkResponse(mapped));
         }
 
@@ -51,8 +61,14 @@ namespace MismeAPI.Controllers
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> GetById([FromRoute]int id)
         {
+            var loggedUser = User.GetUserIdFromToken();
+            var language = await _userService.GetUserLanguageFromUserIdAsync(loggedUser);
+
             var result = await _dishService.GetDishByIdAsync(id);
-            var mapped = _mapper.Map<DishResponse>(result);
+            var mapped = _mapper.Map<DishResponse>(result, opt =>
+            {
+                opt.Items["lang"] = language;
+            });
             return Ok(new ApiOkResponse(mapped));
         }
 

@@ -2,6 +2,7 @@
 using FirebaseAdmin.Messaging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using MismeAPI.Common;
 using MismeAPI.Common.DTO.Request;
 using MismeAPI.Common.DTO.Response;
 using MismeAPI.Common.Exceptions;
@@ -407,6 +408,20 @@ namespace MismeAPI.Service.Impls
                     }
                 }
             }
+        }
+
+        public async Task<string> GetUserLanguageFromUserIdAsync(int loggedUser)
+        {
+            var setting = await _uow.SettingRepository.GetAll().Where(s => s.Name == SettingsConstants.LANGUAGE).FirstOrDefaultAsync();
+            if (setting != null)
+            {
+                var us = await _uow.UserSettingRepository.GetAll().Where(us => us.SettingId == setting.Id && us.UserId == loggedUser).FirstOrDefaultAsync();
+                if (us != null)
+                {
+                    return string.IsNullOrWhiteSpace(us.Value) ? "ES" : us.Value;
+                }
+            }
+            return "ES";
         }
     }
 }
