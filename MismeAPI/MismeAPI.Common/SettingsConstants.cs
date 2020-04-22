@@ -2,6 +2,6 @@
 {
     public static class SettingsConstants
     {
-        public static string LANGUAGE = "lang";
+        public static string LANGUAGE = "Language";
     }
 }
