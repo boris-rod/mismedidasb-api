@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MismeAPI.BasicResponses;
 using MismeAPI.Common.DTO.Request;
+using MismeAPI.Common.DTO.Request.Dish;
 using MismeAPI.Common.DTO.Response;
 using MismeAPI.Service;
 using MismeAPI.Utils;
@@ -103,6 +104,38 @@ namespace MismeAPI.Controllers
         {
             var loggedUser = User.GetUserIdFromToken();
             await _dishService.DeleteDishAsync(loggedUser, id);
+            return Ok();
+        }
+
+        /// <summary>
+        /// Get dishes for translate. Only an admin can do this operation. Requires authentication.
+        /// </summary>
+        [HttpGet("admin")]
+        [Authorize]
+        [ProducesResponseType(typeof(IEnumerable<DishAdminResponse>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(IEnumerable<ApiResponse>), (int)HttpStatusCode.Forbidden)]
+        public async Task<IActionResult> GetDishAdmin()
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            var result = await _dishService.GetDishesAdminAsync(loggedUser);
+            var mapped = _mapper.Map<IEnumerable<DishAdminResponse>>(result);
+            return Ok(new ApiOkResponse(mapped));
+        }
+
+        /// <summary>
+        /// Change a dish i18n. Only an admin can do this operation. Requires authentication.
+        /// </summary>
+        /// <param name="dishTranslationRequest">Dish translation request object.</param>
+        /// <param name="id">Dish id.</param>
+        [HttpPost("{id}/define-translation")]
+        [Authorize]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
+        public async Task<IActionResult> QuestionTranslation([FromRoute] int id, [FromBody]DishTranslationRequest dishTranslationRequest)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            await _dishService.ChangeDishTranslationAsync(loggedUser, dishTranslationRequest, id);
             return Ok();
         }
     }

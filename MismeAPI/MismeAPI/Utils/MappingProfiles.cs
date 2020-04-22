@@ -1,5 +1,6 @@
 using AutoMapper;
 using MismeAPI.Common.DTO.Response;
+using MismeAPI.Common.DTO.Response.Reminder;
 using MismeAPI.Data.Entities;
 using MismeAPI.Services;
 using System;
@@ -57,6 +58,10 @@ namespace MismeAPI.Utils
             CreateMap<Dish, DishResponse>()
                 .ForMember(d => d.Tags, opts => opts.MapFrom(source => source.DishTags))
                 .ForMember(d => d.Image, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Image) ? "" : _amazonS3Service.GetPresignUrl(source.Image)));
+
+            CreateMap<Dish, DishAdminResponse>();
+            //.ForMember(d => d.Image, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Image) ? "" : _amazonS3Service.GetPresignUrl(source.Image)));
+            CreateMap<Reminder, ReminderAdminResponse>();
 
             CreateMap<DishTag, TagResponse>()
                 .ForMember(d => d.Name, opts => opts.MapFrom(source => source.Tag.Name))

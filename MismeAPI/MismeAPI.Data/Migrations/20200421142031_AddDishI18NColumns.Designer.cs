@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MismeAPI.Data;
 
 namespace MismeAPI.Data.Migrations
 {
     [DbContext(typeof(MismeContext))]
-    partial class MismeContextModelSnapshot : ModelSnapshot
+    [Migration("20200421142031_AddDishI18NColumns")]
+    partial class AddDishI18NColumns
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -329,12 +331,6 @@ namespace MismeAPI.Data.Migrations
                     b.Property<string>("Body")
                         .HasColumnType("longtext CHARACTER SET utf8mb4");
 
-                    b.Property<string>("BodyEN")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
-
-                    b.Property<string>("BodyIT")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
-
                     b.Property<string>("CodeName")
                         .HasColumnType("longtext CHARACTER SET utf8mb4");
 
@@ -342,12 +338,6 @@ namespace MismeAPI.Data.Migrations
                         .HasColumnType("longtext CHARACTER SET utf8mb4");
 
                     b.Property<string>("Title")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
-
-                    b.Property<string>("TitleEN")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
-
-                    b.Property<string>("TitleIT")
                         .HasColumnType("longtext CHARACTER SET utf8mb4");
 
                     b.HasKey("Id");

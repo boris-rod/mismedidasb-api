@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MismeAPI.Common;
 using MismeAPI.Common.DTO.Request;
+using MismeAPI.Common.DTO.Request.Dish;
 using MismeAPI.Common.Exceptions;
 using MismeAPI.Data.Entities;
 using MismeAPI.Data.Entities.Enums;
@@ -22,6 +23,40 @@ namespace MismeAPI.Service.Impls
         {
             _uow = uow ?? throw new ArgumentNullException(nameof(uow));
             _fileService = fileService ?? throw new ArgumentNullException(nameof(fileService));
+        }
+
+        public async Task ChangeDishTranslationAsync(int loggedUser, DishTranslationRequest dishTranslationRequest, int id)
+        {
+            // validate admin user
+            var user = await _uow.UserRepository.FindByAsync(u => u.Id == loggedUser && u.Role == RoleEnum.ADMIN);
+            if (user.Count == 0)
+            {
+                throw new NotAllowedException(ExceptionConstants.NOT_ALLOWED);
+            }
+            var dish = await _uow.DishRepository.GetAll().Where(c => c.Id == id)
+                .FirstOrDefaultAsync();
+            if (dish == null)
+            {
+                throw new NotFoundException(ExceptionConstants.NOT_FOUND, "Dish");
+            }
+
+            switch (dishTranslationRequest.Lang)
+            {
+                case "en":
+                    dish.NameEN = dishTranslationRequest.Name;
+                    break;
+
+                case "it":
+                    dish.NameIT = dishTranslationRequest.Name;
+                    break;
+
+                default:
+                    dish.Name = dishTranslationRequest.Name;
+                    break;
+            }
+
+            _uow.DishRepository.Update(dish);
+            await _uow.CommitAsync();
         }
 
         public async Task<Dish> CreateDishAsync(int loggedUser, CreateDishRequest dish)
@@ -131,6 +166,17 @@ namespace MismeAPI.Service.Impls
                 throw new NotFoundException(ExceptionConstants.NOT_FOUND, "Dish");
             }
             return dish;
+        }
+
+        public async Task<IEnumerable<Dish>> GetDishesAdminAsync(int loggedUser)
+        {
+            var user = await _uow.UserRepository.FindByAsync(u => u.Id == loggedUser && u.Role == RoleEnum.ADMIN);
+            if (user.Count == 0)
+            {
+                throw new NotAllowedException(ExceptionConstants.NOT_ALLOWED);
+            }
+            var dishes = await _uow.DishRepository.GetAll().ToListAsync();
+            return dishes;
         }
 
         public async Task<IEnumerable<Dish>> GetDishesAsync(string search, List<int> tags)

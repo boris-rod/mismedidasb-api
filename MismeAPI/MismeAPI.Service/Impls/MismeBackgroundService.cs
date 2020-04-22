@@ -2,6 +2,7 @@
 using FirebaseAdmin.Messaging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using MismeAPI.Common;
 using MismeAPI.Data.UoW;
 using System;
 using System.Linq;
@@ -92,29 +93,35 @@ namespace MismeAPI.Service.Impls
                 .Where(u => !u.Eats.Any(e => e.CreatedAt.Date == tomorrow.Date))
                 .ToListAsync();
 
-            foreach (var us in usersWithoutPlans)
-            {
-                foreach (var device in us.Devices)
-                {
-                    using (var fcm = new FcmSender(serverKey, senderId))
-                    {
-                        Message message = new Message()
-                        {
-                            Notification = new Notification
-                            {
-                                Title = "Recordatorio",
-                                Body = "Recuerde planificar lo que va a comer mañana."
-                            }
+            var reminder = await _uow.ReminderRepository.GetAll().Where(r => r.CodeName == RemindersConstants.NO_EAT_PLANNED_FOR_TOMORROW).FirstOrDefaultAsync();
 
-                            ,
-                            Token = device.Token
-                        };
-                        try
+            if (reminder != null)
+            {
+                foreach (var us in usersWithoutPlans)
+                {
+                    foreach (var device in us.Devices)
+                    {
+                        using (var fcm = new FcmSender(serverKey, senderId))
                         {
-                            var response = await fcm.SendAsync(device.Token, message);
-                        }
-                        catch (Exception)
-                        {
+                            Message message = new Message()
+                            {
+                                Notification = new Notification
+                                {
+                                    // TODO: add logic for get user language
+                                    Title = reminder.Title,
+                                    Body = reminder.Body
+                                }
+
+                                ,
+                                Token = device.Token
+                            };
+                            try
+                            {
+                                var response = await fcm.SendAsync(device.Token, message);
+                            }
+                            catch (Exception)
+                            {
+                            }
                         }
                     }
                 }

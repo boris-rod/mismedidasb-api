@@ -14,6 +14,8 @@ namespace MismeAPI.Data.Entities
 
         public int Id { get; set; }
         public string Name { get; set; }
+        public string NameEN { get; set; }
+        public string NameIT { get; set; }
         public double Calories { get; set; }
         public double Carbohydrates { get; set; }
         public double Proteins { get; set; }

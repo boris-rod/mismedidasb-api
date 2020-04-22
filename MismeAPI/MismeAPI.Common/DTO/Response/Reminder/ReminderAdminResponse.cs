@@ -1,9 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-
-namespace MismeAPI.Data.Entities
+﻿namespace MismeAPI.Common.DTO.Response.Reminder
 {
-    [Table("reminder")]
-    public class Reminder
+    public class ReminderAdminResponse
     {
         public int Id { get; set; }
         public string Title { get; set; }
