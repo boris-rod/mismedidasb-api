@@ -26,5 +26,8 @@ namespace MismeAPI.Data
         public DbSet<Device> Devices { get; set; }
         public DbSet<Tip> Tips { get; set; }
         public DbSet<Reminder> Reminders { get; set; }
+        public DbSet<Setting> Settings { get; set; }
+        public DbSet<UserSetting> UserSettings { get; set; }
+        public DbSet<Result> Results { get; set; }
     }
 }

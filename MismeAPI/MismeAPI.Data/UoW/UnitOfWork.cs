@@ -30,6 +30,9 @@ namespace MismeAPI.Data.UoW
             DeviceRepository = DeviceRepository ?? new GenericRepository<Device>(_context);
             TipRepository = TipRepository ?? new GenericRepository<Tip>(_context);
             ReminderRepository = ReminderRepository ?? new GenericRepository<Reminder>(_context);
+            SettingRepository = SettingRepository ?? new GenericRepository<Setting>(_context);
+            UserSettingRepository = UserSettingRepository ?? new GenericRepository<UserSetting>(_context);
+            ResultRepository = ResultRepository ?? new GenericRepository<Result>(_context);
         }
 
         public IGenericRepository<User> UserRepository { get; set; }
@@ -49,6 +52,9 @@ namespace MismeAPI.Data.UoW
         public IGenericRepository<Device> DeviceRepository { get; set; }
         public IGenericRepository<Tip> TipRepository { get; set; }
         public IGenericRepository<Reminder> ReminderRepository { get; set; }
+        public IGenericRepository<Setting> SettingRepository { get; set; }
+        public IGenericRepository<UserSetting> UserSettingRepository { get; set; }
+        public IGenericRepository<Result> ResultRepository { get; set; }
 
         public async Task<int> CommitAsync()
         {

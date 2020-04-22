@@ -24,6 +24,9 @@ namespace MismeAPI.Data.UoW
         IGenericRepository<Device> DeviceRepository { get; set; }
         IGenericRepository<Tip> TipRepository { get; set; }
         IGenericRepository<Reminder> ReminderRepository { get; set; }
+        IGenericRepository<Setting> SettingRepository { get; set; }
+        IGenericRepository<UserSetting> UserSettingRepository { get; set; }
+        IGenericRepository<Result> ResultRepository { get; set; }
 
         Task<int> CommitAsync();
     }
