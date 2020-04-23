@@ -25,7 +25,7 @@ namespace MismeAPI.Service
 
         Task<Poll> UpdatePollTitleAsync(int loggedUser, string title, int id);
 
-        Task<List<string>> SetPollResultByQuestionsAsync(int loggedUser, ListOfPollResultsRequest result);
+        Task<List<string>> SetPollResultByQuestionsAsync(int loggedUser, ListOfPollResultsRequest result, string language);
 
         Task ChangePollQuestionOrderAsync(int loggedUser, QuestionOrderRequest questionOrderRequest, int id);
 

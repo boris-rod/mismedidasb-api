@@ -280,7 +280,7 @@ namespace MismeAPI.Service.Impls
         //    await _uow.CommitAsync();
         //}
 
-        public async Task<List<string>> SetPollResultByQuestionsAsync(int loggedUser, ListOfPollResultsRequest result)
+        public async Task<List<string>> SetPollResultByQuestionsAsync(int loggedUser, ListOfPollResultsRequest result, string language)
         {
             var message = new List<string>();
             var poll = await _uow.PollRepository.GetAll().Where(p => p.Id == result.PollDatas.ElementAt(0).PollId)
@@ -330,15 +330,15 @@ namespace MismeAPI.Service.Impls
 
                 if (poll.Concept.Codename == CodeNamesConstants.HEALTH_MEASURES)
                 {
-                    message = GetHealthMeasureMessage(poll.ConceptId, loggedUser);
+                    message = GetHealthMeasureMessage(poll.ConceptId, loggedUser, language);
                 }
                 else if (poll.Concept.Codename == CodeNamesConstants.VALUE_MEASURES)
                 {
-                    message = GetValueMeasureMessage(poll.ConceptId, loggedUser);
+                    message = GetValueMeasureMessage(poll.ConceptId, loggedUser, language);
                 }
                 else if (poll.Concept.Codename == CodeNamesConstants.WELLNESS_MEASURES)
                 {
-                    message = GetWellnessMeasureMessage(poll.ConceptId, loggedUser);
+                    message = GetWellnessMeasureMessage(poll.ConceptId, loggedUser, language);
                 }
 
                 // set concept result
@@ -449,7 +449,7 @@ namespace MismeAPI.Service.Impls
             return pd;
         }
 
-        private List<string> GetHealthMeasureMessage(int conceptId, int userId)
+        private List<string> GetHealthMeasureMessage(int conceptId, int userId, string language)
         {
             var result = new List<string>();
             var polls = _uow.PollRepository.GetAll().Where(p => p.ConceptId == conceptId)
@@ -587,11 +587,43 @@ namespace MismeAPI.Service.Impls
 
             if (IMC < 15)
             {
-                result.Add("Usted presenta BAJO PESO EXTREMO (" + IMCString + " Kg/m2) ¡Consulte a un médico!");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.UNDER_WEIGHT_EXTREME).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 15 && IMC < 16)
             {
-                result.Add("Usted presenta BAJO PESO GRAVE (" + IMCString + " Kg/m2) ¡Consulte a un médico!");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.UNDER_WEIGHT_SEVERE).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString);
+                }
+
+                result.Add(text);
             }
 
             //Resultados bajo peso 16-17 con deporte y wc<7
@@ -600,36 +632,115 @@ namespace MismeAPI.Service.Impls
                 dietSummary <= 7 &&
                 physicalExercise == 1)
             {
-                result.Add("Usted presenta BAJO PESO MODERADO (" + IMCString + " Kg/m2): Su ingesta de calorías debe estar por encima de " + dailyKalString + " Kcal/día. Se sugiere consultar a un médico.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.UNDER_WEIGHT_MODERATE_1).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 16 &&
               IMC < 17 &&
               dietSummary <= 7 &&
               physicalExercise == 2)
             {
-                result.Add("Usted presenta BAJO PESO MODERADO (" + IMCString + " Kg/m2): Su ingesta de calorías debe estar por encima de " + dailyKalString + " Kcal/día. Debería realizar ejercicios centrados en incrementar masa muscular, siempre bajo supervisión. Se sugiere consultar a un médico.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.UNDER_WEIGHT_MODERATE_2).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 16 &&
               IMC < 17 &&
               dietSummary <= 7 &&
               physicalExercise == 3)
             {
-                result.Add(
-                     "Usted presenta BAJO PESO MODERADO (" + IMCString + " Kg/m2): Su ingesta de calorías debe estar por encima de " + dailyKalString + " Kcal/día. Hacer ejercicios parece ser un hábito, debería hacerlos con supervisión de un especialista. Se sugiere consultar a un médico.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.UNDER_WEIGHT_MODERATE_3).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 16 &&
               IMC < 17 &&
               dietSummary <= 7 &&
               physicalExercise == 4)
             {
-                result.Add("Usted presenta BAJO PESO MODERADO (" + IMCString + " Kg/m2): Su ingesta de calorías debe estar por encima de " + dailyKalString + " Kcal/día. Hacer ejercicios parece ser un medio para gestionar emociones y afrontar los problemas.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.UNDER_WEIGHT_MODERATE_4).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 16 &&
               IMC < 17 &&
               dietSummary <= 7 &&
               physicalExercise == 5)
             {
-                result.Add("Usted presenta BAJO PESO MODERADO (" + IMCString + " Kg/m2): Su ingesta de calorías debe estar por encima de " + dailyKalString + " Kcal/día. Podría estar haciendo ejercicios de forma compulsiva (a menos que sea un deportista activo). Se sugiere consultar a un médico.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.UNDER_WEIGHT_MODERATE_5).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
 
             //Resultados bajo peso 16-17 con deporte y wc>7
@@ -638,35 +749,115 @@ namespace MismeAPI.Service.Impls
                 dietSummary > 7 &&
                 physicalExercise == 1)
             {
-                result.Add("Usted presenta BAJO PESO MODERADO (" + IMCString + " Kg/m2): Su ingesta de calorías debe estar por encima de " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Se sugiere consultar a un médico.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.UNDER_WEIGHT_MODERATE_6).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 16 &&
               IMC < 17 &&
               dietSummary > 7 &&
               physicalExercise == 2)
             {
-                result.Add("Usted presenta BAJO PESO MODERADO (" + IMCString + " Kg/m2): Su ingesta de calorías debe estar por encima de " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Debería realizar ejercicios centrados en incrementar masa muscular, siempre bajo supervisión. Se sugiere consultar a un médico.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.UNDER_WEIGHT_MODERATE_7).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 16 &&
               IMC < 17 &&
               dietSummary > 7 &&
               physicalExercise == 3)
             {
-                result.Add("Usted presenta BAJO PESO MODERADO (" + IMCString + " Kg/m2): Su ingesta de calorías debe estar por encima de " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Hacer ejercicios parece ser un hábito, debería realizarlos con supervisión de un especialista. Se sugiere consultar a un médico.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.UNDER_WEIGHT_MODERATE_8).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 16 &&
               IMC < 17 &&
               dietSummary > 7 &&
               physicalExercise == 4)
             {
-                result.Add("Usted presenta BAJO PESO MODERADO (" + IMCString + " Kg/m2): Su ingesta de calorías debe estar por encima de " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Hacer ejercicios parece ser un medio para gestionar emociones y afrontar los problemas, debería realizarlos con supervisión de un especialista. Se sugiere consultar a un médico.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.UNDER_WEIGHT_MODERATE_9).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 16 &&
               IMC < 17 &&
               dietSummary > 7 &&
               physicalExercise == 5)
             {
-                result.Add("Usted presenta BAJO PESO MODERADO (" + IMCString + " Kg/m2): Su ingesta de calorías debe estar por encima de " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Podría estar haciendo ejercicios de forma compulsiva (a menos que sea un deportista activo). Se sugiere consultar a un médico.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.UNDER_WEIGHT_MODERATE_10).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
 
             //Resultados bajo peso 17-18 con deporte y wc<7
@@ -675,35 +866,115 @@ namespace MismeAPI.Service.Impls
                 dietSummary <= 7 &&
                 physicalExercise == 1)
             {
-                result.Add("Usted presenta BAJO PESO LIGERO (" + IMCString + " Kg/m2): Su ingesta de calorías debe estar por encima de " + dailyKalString + " Kcal/día. Debería realizar ejercicios centrados en incrementar masa muscular, siempre bajo supervisión. Se sugiere consultar un médico.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.UNDER_WEIGHT_LIGHT_1).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 17 &&
               IMC < 18.5 &&
               dietSummary <= 7 &&
               physicalExercise == 2)
             {
-                result.Add("Usted presenta BAJO PESO LIGERO (" + IMCString + " Kg/m2): Su ingesta de calorías debe estar por encima de " + dailyKalString + " Kcal/día y ajustada al gasto. Debería realizar ejercicios centrados en incrementar masa muscular, siempre bajo supervisión. Se sugiere consultar a un médico.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.UNDER_WEIGHT_LIGHT_2).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 17 &&
               IMC < 18.5 &&
               dietSummary <= 7 &&
               physicalExercise == 3)
             {
-                result.Add("Usted presenta BAJO PESO LIGERO (" + IMCString + " Kg/m2): Su ingesta de calorías debe estar por encima de " + dailyKalString + " Kcal/día y ajustada al gasto. Hacer ejercicios parece ser un hábito, debería realizar ejercicios centrados en incrementar masa muscular, siempre bajo supervisión. Se sugiere consultar a un médico.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.UNDER_WEIGHT_LIGHT_3).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 17 &&
               IMC < 18.5 &&
               dietSummary <= 7 &&
               physicalExercise == 4)
             {
-                result.Add("Usted presenta BAJO PESO LIGERO (" + IMCString + " Kg/m2): Su ingesta de calorías debe estar por encima de " + dailyKalString + " Kcal/día y ajustada al gasto. Hacer ejercicios parece ser un medio para gestionar emociones y afrontar los problemas, debería realizarlos bajo supervisión de un especialista. Se sugiere consultar a un médico.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.UNDER_WEIGHT_LIGHT_4).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 17 &&
               IMC < 18.5 &&
               dietSummary <= 7 &&
               physicalExercise == 5)
             {
-                result.Add("(" + IMCString + " Kg/m2): (BAJO PESO MODERADO): Su ingesta de calorías debería estar por encima de " + dailyKalString + " Kcal/día y ajustada al gasto. Podría estar haciendo ejercicios de forma compulsiva (a menos que sea un deportista activo). Se sugiere consultar a un médico.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.UNDER_WEIGHT_MODERATE_11).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
 
             //Resultados bajo peso 17-18 con deporte y wc>7 //Instrucciones para Peso Normal
@@ -712,35 +983,115 @@ namespace MismeAPI.Service.Impls
                 dietSummary > 7 &&
                 physicalExercise == 1)
             {
-                result.Add("Usted presenta BAJO PESO LIGERO (" + IMCString + " Kg/m2): Su ingesta de calorías debería estar por encima de " + dailyKalString + " Kcal/día Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Debería realizar ejercicios centrados en incrementar masa muscular, siempre bajo supervisión. Se sugiere consultar un médico.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.UNDER_WEIGHT_LIGHT_5).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 17 &&
               IMC < 18.5 &&
               dietSummary > 7 &&
               physicalExercise == 2)
             {
-                result.Add("Usted presenta BAJO PESO LIGERO (" + IMCString + " Kg/m2):  Su ingesta de calorías debería estar por encima de " + dailyKalString + " Kcal/día y ajustada al gasto. Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Debería realizar ejercicios centrados en incrementar masa muscular, siempre bajo supervisión. Se sugiere consultar un médico.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.UNDER_WEIGHT_LIGHT_6).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 17 &&
               IMC < 18.5 &&
               dietSummary > 7 &&
               physicalExercise == 3)
             {
-                result.Add("Usted presenta BAJO PESO LIGERO (" + IMCString + " Kg/m2): Su ingesta de calorías debería estar por encima de " + dailyKalString + " Kcal/día y ajustada al gasto. Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Hacer ejercicios parece ser un hábito, debería realizar ejercicios centrados en incrementar masa muscular, siempre bajo supervisión. Se sugiere consultar a un médico.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.UNDER_WEIGHT_LIGHT_7).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 17 &&
               IMC < 18.5 &&
               dietSummary > 7 &&
               physicalExercise == 4)
             {
-                result.Add("Usted presenta BAJO PESO LIGERO (" + IMCString + " Kg/m2): Su ingesta de calorías debería estar por encima de " + dailyKalString + " Kcal/día y ajustada al gasto. Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Hacer ejercicios parece ser un medio para gestionar emociones y afrontar los problemas, debería realizarlos bajo supervisión. Se sugiere consultar a un médico.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.UNDER_WEIGHT_LIGHT_8).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 17 &&
               IMC < 18.5 &&
               dietSummary > 7 &&
               physicalExercise == 5)
             {
-                result.Add("Usted presenta BAJO PESO LIGERO (" + IMCString + " Kg/m2): Su ingesta de calorías debería estar por encima de " + dailyKalString + " Kcal/día y ajustada al gasto. Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Hacer ejercicios parece ser un medio para gestionar emociones y afrontar los problemas, debería realizarlos bajo supervisión. Se sugiere consultar a un médico.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.UNDER_WEIGHT_LIGHT_9).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
 
             //Instrucciones para Peso Normal deporte wc<4
@@ -749,35 +1100,115 @@ namespace MismeAPI.Service.Impls
                 dietSummary <= 4 &&
                 physicalExercise == 1)
             {
-                result.Add("Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Le recomendamos hacer ejercicios al menos 3 veces a la semana, para potenciar la salud y prevenir enfermedades.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.NORMAL_WEIGHT_1).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 18.5 &&
               IMC < 25 &&
               dietSummary <= 4 &&
               physicalExercise == 2)
             {
-                result.Add("Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Se observa cierta regularidad en su práctica de ejercicio físico.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.NORMAL_WEIGHT_2).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 18.5 &&
               IMC < 25 &&
               dietSummary <= 4 &&
               physicalExercise == 3)
             {
-                result.Add("Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Hacer ejercicios parece ser un hábito.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.NORMAL_WEIGHT_3).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 18.5 &&
               IMC < 25 &&
               dietSummary <= 4 &&
               physicalExercise == 4)
             {
-                result.Add("Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Hacer ejercicios parece ser un medio para gestionar emociones y afrontar los problemas.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.NORMAL_WEIGHT_4).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 18.5 &&
               IMC < 25 &&
               dietSummary <= 4 &&
               physicalExercise == 5)
             {
-                result.Add("Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Podría estar haciendo ejercicios de forma compulsiva (a menos que sea un deportista activo).");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.NORMAL_WEIGHT_5).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
 
             //Instrucciones para Peso Normal deporte wc entre 4 y 7
@@ -787,7 +1218,23 @@ namespace MismeAPI.Service.Impls
                 dietSummary <= 7 &&
                 physicalExercise == 1)
             {
-                result.Add("Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Muestra indicadores de fluctuaciones del peso y uso moderado de dietas en su historia vital. Le recomendamos hacer ejercicios al menos 3 veces a la semana, para potenciar la salud y prevenir enfermedades.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.NORMAL_WEIGHT_6).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 18.5 &&
               IMC < 25 &&
@@ -795,7 +1242,23 @@ namespace MismeAPI.Service.Impls
               dietSummary <= 7 &&
               physicalExercise == 2)
             {
-                result.Add("Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Muestra indicadores de fluctuaciones del peso y uso moderado de dietas en su historia vital. Se observa cierta regularidad en su práctica de ejercicio físico.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.NORMAL_WEIGHT_7).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 18.5 &&
               IMC < 25 &&
@@ -803,7 +1266,23 @@ namespace MismeAPI.Service.Impls
               dietSummary <= 7 &&
               physicalExercise == 3)
             {
-                result.Add("Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Muestra indicadores de fluctuaciones del peso y uso moderado de dietas en su historia vital. Hacer ejercicios parece ser un hábito.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.NORMAL_WEIGHT_8).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 18.5 &&
               IMC < 25 &&
@@ -811,7 +1290,23 @@ namespace MismeAPI.Service.Impls
               dietSummary <= 7 &&
               physicalExercise == 4)
             {
-                result.Add("Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Muestra indicadores de fluctuaciones del peso y uso moderado de dietas en su historia vital. Hacer ejercicios parece ser un medio para gestionar emociones y afrontar los problemas.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.NORMAL_WEIGHT_9).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 18.5 &&
               IMC < 25 &&
@@ -819,7 +1314,23 @@ namespace MismeAPI.Service.Impls
               dietSummary <= 7 &&
               physicalExercise == 5)
             {
-                result.Add("Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Muestra indicadores de fluctuaciones del peso y uso moderado de dietas en su historia vital. Podría estar haciendo ejercicios de forma compulsiva (a menos que sea un deportista activo).");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.NORMAL_WEIGHT_10).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
 
             //Instrucciones para Peso Normal deporte wc entre 7 y 12
@@ -829,7 +1340,23 @@ namespace MismeAPI.Service.Impls
                 dietSummary <= 12 &&
                 physicalExercise == 1)
             {
-                result.Add("Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Le recomendamos hacer ejercicios al menos 3 veces a la semana, para potenciar la salud y prevenir enfermedades.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.NORMAL_WEIGHT_11).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 18.5 &&
               IMC < 25 &&
@@ -837,7 +1364,23 @@ namespace MismeAPI.Service.Impls
               dietSummary <= 12 &&
               physicalExercise == 2)
             {
-                result.Add("Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Se observa cierta regularidad en su práctica de ejercicio físico.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.NORMAL_WEIGHT_12).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 18.5 &&
               IMC < 25 &&
@@ -845,7 +1388,23 @@ namespace MismeAPI.Service.Impls
               dietSummary <= 12 &&
               physicalExercise == 3)
             {
-                result.Add("Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Hacer ejercicios parece ser un hábito.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.NORMAL_WEIGHT_13).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 18.5 &&
               IMC < 25 &&
@@ -853,7 +1412,23 @@ namespace MismeAPI.Service.Impls
               dietSummary <= 12 &&
               physicalExercise == 4)
             {
-                result.Add("Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Hacer ejercicios parece ser un medio para gestionar emociones y afrontar los problemas.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.NORMAL_WEIGHT_14).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 18.5 &&
               IMC < 25 &&
@@ -861,7 +1436,23 @@ namespace MismeAPI.Service.Impls
               dietSummary <= 12 &&
               physicalExercise == 5)
             {
-                result.Add("Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Podría estar haciendo ejercicios de forma compulsiva (a menos que sea un deportista activo).");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.NORMAL_WEIGHT_15).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
 
             //Instrucciones para Peso Normal deporte wc > 12
@@ -870,35 +1461,115 @@ namespace MismeAPI.Service.Impls
                 dietSummary > 12 &&
                 physicalExercise == 1)
             {
-                result.Add("Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Muestra indicadores de severas fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Le recomendamos hacer ejercicios al menos 3 veces a la semana, para potenciar la salud y prevenir enfermedades.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.NORMAL_WEIGHT_16).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 18.5 &&
               IMC < 25 &&
               dietSummary > 12 &&
               physicalExercise == 2)
             {
-                result.Add("Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Muestra indicadores de severas fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Se observa cierta regularidad en su práctica de ejercicio físico.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.NORMAL_WEIGHT_17).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 18.5 &&
               IMC < 25 &&
               dietSummary > 12 &&
               physicalExercise == 3)
             {
-                result.Add("Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Muestra indicadores de severas fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Hacer ejercicios parece ser un hábito.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.NORMAL_WEIGHT_18).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 18.5 &&
               IMC < 25 &&
               dietSummary > 12 &&
               physicalExercise == 4)
             {
-                result.Add("Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Muestra indicadores de severas fluctuaciones del peso, un uso crónico de la dietas o restricción y la práctica de ejercios como mecanismos para regular emociones y afrontar problemas.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.NORMAL_WEIGHT_19).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 18.5 &&
               IMC < 25 &&
               dietSummary > 12 &&
               physicalExercise == 5)
             {
-                result.Add("Su peso es NORMAL (" + IMCString + " Kg/m2): Acorde a su edad y actividad física debe ingerir al menos " + dailyKalString + " Kcal/día Muestra indicadores de severas fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Podría estar haciendo ejercicios de forma compulsiva (a menos que sea un deportista activo).");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.NORMAL_WEIGHT_20).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
 
             //Instrucciones para Sobrepeso deporte wc<4
@@ -907,35 +1578,115 @@ namespace MismeAPI.Service.Impls
                 dietSummary <= 4 &&
                 physicalExercise == 1)
             {
-                result.Add("Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Debería realizar ejercicio físico moderado. Ej. 4 veces por semana, 45 minutos por sesión.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.OVER_WEIGHT_1).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 25 &&
               IMC < 30 &&
               dietSummary <= 4 &&
               physicalExercise == 2)
             {
-                result.Add("Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Hacer ejercicios con cierta regularidad, quizás deba incrementar su práctica a 4 veces por semana, 45 minutos por sesión.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.OVER_WEIGHT_2).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 25 &&
               IMC < 30 &&
               dietSummary <= 4 &&
               physicalExercise == 3)
             {
-                result.Add("Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Hacer ejercicios parece ser un hábito, asegúrese de no realizar menos de 45 minutos por sesión. También debería revisar sus hábitos alimentarios.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.OVER_WEIGHT_3).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 25 &&
               IMC < 30 &&
               dietSummary <= 4 &&
               physicalExercise == 4)
             {
-                result.Add("Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Practicar ejercicios parece haberse convertido en un medio de afrontar dificultades y gestionar emociones. Es probable que deba revisar su pauta ejercicios y/o de alimentación.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.OVER_WEIGHT_4).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 25 &&
               IMC < 30 &&
               dietSummary <= 4 &&
               physicalExercise == 5)
             {
-                result.Add("Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Podría estar haciendo ejercicios de forma compulsiva (a menos que sea un deportista activo). Es probable que deba revisar su pauta ejercicios y/o de alimentación.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.OVER_WEIGHT_5).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
 
             //Instrucciones para Sobrepeso deporte wc entre 4 y 7
@@ -945,7 +1696,23 @@ namespace MismeAPI.Service.Impls
                 dietSummary <= 7 &&
                 physicalExercise == 1)
             {
-                result.Add("Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de dietas en su historia vital. Debería realizar ejercicio físico moderado. Ej. 4 veces por semana, 45 minutos por sesión.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.OVER_WEIGHT_6).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 25 &&
               IMC < 30 &&
@@ -953,7 +1720,23 @@ namespace MismeAPI.Service.Impls
               dietSummary <= 7 &&
               physicalExercise == 2)
             {
-                result.Add("Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de dietas en su historia vital. Hace ejercicios con cierta regularidad, quizás deba incrementar su práctica a 4 veces por semana, 45 minutos por sesión.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.OVER_WEIGHT_7).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 25 &&
               IMC < 30 &&
@@ -961,7 +1744,23 @@ namespace MismeAPI.Service.Impls
               dietSummary <= 7 &&
               physicalExercise == 3)
             {
-                result.Add("Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de dietas en su historia vital. Hacer ejercicios parece ser un hábito, asegúrese de no realizar menos de 45 minutos por sesión. También debería revisar sus hábitos aliemntarios.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.OVER_WEIGHT_8).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 25 &&
               IMC < 30 &&
@@ -969,7 +1768,23 @@ namespace MismeAPI.Service.Impls
               dietSummary <= 7 &&
               physicalExercise == 4)
             {
-                result.Add("Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de dietas en su historia vital. Practicar ejercicios parece haberse convertido en un medio de afrontar dificultades y gestionar emociones. Debe revisar su de pauta ejercicios y/o de alimentación.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.OVER_WEIGHT_9).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 25 &&
               IMC < 30 &&
@@ -977,7 +1792,23 @@ namespace MismeAPI.Service.Impls
               dietSummary <= 7 &&
               physicalExercise == 5)
             {
-                result.Add("Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de dietas en su historia vital. Podría estar haciendo ejercicios de forma compulsiva (a menos que sea un deportista activo). Debe revisar su pauta de ejercicios y/o de alimentación.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.OVER_WEIGHT_10).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
 
             //Instrucciones para Sobrepeso deporte wc entre 7 y 12
@@ -987,7 +1818,23 @@ namespace MismeAPI.Service.Impls
                 dietSummary <= 12 &&
                 physicalExercise == 1)
             {
-                result.Add("Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Se observan fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Debería realizar ejercicio físico moderado (Ej. 4 veces por semana, 45 minutos por sesión) y revisar su conducta alimentaria.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.OVER_WEIGHT_11).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 25 &&
               IMC < 30 &&
@@ -995,7 +1842,23 @@ namespace MismeAPI.Service.Impls
               dietSummary <= 12 &&
               physicalExercise == 2)
             {
-                result.Add("Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Se observan fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Hace ejercicios con cierta regularidad, quizás deba incrementar su práctica a 4 veces por semana, 45 minutos por sesión y revisar su conducta alimentaria.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.OVER_WEIGHT_12).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 25 &&
               IMC < 30 &&
@@ -1003,7 +1866,23 @@ namespace MismeAPI.Service.Impls
               dietSummary <= 12 &&
               physicalExercise == 3)
             {
-                result.Add("Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Se observan fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Hacer ejercicios parece ser un hábito, asegúrese de no realizar menos de 45 minutos por sesión. También debe revisar su conducta alimentaria.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.OVER_WEIGHT_13).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 25 &&
               IMC < 30 &&
@@ -1011,7 +1890,23 @@ namespace MismeAPI.Service.Impls
               dietSummary <= 12 &&
               physicalExercise == 4)
             {
-                result.Add("Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Se observan fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Practicar ejercicios parece haberse convertido en un medio de afrontar dificultades y gestionar emociones. Debe revisar su pauta de ejercicios y conducta alimentaria.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.OVER_WEIGHT_14).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 25 &&
               IMC < 30 &&
@@ -1019,7 +1914,23 @@ namespace MismeAPI.Service.Impls
               dietSummary <= 12 &&
               physicalExercise == 5)
             {
-                result.Add("Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Se observan fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Podría estar haciendo ejercicios de forma compulsiva (a menos que sea un deportista activo). Debe revisar su pauta de ejercicios y conducta alimentaria.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.OVER_WEIGHT_15).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
 
             //Instrucciones para Sobrepeso deporte wc >12
@@ -1028,35 +1939,115 @@ namespace MismeAPI.Service.Impls
                 dietSummary > 12 &&
                 physicalExercise == 1)
             {
-                result.Add("Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de severas fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Debería realizar ejercicio físico moderado (Ej. 4 veces por semana, 45 minutos por sesión) y revisar su conducta alimentaria.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.OVER_WEIGHT_16).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 25 &&
               IMC < 30 &&
               dietSummary > 12 &&
               physicalExercise == 2)
             {
-                result.Add("Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de severas fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Hace ejercicios con cierta regularidad, quizás deba incrementar su práctica a 4 veces por semana, 45 minutos por sesión y revisar su conducta alimentaria.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.OVER_WEIGHT_17).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 25 &&
               IMC < 30 &&
               dietSummary > 12 &&
               physicalExercise == 3)
             {
-                result.Add("Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de severas fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Hacer ejercicios parece ser un hábito, asegúrese de no realizar menos de 45 minutos por sesión. También debe revisar su conducta alimentaria.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.OVER_WEIGHT_18).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 25 &&
               IMC < 30 &&
               dietSummary > 12 &&
               physicalExercise == 4)
             {
-                result.Add("Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de severas fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Practicar ejercicios parece haberse convertido en un medio de afrontar dificultades y gestionar emociones. Debe revisar su pauta de ejercicios y conducta alimentaria.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.OVER_WEIGHT_19).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 25 &&
               IMC < 30 &&
               dietSummary > 12 &&
               physicalExercise == 5)
             {
-                result.Add("Usted está en SOBREPESO (" + IMCString + " Kg/m2), que es un factor de riesgo para la salud, se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de severas fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Podría estar haciendo ejercicios de forma compulsiva (a menos que sea un deportista activo). Debe revisar su pauta de ejercicios y conducta alimentaria.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.OVER_WEIGHT_20).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
 
             //Instrucciones para Obesidad <40 deporte wc<4
@@ -1065,35 +2056,115 @@ namespace MismeAPI.Service.Impls
                 dietSummary <= 4 &&
                 physicalExercise == 1)
             {
-                result.Add("Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Debería realizar ejercicio físico moderado (Ej. 4 veces por semana, 45 minutos por sesión) y revisar su conducta alimentaria.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.OBESITY_1).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 30 &&
               IMC < 40 &&
               dietSummary <= 4 &&
               physicalExercise == 2)
             {
-                result.Add("Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Hace ejercicios con cierta regularidad, debería incrementar su práctica a 4 veces por semana, 45 minutos por sesión y revisar su conducta alimentaria.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.OBESITY_2).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 30 &&
               IMC < 40 &&
               dietSummary <= 4 &&
               physicalExercise == 3)
             {
-                result.Add("Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Hacer ejercicios parece ser un hábito, asegúrese de no realizar menos de 45 minutos por sesión. También debe revisar su conducta alimentaria.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.OBESITY_3).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 30 &&
               IMC < 40 &&
               dietSummary <= 4 &&
               physicalExercise == 4)
             {
-                result.Add("Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Practicar ejercicios parece haberse convertido en un medio de afrontar dificultades y gestionar emociones. Debe revisar su de pauta ejercicios y conducta alimentaria.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.OBESITY_4).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 30 &&
               IMC < 40 &&
               dietSummary <= 4 &&
               physicalExercise == 5)
             {
-                result.Add("Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Podría estar haciendo ejercicios de forma compulsiva (a menos que sea un deportista activo). Debe revisar su pauta de ejercicios y conducta alimentaria.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.OBESITY_5).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
 
             //Instrucciones para Obesidad <40 deporte wc de 5 a 7
@@ -1103,7 +2174,23 @@ namespace MismeAPI.Service.Impls
                 dietSummary <= 7 &&
                 physicalExercise == 1)
             {
-                result.Add("Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de dietas en su historia vital. Debería realizar ejercicio físico moderado (Ej. 4 veces por semana, 45 minutos por sesión) y revisar su conducta alimentaria.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.OBESITY_6).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 30 &&
               IMC < 40 &&
@@ -1111,7 +2198,23 @@ namespace MismeAPI.Service.Impls
               dietSummary <= 7 &&
               physicalExercise == 2)
             {
-                result.Add("Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de dietas en su historia vital. Hace ejercicios con cierta regularidad, debería incrementar su práctica a 4 veces por semana, 45 minutos por sesión y revisar su conducta alimentaria.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.OBESITY_7).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 30 &&
               IMC < 40 &&
@@ -1119,7 +2222,23 @@ namespace MismeAPI.Service.Impls
               dietSummary <= 7 &&
               physicalExercise == 3)
             {
-                result.Add("Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de dietas en su historia vital. Hacer ejercicios parece ser un hábito, asegúrese de no realizar menos de 45 minutos por sesión. También debe revisar su conducta alimentaria.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.OBESITY_8).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 30 &&
               IMC < 40 &&
@@ -1127,7 +2246,23 @@ namespace MismeAPI.Service.Impls
               dietSummary <= 7 &&
               physicalExercise == 4)
             {
-                result.Add("Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de dietas en su historia vital. Hacer ejercicios parece haberse convertido en un medio de afrontar dificultades y gestionar emociones. Debe revisar su pauta de ejercicios y conducta alimentaria.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.OBESITY_9).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 30 &&
               IMC < 40 &&
@@ -1135,7 +2270,23 @@ namespace MismeAPI.Service.Impls
               dietSummary <= 7 &&
               physicalExercise == 5)
             {
-                result.Add("Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de dietas en su historia vital. Podría estar haciendo ejercicios de forma compulsiva (a menos que sea un deportista activo). Debe revisar su pauta de ejercicios y conducta alimentaria.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.OBESITY_10).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
 
             //Instrucciones para Obesidad <35 deporte wc de 7 a 12
@@ -1145,7 +2296,23 @@ namespace MismeAPI.Service.Impls
                 dietSummary <= 12 &&
                 physicalExercise == 1)
             {
-                result.Add("Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Debería realizar ejercicio físico moderado (Ej. 4 veces por semana, 45 minutos por sesión) y revisar su conducta alimentaria.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.OBESITY_11).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 30 &&
               IMC < 40 &&
@@ -1153,7 +2320,23 @@ namespace MismeAPI.Service.Impls
               dietSummary <= 12 &&
               physicalExercise == 2)
             {
-                result.Add("Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Hace ejercicios con cierta regularidad, debería incrementar su práctica a 4 veces por semana, 45 minutos por sesión y revisar su conducta alimentaria.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.OBESITY_12).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 30 &&
               IMC < 40 &&
@@ -1161,7 +2344,23 @@ namespace MismeAPI.Service.Impls
               dietSummary <= 12 &&
               physicalExercise == 3)
             {
-                result.Add("Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Hacer ejercicios parece ser un hábito, asegúrese de no realizar menos de 45 minutos por sesión. También debe revisar su conducta alimentaria.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.OBESITY_13).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 30 &&
               IMC < 40 &&
@@ -1169,7 +2368,23 @@ namespace MismeAPI.Service.Impls
               dietSummary <= 12 &&
               physicalExercise == 4)
             {
-                result.Add("Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Hacer ejercicios parece haberse convertido en un medio de afrontar dificultades y gestionar emociones. Debe revisar su pauta de ejercicios y conducta alimentaria.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.OBESITY_14).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 30 &&
               IMC < 40 &&
@@ -1177,7 +2392,23 @@ namespace MismeAPI.Service.Impls
               dietSummary <= 12 &&
               physicalExercise == 5)
             {
-                result.Add("Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Muestra indicadores de fluctuaciones del peso y uso de las dietas o restricción como mecanismo regulador en su historia vital. Podría estar haciendo ejercicios de forma compulsiva (a menos que sea un deportista activo). Debe revisar su pauta de ejercicios y conducta alimentaria.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.OBESITY_15).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
 
             //Instrucciones para Obesidad <40 deporte wc>12
@@ -1186,52 +2417,164 @@ namespace MismeAPI.Service.Impls
                 dietSummary > 12 &&
                 physicalExercise == 1)
             {
-                result.Add("Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Se observan severas fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Debería realizar ejercicio físico moderado (Ej. 4 veces por semana, 45 minutos por sesión) y revisar su conducta alimentaria.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.OBESITY_16).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 30 &&
               IMC < 40 &&
               dietSummary > 12 &&
               physicalExercise == 2)
             {
-                result.Add("Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Se observan severas fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Hace ejercicios con cierta regularidad, debería incrementar su práctica a 4 veces por semana, 45 minutos por sesión y revisar su conducta alimentaria.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.OBESITY_17).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 30 &&
               IMC < 40 &&
               dietSummary > 12 &&
               physicalExercise == 3)
             {
-                result.Add("Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Se observan severas fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Hacer ejercicios parece ser un hábito, asegúrese de no realizar menos de 45 minutos por sesión. También debe revisar su conducta alimentaria.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.OBESITY_18).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 30 &&
               IMC < 40 &&
               dietSummary > 12 &&
               physicalExercise == 4)
             {
-                result.Add("Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Se observan severas fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Hacer ejercicios parece haberse convertido en un medio de afrontar dificultades y gestionar emociones. Debe revisar su pauta de ejercicios y conducta alimentaria.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.OBESITY_19).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 30 &&
               IMC < 40 &&
               dietSummary > 12 &&
               physicalExercise == 5)
             {
-                result.Add("Sus medidas indican OBESIDAD (" + IMCString + " Kg/m2), que es un problema de salud. Se recomienda ingerir cantidades inferiores a  " + dailyKalString + " Kcal/día. Se observan severas fluctuaciones del peso y un uso crónico de las dietas o restricción como mecanismo regulador en su historia vital. Podría estar haciendo ejercicios de forma compulsiva (a menos que sea un deportista activo). Debe revisar su pauta de ejercicios y conducta alimentaria.");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.OBESITY_20).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString).Replace("[number2]", dailyKalString);
+                }
+
+                result.Add(text);
             }
 
             //Instrucciones para obesidad mórbida y extrema
             else if (IMC >= 40 && IMC < 50)
             {
-                result.Add("IMC " + IMCString + " Kg/m2 (OBESIDAD MÓRBIDA): ¡Consulte a un médico!");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.OBESITY_21).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString);
+                }
+
+                result.Add(text);
             }
             else if (IMC >= 50)
 
             {
-                result.Add("IMC " + IMCString + " Kg/m2 (OBESIDAD MÓRBIDA): ¡Consulte a un médico!");
+                var text = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.OBESITY_21).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        text = results.Text;
+                    }
+                    else
+                    {
+                        text = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                    text = text.Replace("[number1]", IMCString);
+                }
+
+                result.Add(text);
             }
 
             return result;
         }
 
-        private List<string> GetWellnessMeasureMessage(int conceptId, int userId)
+        private List<string> GetWellnessMeasureMessage(int conceptId, int userId, string language)
         {
             var result = new List<string>();
 
@@ -1350,7 +2693,21 @@ namespace MismeAPI.Service.Impls
                 //    "Total $vGeneral, Hed = $value1, Si mismo = $value2, Activ = $value3, AutoI = $value4";
 
                 // ad-hoc response
-                var defaultResp = "¡Muchas gracias! Su percepción de bienestar nos ayudará a comprender su estilo de vida y la forma en la que se relaciona con los alimentos.";
+                var defaultResp = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.WELLNESS).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        defaultResp = results.Text;
+                    }
+                    else
+                    {
+                        defaultResp = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                }
+
                 result.Add(defaultResp);
                 result.Add(general);
                 result.Add(resp1);
@@ -1362,7 +2719,7 @@ namespace MismeAPI.Service.Impls
             return result;
         }
 
-        private List<string> GetValueMeasureMessage(int conceptId, int userId)
+        private List<string> GetValueMeasureMessage(int conceptId, int userId, string language)
         {
             var result = new List<string>();
 
@@ -1498,7 +2855,21 @@ namespace MismeAPI.Service.Impls
                     : "10. Poca orientación hacia la búsqueda de seguridad y estabilidad.");
 
                 // ad-hoc response
-                var respDefault = "¡Muchas gracias! El análisis de sus valores nos ayudará a comprender su estilo de vida y la forma en la que se relaciona con los alimentos.";
+                var respDefault = "";
+                var results = _uow.ResultRepository.GetAll().Where(r => r.CodeName == ResultConstants.VALUES).FirstOrDefault();
+                if (results != null)
+                {
+                    if (string.IsNullOrWhiteSpace(language))
+                    {
+                        respDefault = results.Text;
+                    }
+                    else
+                    {
+                        respDefault = language.ToUpper() == "EN" && !string.IsNullOrWhiteSpace(results.TextEN) ? results.TextEN :
+                            (language.ToUpper() == "IT" && !string.IsNullOrWhiteSpace(results.TextIT) ? results.TextIT : results.Text);
+                    }
+                }
+
                 result.Add(respDefault);
                 result.Add(resp1);
                 result.Add(resp2);

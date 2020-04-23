@@ -90,6 +90,8 @@ namespace MismeAPI.Service.Impls
             var usersWithoutPlans = await _uow.UserRepository.GetAll()
                 .Include(u => u.Eats)
                 .Include(u => u.Devices)
+                .Include(u => u.UserSettings)
+                    .ThenInclude(s => s.Setting)
                 .Where(u => !u.Eats.Any(e => e.CreatedAt.Date == tomorrow.Date))
                 .ToListAsync();
 
@@ -99,6 +101,18 @@ namespace MismeAPI.Service.Impls
             {
                 foreach (var us in usersWithoutPlans)
                 {
+                    var lang = us.UserSettings.Where(us => us.Setting.Name == SettingsConstants.LANGUAGE).FirstOrDefault();
+                    var language = "";
+
+                    if (lang == null || string.IsNullOrWhiteSpace(lang.Value))
+                    {
+                        language = "ES";
+                    }
+                    else
+                    {
+                        language = lang.Value.ToUpper();
+                    }
+
                     foreach (var device in us.Devices)
                     {
                         using (var fcm = new FcmSender(serverKey, senderId))
@@ -107,12 +121,11 @@ namespace MismeAPI.Service.Impls
                             {
                                 Notification = new Notification
                                 {
-                                    // TODO: add logic for get user language
-                                    Title = reminder.Title,
-                                    Body = reminder.Body
-                                }
-
-                                ,
+                                    Title = language == "EN" && !string.IsNullOrWhiteSpace(reminder.TitleEN) ? reminder.TitleEN :
+                                    (language == "IT" && !string.IsNullOrWhiteSpace(reminder.TitleIT) ? reminder.TitleIT : reminder.Title),
+                                    Body = language == "EN" && !string.IsNullOrWhiteSpace(reminder.BodyEN) ? reminder.BodyEN :
+                                    (language == "IT" && !string.IsNullOrWhiteSpace(reminder.BodyIT) ? reminder.BodyIT : reminder.Body),
+                                },
                                 Token = device.Token
                             };
                             try

@@ -167,7 +167,9 @@ namespace MismeAPI.Controllers
         public async Task<IActionResult> SetPollResultBasedRequest([FromBody] ListOfPollResultsRequest result)
         {
             var loggedUser = User.GetUserIdFromToken();
-            var message = await _pollService.SetPollResultByQuestionsAsync(loggedUser, result);
+            var language = await _userService.GetUserLanguageFromUserIdAsync(loggedUser);
+
+            var message = await _pollService.SetPollResultByQuestionsAsync(loggedUser, result, language);
 
             return Ok(new ApiOkResponse(message));
         }
