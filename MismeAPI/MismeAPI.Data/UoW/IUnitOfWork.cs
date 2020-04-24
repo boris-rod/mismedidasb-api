@@ -27,6 +27,7 @@ namespace MismeAPI.Data.UoW
         IGenericRepository<Setting> SettingRepository { get; set; }
         IGenericRepository<UserSetting> UserSettingRepository { get; set; }
         IGenericRepository<Result> ResultRepository { get; set; }
+        IGenericRepository<GeneralContent> GeneralContentRepository { get; set; }
 
         Task<int> CommitAsync();
     }

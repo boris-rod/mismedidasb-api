@@ -720,6 +720,7 @@ namespace MismeAPI.Services.Impls
             }
             user.Status = StatusEnum.ACTIVE;
             user.VerificationCode = 0;
+            user.ActivatedAt = DateTime.UtcNow;
 
             await _uow.UserRepository.UpdateAsync(user, user.Id);
             await _uow.CommitAsync();

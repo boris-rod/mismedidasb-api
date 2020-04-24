@@ -44,6 +44,7 @@ namespace MismeAPI.Data.Entities
         public DateTime? DisabledAt { get; set; }
 
         public int VerificationCode { get; set; }
+        public bool TermsAndConditionsAccepted { get; set; }
         public virtual ICollection<UserToken> UserTokens { get; set; }
         public virtual ICollection<Eat> Eats { get; set; }
         public virtual ICollection<Device> Devices { get; set; }

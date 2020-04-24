@@ -33,6 +33,7 @@ namespace MismeAPI.Data.UoW
             SettingRepository = SettingRepository ?? new GenericRepository<Setting>(_context);
             UserSettingRepository = UserSettingRepository ?? new GenericRepository<UserSetting>(_context);
             ResultRepository = ResultRepository ?? new GenericRepository<Result>(_context);
+            GeneralContentRepository = GeneralContentRepository ?? new GenericRepository<GeneralContent>(_context);
         }
 
         public IGenericRepository<User> UserRepository { get; set; }
@@ -55,6 +56,7 @@ namespace MismeAPI.Data.UoW
         public IGenericRepository<Setting> SettingRepository { get; set; }
         public IGenericRepository<UserSetting> UserSettingRepository { get; set; }
         public IGenericRepository<Result> ResultRepository { get; set; }
+        public IGenericRepository<GeneralContent> GeneralContentRepository { get; set; }
 
         public async Task<int> CommitAsync()
         {
