@@ -7,7 +7,6 @@ namespace MismeAPI.Data.Entities
     public class GeneralContent
     {
         public int Id { get; set; }
-        public string Title { get; set; }
         public string Content { get; set; }
         public string ContentEN { get; set; }
         public string ContentIT { get; set; }

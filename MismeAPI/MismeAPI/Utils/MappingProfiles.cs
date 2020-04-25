@@ -1,6 +1,7 @@
 using AutoMapper;
 using MismeAPI.Common;
 using MismeAPI.Common.DTO.Response;
+using MismeAPI.Common.DTO.Response.GeneralContent;
 using MismeAPI.Common.DTO.Response.Reminder;
 using MismeAPI.Common.DTO.Response.Result;
 using MismeAPI.Common.DTO.Response.Settings;
@@ -101,6 +102,30 @@ namespace MismeAPI.Utils
                    .ForMember(d => d.Value, opts => opts.MapFrom(source => source.Value));
 
             CreateMap<Setting, ListSettingResponse>();
+
+            CreateMap<GeneralContent, GeneralContentResponse>()
+                .ForMember(d => d.Content, opts => opts.MapFrom((src, dest, destMember, context) => GetGeneralContent(src, context.Items["lang"].ToString())))
+               .ForMember(d => d.ContentTypeId, opts => opts.MapFrom(source => (int)source.ContentType))
+               .ForMember(d => d.ContentType, opts => opts.MapFrom(source => source.ContentType.ToString()));
+
+            CreateMap<GeneralContent, GeneralContentAdminResponse>()
+                .ForMember(d => d.ContentTypeId, opts => opts.MapFrom(source => (int)source.ContentType))
+               .ForMember(d => d.ContentType, opts => opts.MapFrom(source => source.ContentType.ToString()));
+        }
+
+        private string GetGeneralContent(GeneralContent src, string lang)
+        {
+            switch (lang)
+            {
+                case "EN":
+                    return string.IsNullOrWhiteSpace(src.ContentEN) ? src.Content : src.ContentEN;
+
+                case "IT":
+                    return string.IsNullOrWhiteSpace(src.ContentIT) ? src.Content : src.ContentIT;
+
+                default:
+                    return src.Content;
+            }
         }
 
         private string GetQuestionTitle(Question src, string lang)
