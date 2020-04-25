@@ -121,6 +121,293 @@ namespace MismeAPI.Service.Impls
             return results;
         }
 
+        public async Task<IEnumerable<EatsByDateSeriesResponse>> GetEatsStatsByDateAsync(int loggedUser, int type)
+        {
+            var user = await _uow.UserRepository.GetAsync(loggedUser);
+            if (user.Role == RoleEnum.NORMAL)
+            {
+                throw new NotAllowedException("User");
+            }
+            switch (type)
+            {
+                case 1:
+                    return GetEatsStatsFromToday();
+
+                case 2:
+                    return GetEatsStatsFromMonth();
+
+                default:
+                    return GetEatsStatsFromYear();
+            }
+        }
+
+        private IEnumerable<EatsByDateSeriesResponse> GetEatsStatsFromToday()
+        {
+            var breakfast = _uow.EatRepository.GetAll().Where(u => u.EatType == EatTypeEnum.BREAKFAST && u.CreatedAt.Date == DateTime.UtcNow.Date);
+            var snack1 = _uow.EatRepository.GetAll().Where(u => u.EatType == EatTypeEnum.SNACK1 && u.CreatedAt.Date == DateTime.UtcNow.Date);
+            var lunch = _uow.EatRepository.GetAll().Where(u => u.EatType == EatTypeEnum.LUNCH && u.CreatedAt.Date == DateTime.UtcNow.Date);
+            var snack2 = _uow.EatRepository.GetAll().Where(u => u.EatType == EatTypeEnum.SNACK2 && u.CreatedAt.Date == DateTime.UtcNow.Date);
+            var dinner = _uow.EatRepository.GetAll().Where(u => u.EatType == EatTypeEnum.DINNER && u.CreatedAt.Date == DateTime.UtcNow.Date);
+
+            var breakGrouped = breakfast.AsEnumerable().GroupBy(c => c.CreatedAt.Hour);
+            var snackGrouped = snack1.AsEnumerable().GroupBy(c => c.CreatedAt.Hour);
+            var lunchGrouped = lunch.AsEnumerable().GroupBy(c => c.CreatedAt.Hour);
+            var snack2Grouped = snack2.AsEnumerable().GroupBy(c => c.CreatedAt.Hour);
+            var dinnerGrouped = dinner.AsEnumerable().GroupBy(c => c.CreatedAt.Hour);
+
+            var seriesToReturn = new List<EatsByDateSeriesResponse>();
+            for (int i = 0; i <= 23; i++)
+            {
+                var serieResponse = new EatsByDateSeriesResponse();
+                serieResponse.Name = i.ToString();
+                var series = new List<BasicSerieResponse>();
+
+                var bre = breakGrouped.Where(ag => ag.Key == i).FirstOrDefault();
+                if (bre != null)
+                {
+                    var simpleSerie = new BasicSerieResponse();
+                    simpleSerie.Name = "Desayuno";
+                    simpleSerie.Value = bre.Count();
+                    if (bre.Count() > 0)
+                    {
+                        series.Add(simpleSerie);
+                    }
+                }
+                var sn1 = snackGrouped.Where(ag => ag.Key == i).FirstOrDefault();
+                if (sn1 != null)
+                {
+                    var simpleSerie = new BasicSerieResponse();
+                    simpleSerie.Name = "Merienda 1";
+                    simpleSerie.Value = sn1.Count();
+                    if (sn1.Count() > 0)
+                    {
+                        series.Add(simpleSerie);
+                    }
+                }
+                var lun = lunchGrouped.Where(ag => ag.Key == i).FirstOrDefault();
+                if (lun != null)
+                {
+                    var simpleSerie = new BasicSerieResponse();
+                    simpleSerie.Name = "Almuerzo";
+                    simpleSerie.Value = lun.Count();
+                    if (lun.Count() > 0)
+                    {
+                        series.Add(simpleSerie);
+                    }
+                }
+
+                var sn2 = snack2Grouped.Where(ag => ag.Key == i).FirstOrDefault();
+                if (sn2 != null)
+                {
+                    var simpleSerie = new BasicSerieResponse();
+                    simpleSerie.Name = "Merienda 2";
+                    simpleSerie.Value = sn2.Count();
+                    if (sn2.Count() > 0)
+                    {
+                        series.Add(simpleSerie);
+                    }
+                }
+                var din = dinnerGrouped.Where(ag => ag.Key == i).FirstOrDefault();
+                if (din != null)
+                {
+                    var simpleSerie = new BasicSerieResponse();
+                    simpleSerie.Name = "Cena";
+                    simpleSerie.Value = din.Count();
+                    if (din.Count() > 0)
+                    {
+                        series.Add(simpleSerie);
+                    }
+                }
+
+                if (series.Count > 0)
+                {
+                    serieResponse.Series = series;
+                    seriesToReturn.Add(serieResponse);
+                }
+            }
+
+            return seriesToReturn;
+        }
+
+        private IEnumerable<EatsByDateSeriesResponse> GetEatsStatsFromMonth()
+        {
+            var breakfast = _uow.EatRepository.GetAll().Where(u => u.EatType == EatTypeEnum.BREAKFAST && u.CreatedAt.Date.Month == DateTime.UtcNow.Date.Month);
+            var snack1 = _uow.EatRepository.GetAll().Where(u => u.EatType == EatTypeEnum.SNACK1 && u.CreatedAt.Date.Month == DateTime.UtcNow.Date.Month);
+            var lunch = _uow.EatRepository.GetAll().Where(u => u.EatType == EatTypeEnum.LUNCH && u.CreatedAt.Date.Month == DateTime.UtcNow.Date.Month);
+            var snack2 = _uow.EatRepository.GetAll().Where(u => u.EatType == EatTypeEnum.SNACK2 && u.CreatedAt.Date.Month == DateTime.UtcNow.Date.Month);
+            var dinner = _uow.EatRepository.GetAll().Where(u => u.EatType == EatTypeEnum.DINNER && u.CreatedAt.Date.Month == DateTime.UtcNow.Date.Month);
+
+            var breakGrouped = breakfast.AsEnumerable().GroupBy(c => c.CreatedAt.Day);
+            var snackGrouped = snack1.AsEnumerable().GroupBy(c => c.CreatedAt.Day);
+            var lunchGrouped = lunch.AsEnumerable().GroupBy(c => c.CreatedAt.Day);
+            var snack2Grouped = snack2.AsEnumerable().GroupBy(c => c.CreatedAt.Day);
+            var dinnerGrouped = dinner.AsEnumerable().GroupBy(c => c.CreatedAt.Day);
+
+            var daysInMonth = DateTime.DaysInMonth(DateTime.UtcNow.Year, DateTime.UtcNow.Month);
+
+            var seriesToReturn = new List<EatsByDateSeriesResponse>();
+            for (int i = 1; i <= daysInMonth; i++)
+            {
+                var serieResponse = new EatsByDateSeriesResponse();
+                serieResponse.Name = i.ToString();
+                var series = new List<BasicSerieResponse>();
+
+                var bre = breakGrouped.Where(ag => ag.Key == i).FirstOrDefault();
+                if (bre != null)
+                {
+                    var simpleSerie = new BasicSerieResponse();
+                    simpleSerie.Name = "Desayuno";
+                    simpleSerie.Value = bre.Count();
+                    if (bre.Count() > 0)
+                    {
+                        series.Add(simpleSerie);
+                    }
+                }
+                var sn1 = snackGrouped.Where(ag => ag.Key == i).FirstOrDefault();
+                if (sn1 != null)
+                {
+                    var simpleSerie = new BasicSerieResponse();
+                    simpleSerie.Name = "Merienda 1";
+                    simpleSerie.Value = sn1.Count();
+                    if (sn1.Count() > 0)
+                    {
+                        series.Add(simpleSerie);
+                    }
+                }
+                var lun = lunchGrouped.Where(ag => ag.Key == i).FirstOrDefault();
+                if (lun != null)
+                {
+                    var simpleSerie = new BasicSerieResponse();
+                    simpleSerie.Name = "Almuerzo";
+                    simpleSerie.Value = lun.Count();
+                    if (lun.Count() > 0)
+                    {
+                        series.Add(simpleSerie);
+                    }
+                }
+
+                var sn2 = snack2Grouped.Where(ag => ag.Key == i).FirstOrDefault();
+                if (sn2 != null)
+                {
+                    var simpleSerie = new BasicSerieResponse();
+                    simpleSerie.Name = "Merienda 2";
+                    simpleSerie.Value = sn2.Count();
+                    if (sn2.Count() > 0)
+                    {
+                        series.Add(simpleSerie);
+                    }
+                }
+                var din = dinnerGrouped.Where(ag => ag.Key == i).FirstOrDefault();
+                if (din != null)
+                {
+                    var simpleSerie = new BasicSerieResponse();
+                    simpleSerie.Name = "Cena";
+                    simpleSerie.Value = din.Count();
+                    if (din.Count() > 0)
+                    {
+                        series.Add(simpleSerie);
+                    }
+                }
+
+                if (series.Count > 0)
+                {
+                    serieResponse.Series = series;
+                    seriesToReturn.Add(serieResponse);
+                }
+            }
+
+            return seriesToReturn;
+        }
+
+        private IEnumerable<EatsByDateSeriesResponse> GetEatsStatsFromYear()
+        {
+            var breakfast = _uow.EatRepository.GetAll().Where(u => u.EatType == EatTypeEnum.BREAKFAST && u.CreatedAt.Date.Year == DateTime.UtcNow.Date.Year);
+            var snack1 = _uow.EatRepository.GetAll().Where(u => u.EatType == EatTypeEnum.SNACK1 && u.CreatedAt.Date.Year == DateTime.UtcNow.Date.Year);
+            var lunch = _uow.EatRepository.GetAll().Where(u => u.EatType == EatTypeEnum.LUNCH && u.CreatedAt.Date.Year == DateTime.UtcNow.Date.Year);
+            var snack2 = _uow.EatRepository.GetAll().Where(u => u.EatType == EatTypeEnum.SNACK2 && u.CreatedAt.Date.Year == DateTime.UtcNow.Date.Year);
+            var dinner = _uow.EatRepository.GetAll().Where(u => u.EatType == EatTypeEnum.DINNER && u.CreatedAt.Date.Year == DateTime.UtcNow.Date.Year);
+
+            var breakGrouped = breakfast.AsEnumerable().GroupBy(c => c.CreatedAt.Month);
+            var snackGrouped = snack1.AsEnumerable().GroupBy(c => c.CreatedAt.Month);
+            var lunchGrouped = lunch.AsEnumerable().GroupBy(c => c.CreatedAt.Month);
+            var snack2Grouped = snack2.AsEnumerable().GroupBy(c => c.CreatedAt.Month);
+            var dinnerGrouped = dinner.AsEnumerable().GroupBy(c => c.CreatedAt.Month);
+
+            var seriesToReturn = new List<EatsByDateSeriesResponse>();
+            for (int i = 1; i <= 12; i++)
+            {
+                var serieResponse = new EatsByDateSeriesResponse();
+                string monthName = CultureInfo.CurrentCulture.DateTimeFormat.GetAbbreviatedMonthName(i);
+                serieResponse.Name = monthName;
+                var series = new List<BasicSerieResponse>();
+
+                var bre = breakGrouped.Where(ag => ag.Key == i).FirstOrDefault();
+                if (bre != null)
+                {
+                    var simpleSerie = new BasicSerieResponse();
+                    simpleSerie.Name = "Desayuno";
+                    simpleSerie.Value = bre.Count();
+                    if (bre.Count() > 0)
+                    {
+                        series.Add(simpleSerie);
+                    }
+                }
+                var sn1 = snackGrouped.Where(ag => ag.Key == i).FirstOrDefault();
+                if (sn1 != null)
+                {
+                    var simpleSerie = new BasicSerieResponse();
+                    simpleSerie.Name = "Merienda 1";
+                    simpleSerie.Value = sn1.Count();
+                    if (sn1.Count() > 0)
+                    {
+                        series.Add(simpleSerie);
+                    }
+                }
+                var lun = lunchGrouped.Where(ag => ag.Key == i).FirstOrDefault();
+                if (lun != null)
+                {
+                    var simpleSerie = new BasicSerieResponse();
+                    simpleSerie.Name = "Almuerzo";
+                    simpleSerie.Value = lun.Count();
+                    if (lun.Count() > 0)
+                    {
+                        series.Add(simpleSerie);
+                    }
+                }
+
+                var sn2 = snack2Grouped.Where(ag => ag.Key == i).FirstOrDefault();
+                if (sn2 != null)
+                {
+                    var simpleSerie = new BasicSerieResponse();
+                    simpleSerie.Name = "Merienda 2";
+                    simpleSerie.Value = sn2.Count();
+                    if (sn2.Count() > 0)
+                    {
+                        series.Add(simpleSerie);
+                    }
+                }
+                var din = dinnerGrouped.Where(ag => ag.Key == i).FirstOrDefault();
+                if (din != null)
+                {
+                    var simpleSerie = new BasicSerieResponse();
+                    simpleSerie.Name = "Cena";
+                    simpleSerie.Value = din.Count();
+                    if (din.Count() > 0)
+                    {
+                        series.Add(simpleSerie);
+                    }
+                }
+
+                if (series.Count > 0)
+                {
+                    serieResponse.Series = series;
+                    seriesToReturn.Add(serieResponse);
+                }
+            }
+
+            return seriesToReturn;
+        }
+
         public async Task<IEnumerable<UsersByDateSeriesResponse>> GetUsersStatsByDateAsync(int loggedUser, int type)
         {
             var user = await _uow.UserRepository.GetAsync(loggedUser);
@@ -422,6 +709,17 @@ namespace MismeAPI.Service.Impls
                 }
             }
             return "ES";
+        }
+
+        public async Task<int> GetEatsCountAsync(int loggedUser)
+        {
+            var user = await _uow.UserRepository.GetAsync(loggedUser);
+            if (user.Role == RoleEnum.NORMAL)
+            {
+                throw new NotAllowedException("User");
+            }
+
+            return await _uow.EatRepository.CountAsync();
         }
     }
 }

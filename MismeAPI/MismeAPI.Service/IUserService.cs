@@ -22,5 +22,9 @@ namespace MismeAPI.Service
         Task SendUserNotificationAsync(int loggedUser, int id, UserNotificationRequest notif);
 
         Task<string> GetUserLanguageFromUserIdAsync(int loggedUser);
+
+        Task<IEnumerable<EatsByDateSeriesResponse>> GetEatsStatsByDateAsync(int loggedUser, int type);
+
+        Task<int> GetEatsCountAsync(int loggedUser);
     }
 }

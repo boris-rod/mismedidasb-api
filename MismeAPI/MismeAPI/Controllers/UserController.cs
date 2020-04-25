@@ -88,6 +88,23 @@ namespace MismeAPI.Controllers
         }
 
         /// <summary>
+        /// Get eats stats by dates. Requires authentication. Admin access.
+        /// </summary>
+        ///<param name="dateType">Date type. 0- Today, 1- Week, 2- Month, 3- Year</param>
+        [HttpGet("eats-by-date")]
+        [ProducesResponseType(typeof(IEnumerable<UsersByDateSeriesResponse>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
+        public async Task<IActionResult> GetEatsStatsByDates([FromQuery] int? dateType)
+        {
+            var type = dateType ?? 0;
+            var loggedUser = User.GetUserIdFromToken();
+
+            var result = await _userService.GetEatsStatsByDateAsync(loggedUser, type);
+
+            return Ok(new ApiOkResponse(result));
+        }
+
+        /// <summary>
         /// Enable user. Requires authentication. Admin access.
         /// </summary>
         /// <param name="id">User id</param>
@@ -136,6 +153,21 @@ namespace MismeAPI.Controllers
             await _userService.SendUserNotificationAsync(loggedUser, id, notif);
 
             return Ok();
+        }
+
+        /// <summary>
+        /// Get eats count. Requires authentication. Admin access.
+        /// </summary>
+        [HttpGet("eat-count")]
+        [ProducesResponseType(typeof(int), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
+        public async Task<IActionResult> GetEatsCount()
+        {
+            var loggedUser = User.GetUserIdFromToken();
+
+            var result = await _userService.GetEatsCountAsync(loggedUser);
+
+            return Ok(new ApiOkResponse(result));
         }
     }
 }
