@@ -19,11 +19,13 @@ namespace MismeAPI.Controllers
     public class EatController : Controller
     {
         private readonly IEatService _eatService;
+        private readonly IUserService _userService;
         private readonly IMapper _mapper;
 
-        public EatController(IEatService eatService, IMapper mapper)
+        public EatController(IEatService eatService, IUserService userService, IMapper mapper)
         {
             _eatService = eatService ?? throw new ArgumentNullException(nameof(eatService));
+            _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
@@ -41,6 +43,7 @@ namespace MismeAPI.Controllers
         public async Task<IActionResult> GetAll(int? page, int? perPage, int? eatType)
         {
             var userId = User.GetUserIdFromToken();
+            var language = await _userService.GetUserLanguageFromUserIdAsync(userId);
 
             var pag = page ?? 1;
             var perPag = perPage ?? 10;
@@ -51,7 +54,10 @@ namespace MismeAPI.Controllers
             HttpContext.Response.Headers["Access-Control-Expose-Headers"] = "PagingData";
             HttpContext.Response.Headers["Access-Control-Allow-Headers"] = "PagingData";
 
-            var mapped = _mapper.Map<IEnumerable<EatResponse>>(result);
+            var mapped = _mapper.Map<IEnumerable<EatResponse>>(result, opt =>
+            {
+                opt.Items["lang"] = language;
+            });
             return Ok(new ApiOkResponse(mapped));
         }
 
@@ -69,12 +75,16 @@ namespace MismeAPI.Controllers
         public async Task<IActionResult> GetAllEatsByDate(DateTime date, DateTime endDate, int? eatType)
         {
             var userId = User.GetUserIdFromToken();
+            var language = await _userService.GetUserLanguageFromUserIdAsync(userId);
 
             var eatTyp = eatType ?? -1;
 
             var result = await _eatService.GetAllUserEatsByDateAsync(userId, date, endDate, eatTyp);
 
-            var mapped = _mapper.Map<IEnumerable<EatResponse>>(result);
+            var mapped = _mapper.Map<IEnumerable<EatResponse>>(result, opt =>
+            {
+                opt.Items["lang"] = language;
+            });
 
             var dict = new Dictionary<DateTime, FoodValues>();
             foreach (var item in mapped)
