@@ -98,8 +98,6 @@ namespace MismeAPI
             app.UseHangfireDashboard();
             var mismeBackJobs = services.GetRequiredService<IMismeBackgroundService>();
             recurringJobs.AddOrUpdate<IMismeBackgroundService>("ExpiredTokens", (e) => e.CleanExpiredTokensAsync(), "0 3 * * *");
-            //recurringJobs.AddOrUpdate<IMismeBackgroundService>("Notifications", (e) => e.SendFireBaseNotificationsAsync(), "* * * * *");
-
             recurringJobs.AddOrUpdate<IMismeBackgroundService>("Notifications", (e) => e.SendFireBaseNotificationsRemindersAsync(), "0 18 * * *");
 
             if (env.IsDevelopment())
