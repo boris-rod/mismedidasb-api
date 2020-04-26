@@ -106,16 +106,19 @@ namespace MismeAPI.Service.Impls
                 case "en":
                     concept.TitleEN = concetpTranslationRequest.Title;
                     concept.DescriptionEN = concetpTranslationRequest.Description;
+                    concept.InstructionsEN = concetpTranslationRequest.Instructions;
                     break;
 
                 case "it":
                     concept.TitleIT = concetpTranslationRequest.Title;
                     concept.DescriptionIT = concetpTranslationRequest.Description;
+                    concept.InstructionsIT = concetpTranslationRequest.Instructions;
                     break;
 
                 default:
                     concept.Title = concetpTranslationRequest.Title;
                     concept.Description = concetpTranslationRequest.Description;
+                    concept.Instructions = concetpTranslationRequest.Instructions;
                     break;
             }
 

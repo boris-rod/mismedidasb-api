@@ -56,6 +56,7 @@ namespace MismeAPI.Utils
 
             CreateMap<Concept, ConceptResponse>()
                 .ForMember(d => d.Title, opts => opts.MapFrom((src, dest, destMember, context) => GetConceptTitle(src, context.Items["lang"].ToString())))
+                .ForMember(d => d.Instructions, opts => opts.MapFrom((src, dest, destMember, context) => GetConceptInstructions(src, context.Items["lang"].ToString())))
                 .ForMember(d => d.Description, opts => opts.MapFrom((src, dest, destMember, context) => GetConceptDescription(src, context.Items["lang"].ToString())))
                 .ForMember(d => d.Image, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Image) ? "" : _amazonS3Service.GetPresignUrl(source.Image)));
 
@@ -260,6 +261,21 @@ namespace MismeAPI.Utils
 
                 default:
                     return src.Description;
+            }
+        }
+
+        private string GetConceptInstructions(Concept src, string lang)
+        {
+            switch (lang)
+            {
+                case "EN":
+                    return string.IsNullOrWhiteSpace(src.InstructionsEN) ? src.Instructions : src.DescriptionEN;
+
+                case "IT":
+                    return string.IsNullOrWhiteSpace(src.InstructionsIT) ? src.Instructions : src.InstructionsIT;
+
+                default:
+                    return src.Instructions;
             }
         }
 
