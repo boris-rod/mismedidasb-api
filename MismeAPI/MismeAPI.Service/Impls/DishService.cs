@@ -197,6 +197,26 @@ namespace MismeAPI.Service.Impls
                 }
             }
             return await results.ToListAsync();
+
+            //var cache = QueryCacheManager.Cache;
+
+            //var dishes = _context.Dishes
+            //      .Include(d => d.DishTags)
+            //        .ThenInclude(t => t.Tag)
+            //      .FromCache("all_dishes");
+
+            //if (!string.IsNullOrWhiteSpace(search))
+            //{
+            //    dishes = dishes.Where(r => r.Name.ToLower().Contains(search.ToLower()));
+            //}
+            //if (tags.Count > 0)
+            //{
+            //    foreach (var t in tags)
+            //    {
+            //        dishes = dishes.Where(d => d.DishTags.Any(d => d.TagId == t));
+            //    }
+            //}
+            //return await Task.FromResult(dishes);
         }
 
         public async Task<Dish> UpdateDishAsync(int loggedUser, UpdateDishRequest dish)
