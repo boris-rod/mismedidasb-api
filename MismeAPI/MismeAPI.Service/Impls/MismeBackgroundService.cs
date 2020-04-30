@@ -31,6 +31,20 @@ namespace MismeAPI.Service.Impls
             await _uow.CommitAsync();
         }
 
+        public async Task RemoveDisabledAccountsAsync()
+        {
+            var dateToCompare = DateTime.UtcNow.AddDays(-30);
+            var disabledUsers = await _uow.UserRepository.GetAll().Where(t => t.MarkedForDeletion == true &&
+                                            t.DisabledAt.HasValue &&
+                                            dateToCompare > t.DisabledAt.Value)
+                                            .ToListAsync();
+            foreach (var u in disabledUsers)
+            {
+                _uow.UserRepository.Delete(u);
+            }
+            await _uow.CommitAsync();
+        }
+
         public async Task SendFireBaseNotificationsAsync()
         {
             var serverKey = _config["Firebase:ServerKey"];

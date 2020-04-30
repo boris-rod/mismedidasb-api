@@ -798,5 +798,26 @@ namespace MismeAPI.Services.Impls
             }
             await _uow.CommitAsync();
         }
+
+        public async Task DisableAccountAsync(int loggedUser, bool softDeletion)
+        {
+            var user = await _uow.UserRepository.GetAsync(loggedUser);
+            if (user == null)
+            {
+                throw new NotFoundException(ExceptionConstants.NOT_FOUND, "User");
+            }
+            if (softDeletion == true)
+            {
+                user.DisabledAt = DateTime.UtcNow;
+                user.MarkedForDeletion = true;
+                user.Status = StatusEnum.INACTIVE;
+                _uow.UserRepository.Update(user);
+            }
+            else
+            {
+                _uow.UserRepository.Delete(user);
+            }
+            await _uow.CommitAsync();
+        }
     }
 }

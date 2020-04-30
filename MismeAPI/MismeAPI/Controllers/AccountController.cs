@@ -382,5 +382,23 @@ namespace APITaxi.API.Controllers
 
             return Ok();
         }
+
+        /// <summary>
+        /// Disable user account. Requires authentication.
+        /// </summary>
+        /// <param name="softDeletion">
+        /// Indicate if the account will be marked for future deletion after 30 days.
+        /// </param>
+        [Authorize]
+        [HttpPost("remove-account")]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        public async Task<IActionResult> RemoveAccount([FromQuery] bool softDeletion)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            await _accountService.DisableAccountAsync(loggedUser, softDeletion);
+            await _hub.Clients.All.SendAsync(HubConstants.USER_DISABLED, null);
+            return Ok();
+        }
     }
 }

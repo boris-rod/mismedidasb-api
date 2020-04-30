@@ -9,5 +9,7 @@ namespace MismeAPI.Service
         Task SendFireBaseNotificationsAsync();
 
         Task SendFireBaseNotificationsRemindersAsync();
+
+        Task RemoveDisabledAccountsAsync();
     }
 }

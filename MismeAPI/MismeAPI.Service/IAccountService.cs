@@ -47,5 +47,7 @@ namespace MismeAPI.Services
         Task<IEnumerable<UserSetting>> GetUserSettingsAsync(int loggedUser);
 
         Task UpdateUserSettingsAsync(int loggedUser, List<UpdateSettingRequest> request);
+
+        Task DisableAccountAsync(int loggedUser, bool softDeletion);
     }
 }
