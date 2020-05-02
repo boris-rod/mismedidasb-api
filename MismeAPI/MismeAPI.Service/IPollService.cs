@@ -42,5 +42,7 @@ namespace MismeAPI.Service
         Task<List<Poll>> GetAllPollsAdminAsync(int loggedUser);
 
         Task ChangePollTranslationAsync(int loggedUser, PollTranslationRequest pollTranslationRequest, int id);
+
+        Task<Dictionary<int, int>> GetLastAnsweredDictAsync(int loggedUser);
     }
 }

@@ -2938,5 +2938,22 @@ namespace MismeAPI.Service.Impls
             _uow.PollRepository.Update(poll);
             await _uow.CommitAsync();
         }
+
+        public async Task<Dictionary<int, int>> GetLastAnsweredDictAsync(int loggedUser)
+        {
+            var userAnswers = await _uow.UserAnswerRepository.GetAll().Where(ua => ua.UserId == loggedUser)
+                .Include(a => a.Answer)
+                .OrderByDescending(a => a.CreatedAt)
+                .ToListAsync();
+            var dict = new Dictionary<int, int>();
+            foreach (var item in userAnswers)
+            {
+                if (!dict.ContainsKey(item.Answer.QuestionId))
+                {
+                    dict.Add(item.Answer.QuestionId, item.AnswerId);
+                }
+            }
+            return dict;
+        }
     }
 }

@@ -9,6 +9,7 @@ namespace MismeAPI.Common.DTO.Response
         public int PollId { get; set; }
         public int Order { get; set; }
         public string Title { get; set; }
+        public int LastAnswer { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime ModifiedAt { get; set; }
         public List<AnswerResponse> Answers { get; set; }

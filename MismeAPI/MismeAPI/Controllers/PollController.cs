@@ -44,9 +44,12 @@ namespace MismeAPI.Controllers
 
             var concept = conceptId ?? -1;
             var result = await _pollService.GetAllPollsAsync(concept);
+            var dict = await _pollService.GetLastAnsweredDictAsync(loggedUser);
+
             var mapped = _mapper.Map<IEnumerable<PollResponse>>(result, opt =>
             {
                 opt.Items["lang"] = language;
+                opt.Items["dict"] = dict;
             });
             mapped = mapped.OrderBy(m => m.Order);
             return Ok(new ApiOkResponse(mapped));

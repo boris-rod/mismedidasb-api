@@ -44,6 +44,7 @@ namespace MismeAPI.Utils
             CreateMap<Poll, PollAdminResponse>();
 
             CreateMap<Question, QuestionResponse>()
+                 .ForMember(d => d.LastAnswer, opts => opts.MapFrom((src, dest, destMember, context) => GetLastAnswer(src, (Dictionary<int, int>)context.Items["dict"])))
                  .ForMember(d => d.Title, opts => opts.MapFrom((src, dest, destMember, context) => GetQuestionTitle(src, context.Items["lang"].ToString())))
                  .ForMember(d => d.Answers, opts => opts.MapFrom(source => source.Answers.OrderBy(q => q.Order)));
 
@@ -119,6 +120,13 @@ namespace MismeAPI.Utils
                 .ForMember(d => d.UserName, opts => opts.MapFrom(source => source.User.FullName))
                 .ForMember(d => d.PriorityId, opts => opts.MapFrom(source => (int)source.Priority))
                .ForMember(d => d.Priority, opts => opts.MapFrom(source => source.Priority.ToString()));
+        }
+
+        private int GetLastAnswer(Question src, Dictionary<int, int> dictionary)
+        {
+            var value = 0;
+            dictionary.TryGetValue(src.Id, out value);
+            return value;
         }
 
         private string GetGeneralContent(GeneralContent src, string lang)
