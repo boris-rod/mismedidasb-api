@@ -128,19 +128,19 @@ namespace MismeAPI.Service.Impls
                 // sort order section
                 switch (sortOrder)
                 {
-                    case "fullName_desc":
+                    case "userName_desc":
                         result = result.OrderByDescending(i => i.User.FullName);
                         break;
 
-                    case "fullName_asc":
+                    case "userName_asc":
                         result = result.OrderBy(i => i.User.FullName);
                         break;
 
-                    case "email_desc":
+                    case "userEmail_desc":
                         result = result.OrderByDescending(i => i.User.Email);
                         break;
 
-                    case "email_asc":
+                    case "userEmail_asc":
                         result = result.OrderBy(i => i.User.Email);
                         break;
 
@@ -152,13 +152,13 @@ namespace MismeAPI.Service.Impls
                         result = result.OrderBy(i => i.Subject);
                         break;
 
-                    case "priority_desc":
-                        result = result.OrderByDescending(i => i.Priority.ToString());
-                        break;
+                    //case "priority_desc":
+                    //    result = result.OrderByDescending(i => i.Priority.ToString());
+                    //    break;
 
-                    case "priority_asc":
-                        result = result.OrderBy(i => i.Priority.ToString());
-                        break;
+                    //case "priority_asc":
+                    //    result = result.OrderBy(i => i.Priority.ToString());
+                    //    break;
 
                     case "createdAt_desc":
                         result = result.OrderByDescending(i => i.CreatedAt);
