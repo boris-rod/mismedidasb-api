@@ -30,5 +30,6 @@ namespace MismeAPI.Data
         public DbSet<UserSetting> UserSettings { get; set; }
         public DbSet<Result> Results { get; set; }
         public DbSet<GeneralContent> GeneralContents { get; set; }
+        public DbSet<ContactUs> CotactUs { get; set; }
     }
 }

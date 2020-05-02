@@ -1,6 +1,7 @@
 using AutoMapper;
 using MismeAPI.Common;
 using MismeAPI.Common.DTO.Response;
+using MismeAPI.Common.DTO.Response.ContactUs;
 using MismeAPI.Common.DTO.Response.GeneralContent;
 using MismeAPI.Common.DTO.Response.Reminder;
 using MismeAPI.Common.DTO.Response.Result;
@@ -112,6 +113,12 @@ namespace MismeAPI.Utils
             CreateMap<GeneralContent, GeneralContentAdminResponse>()
                 .ForMember(d => d.ContentTypeId, opts => opts.MapFrom(source => (int)source.ContentType))
                .ForMember(d => d.ContentType, opts => opts.MapFrom(source => source.ContentType.ToString()));
+
+            CreateMap<ContactUs, ContactUsResponse>()
+                .ForMember(d => d.UserEmail, opts => opts.MapFrom(source => source.User.Email))
+                .ForMember(d => d.UserName, opts => opts.MapFrom(source => source.User.FullName))
+                .ForMember(d => d.PriorityId, opts => opts.MapFrom(source => (int)source.Priority))
+               .ForMember(d => d.Priority, opts => opts.MapFrom(source => source.Priority.ToString()));
         }
 
         private string GetGeneralContent(GeneralContent src, string lang)

@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MismeAPI.Data;
 
 namespace MismeAPI.Data.Migrations
 {
     [DbContext(typeof(MismeContext))]
-    partial class MismeContextModelSnapshot : ModelSnapshot
+    [Migration("20200502022514_ContactUs")]
+    partial class ContactUs
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -102,37 +104,6 @@ namespace MismeAPI.Data.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("concept");
-                });
-
-            modelBuilder.Entity("MismeAPI.Data.Entities.ContactUs", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<string>("Body")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("Priority")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("Read")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("Subject")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("contactus");
                 });
 
             modelBuilder.Entity("MismeAPI.Data.Entities.Device", b =>
@@ -702,15 +673,6 @@ namespace MismeAPI.Data.Migrations
                     b.HasOne("MismeAPI.Data.Entities.Question", "Question")
                         .WithMany("Answers")
                         .HasForeignKey("QuestionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("MismeAPI.Data.Entities.ContactUs", b =>
-                {
-                    b.HasOne("MismeAPI.Data.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
