@@ -1,0 +1,21 @@
+﻿using System;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace MismeAPI.Data.Entities
+{
+    [Table("rewardhistory")]
+    public class RewardHistory
+    {
+        public int Id { get; set; }
+        public int UserId { get; set; }
+        public User User { get; set; }
+        public int RewardCategoryId { get; set; }
+        public RewardCategory RewardCategory { get; set; }
+
+        public int Points { get; set; }
+        public int RewardPoints { get; set; }
+        public string Data { get; set; }
+        public bool IsPlus { get; set; }
+        public DateTime CreatedAt { get; set; }
+    }
+}
