@@ -3,6 +3,7 @@ using MismeAPI.Common;
 using MismeAPI.Common.DTO.Request;
 using MismeAPI.Common.DTO.Request.Dish;
 using MismeAPI.Common.Exceptions;
+using MismeAPI.Data;
 using MismeAPI.Data.Entities;
 using MismeAPI.Data.Entities.Enums;
 using MismeAPI.Data.UoW;
@@ -11,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Z.EntityFramework.Plus;
 
 namespace MismeAPI.Service.Impls
 {
@@ -18,11 +20,13 @@ namespace MismeAPI.Service.Impls
     {
         private readonly IUnitOfWork _uow;
         private readonly IFileService _fileService;
+        private readonly MismeContext _context;
 
-        public DishService(IUnitOfWork uow, IFileService fileService)
+        public DishService(IUnitOfWork uow, IFileService fileService, MismeContext context)
         {
             _uow = uow ?? throw new ArgumentNullException(nameof(uow));
             _fileService = fileService ?? throw new ArgumentNullException(nameof(fileService));
+            _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
         public async Task ChangeDishTranslationAsync(int loggedUser, DishTranslationRequest dishTranslationRequest, int id)
@@ -57,6 +61,8 @@ namespace MismeAPI.Service.Impls
 
             _uow.DishRepository.Update(dish);
             await _uow.CommitAsync();
+            //expire cache
+            QueryCacheManager.ExpireTag(CacheEntries.ALL_DISHES);
         }
 
         public async Task<Dish> CreateDishAsync(int loggedUser, CreateDishRequest dish)
@@ -130,6 +136,9 @@ namespace MismeAPI.Service.Impls
             await _uow.DishRepository.AddAsync(dbDish);
             await _uow.CommitAsync();
 
+            //expire cache
+            QueryCacheManager.ExpireTag(CacheEntries.ALL_DISHES);
+
             return dbDish;
         }
 
@@ -153,6 +162,9 @@ namespace MismeAPI.Service.Impls
             }
             _uow.DishRepository.Delete(dish);
             await _uow.CommitAsync();
+
+            //expire cache
+            QueryCacheManager.ExpireTag(CacheEntries.ALL_DISHES);
         }
 
         public async Task<Dish> GetDishByIdAsync(int id)
@@ -181,10 +193,11 @@ namespace MismeAPI.Service.Impls
 
         public async Task<IEnumerable<Dish>> GetDishesAsync(string search, List<int> tags)
         {
-            var results = _uow.DishRepository.GetAll()
+            var results = await _context.Dishes
                 .Include(d => d.DishTags)
                     .ThenInclude(t => t.Tag)
-                .AsQueryable();
+                .FromCacheAsync(CacheEntries.ALL_DISHES);
+
             if (!string.IsNullOrWhiteSpace(search))
             {
                 results = results.Where(r => r.Name.ToLower().Contains(search.ToLower()));
@@ -196,27 +209,7 @@ namespace MismeAPI.Service.Impls
                     results = results.Where(d => d.DishTags.Any(d => d.TagId == t));
                 }
             }
-            return await results.ToListAsync();
-
-            //var cache = QueryCacheManager.Cache;
-
-            //var dishes = _context.Dishes
-            //      .Include(d => d.DishTags)
-            //        .ThenInclude(t => t.Tag)
-            //      .FromCache("all_dishes");
-
-            //if (!string.IsNullOrWhiteSpace(search))
-            //{
-            //    dishes = dishes.Where(r => r.Name.ToLower().Contains(search.ToLower()));
-            //}
-            //if (tags.Count > 0)
-            //{
-            //    foreach (var t in tags)
-            //    {
-            //        dishes = dishes.Where(d => d.DishTags.Any(d => d.TagId == t));
-            //    }
-            //}
-            //return await Task.FromResult(dishes);
+            return results;
         }
 
         public async Task<Dish> UpdateDishAsync(int loggedUser, UpdateDishRequest dish)
@@ -316,6 +309,8 @@ namespace MismeAPI.Service.Impls
             await _uow.DishRepository.UpdateAsync(dishh, dishh.Id);
             await _uow.CommitAsync();
 
+            //expire cache
+            QueryCacheManager.ExpireTag(CacheEntries.ALL_DISHES);
             return dishh;
         }
     }
