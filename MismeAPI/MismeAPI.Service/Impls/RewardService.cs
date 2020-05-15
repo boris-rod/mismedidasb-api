@@ -56,7 +56,6 @@ namespace MismeAPI.Service.Impls
             dbReward.RewardPoints = rewardRequest.IsPlus ? rewardCategory.PointsToIncrement : rewardCategory.PointsToDecrement;
             dbReward.Data = rewardRequest.Data;
             dbReward.CreatedAt = DateTime.UtcNow;
-            dbReward.ModifiedAt = DateTime.UtcNow;
 
             await _uow.RewardHistoryRepository.AddAsync(dbReward);
             await _uow.CommitAsync();

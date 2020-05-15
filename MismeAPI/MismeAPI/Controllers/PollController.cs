@@ -200,9 +200,13 @@ namespace MismeAPI.Controllers
             };
 
             var dbReward = await _rewardService.CreateRewardAsync(reward);
+            // assign only if the reward was created after validations
+            if (dbReward != null)
+            {
+                var mapped = _mapper.Map<RewardResponse>(dbReward);
+                await _hub.Clients.All.SendAsync(HubConstants.REWARD_CREATED, mapped);
+            }
 
-            var mapped = _mapper.Map<RewardResponse>(dbReward);
-            await _hub.Clients.All.SendAsync(HubConstants.REWARD_CREATED, mapped);
             /*#end reward section*/
 
             return Ok(new ApiOkResponse(message));
