@@ -23,6 +23,11 @@ namespace MismeAPI.Data.Entities
         public double Fiber { get; set; }
         public string Image { get; set; }
         public string ImageMimeType { get; set; }
+        public bool IsProteic { get; set; }
+        public bool IsCaloric { get; set; }
+        public bool IsFruitAndVegetables { get; set; }
+        public double Cholesterol { get; set; }
+        public double Vitamins { get; set; }
         public virtual ICollection<DishTag> DishTags { get; set; }
         public virtual ICollection<EatDish> EatDishes { get; set; }
     }
