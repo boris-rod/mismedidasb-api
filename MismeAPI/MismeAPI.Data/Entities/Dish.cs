@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MismeAPI.Data.Entities
@@ -28,6 +29,9 @@ namespace MismeAPI.Data.Entities
         public bool IsFruitAndVegetables { get; set; }
         public double Cholesterol { get; set; }
         public double Vitamins { get; set; }
+
+        public DateTime CreatedAt { get; set; }
+        public DateTime ModifiedAt { get; set; }
         public virtual ICollection<DishTag> DishTags { get; set; }
         public virtual ICollection<EatDish> EatDishes { get; set; }
     }
