@@ -53,7 +53,7 @@ namespace MismeAPI.Service.Impls
             return statistics;
         }
 
-        public async Task<int> AllowedPoints(int userId, int points)
+        public async Task<int> AllowedPointsAsync(int userId, int points)
         {
             var statistics = await _uow.UserStatisticsRepository.GetAll()
                 .Where(d => d.UserId == userId)

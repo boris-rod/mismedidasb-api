@@ -31,7 +31,7 @@ namespace MismeAPI.Service.Impls
         public async Task<RewardHistory> CreateRewardAsync(CreateRewardRequest rewardRequest)
         {
             // validate target user exists
-            var existUser = await _uow.UserRepository.GetAll().Where(d => d.Id == rewardRequest.UserId).FirstOrDefaultAsync();
+            var existUser = await _uow.UserRepository.GetAsync(rewardRequest.UserId);
 
             if (existUser == null)
             {
@@ -174,7 +174,7 @@ namespace MismeAPI.Service.Impls
             if (points == 0)
                 return 0;
 
-            var allowedPoints = await _userStatisticsService.AllowedPoints(rewardAcomulate.UserId, isPlus ? points : points * -1);
+            var allowedPoints = await _userStatisticsService.AllowedPointsAsync(rewardAcomulate.UserId, isPlus ? points : points * -1);
 
             return allowedPoints;
         }

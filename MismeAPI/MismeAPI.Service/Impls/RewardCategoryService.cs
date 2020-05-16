@@ -76,8 +76,7 @@ namespace MismeAPI.Service.Impls
 
         public async Task<RewardCategory> GetRewardCategoryByIdAsync(int id)
         {
-            var rewardCategory = await _uow.RewardCategoryRepository.GetAll().Where(d => d.Id == id)
-                .FirstOrDefaultAsync();
+            var rewardCategory = await _uow.RewardCategoryRepository.GetAsync(id);
             if (rewardCategory == null)
             {
                 throw new NotFoundException(ExceptionConstants.NOT_FOUND, "Reward Category");

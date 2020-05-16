@@ -11,6 +11,6 @@ namespace MismeAPI.Service
     {
         Task<UserStatistics> UpdateTotalPoints(User user, int points);
 
-        Task<int> AllowedPoints(int userId, int points);
+        Task<int> AllowedPointsAsync(int userId, int points);
     }
 }
