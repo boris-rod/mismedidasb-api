@@ -2,6 +2,6 @@
 {
     public enum ContentTypeEnum
     {
-        PRIVACY_POLITIC, TERMS_CONDITIONS
+        PRIVACY_POLITIC, TERMS_CONDITIONS, ABOUT_US, FAQ
     }
 }
