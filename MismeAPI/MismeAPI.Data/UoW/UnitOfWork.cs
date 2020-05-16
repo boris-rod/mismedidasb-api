@@ -35,6 +35,8 @@ namespace MismeAPI.Data.UoW
             ResultRepository = ResultRepository ?? new GenericRepository<Result>(_context);
             GeneralContentRepository = GeneralContentRepository ?? new GenericRepository<GeneralContent>(_context);
             ContactUsRepository = ContactUsRepository ?? new GenericRepository<ContactUs>(_context);
+            DishCompoundDishRepository = DishCompoundDishRepository ?? new GenericRepository<DishCompoundDish>(_context);
+            CompoundDishRepository = CompoundDishRepository ?? new GenericRepository<CompoundDish>(_context);
         }
 
         public IGenericRepository<User> UserRepository { get; set; }
@@ -59,6 +61,8 @@ namespace MismeAPI.Data.UoW
         public IGenericRepository<Result> ResultRepository { get; set; }
         public IGenericRepository<GeneralContent> GeneralContentRepository { get; set; }
         public IGenericRepository<ContactUs> ContactUsRepository { get; set; }
+        public IGenericRepository<CompoundDish> CompoundDishRepository { get; set; }
+        public IGenericRepository<DishCompoundDish> DishCompoundDishRepository { get; set; }
 
         public async Task<int> CommitAsync()
         {

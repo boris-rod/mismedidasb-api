@@ -29,6 +29,8 @@ namespace MismeAPI.Data.UoW
         IGenericRepository<Result> ResultRepository { get; set; }
         IGenericRepository<GeneralContent> GeneralContentRepository { get; set; }
         IGenericRepository<ContactUs> ContactUsRepository { get; set; }
+        IGenericRepository<CompoundDish> CompoundDishRepository { get; set; }
+        IGenericRepository<DishCompoundDish> DishCompoundDishRepository { get; set; }
 
         Task<int> CommitAsync();
     }
