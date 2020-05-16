@@ -58,11 +58,14 @@ namespace MismeAPI.Service.Impls
             dbReward.CreatedAt = DateTime.UtcNow;
 
             await _uow.RewardHistoryRepository.AddAsync(dbReward);
-            await _uow.CommitAsync();
 
             allowedPoints = rewardRequest.IsPlus ? allowedPoints : allowedPoints * -1;
+            rewardAcomulate.Points = rewardAcomulate.Points + allowedPoints;
+            rewardAcomulate.ModifiedAt = DateTime.UtcNow;
 
+            await _uow.RewardAcumulateRepository.UpdateAsync(rewardAcomulate, rewardAcomulate.Id);
             await _userStatisticsService.UpdateTotalPoints(existUser, allowedPoints);
+            await _uow.CommitAsync();
 
             return dbReward;
         }
@@ -135,7 +138,7 @@ namespace MismeAPI.Service.Impls
                     var newAcumulate = currentAcumulate + rewardCategory.PointsToIncrement;
                     if (newAcumulate > rewardCategory.MaxPointsAllowed)
                     {
-                        points = newAcumulate - rewardCategory.MaxPointsAllowed;
+                        points = rewardCategory.MaxPointsAllowed - currentAcumulate;
                     }
                     else
                     {
@@ -158,7 +161,7 @@ namespace MismeAPI.Service.Impls
                     var diff = currentAcumulate - rewardCategory.PointsToDecrement;
                     if (diff < 0)
                     {
-                        points = diff * -1;
+                        points = currentAcumulate;
                     }
                     else
                     {

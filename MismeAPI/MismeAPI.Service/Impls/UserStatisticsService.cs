@@ -19,7 +19,6 @@ namespace MismeAPI.Service.Impls
     public class UserStatisticsService : IUserStatisticsService
     {
         private readonly IUnitOfWork _uow;
-        private readonly IRewardCategoryService _rewardCategoryService;
 
         public UserStatisticsService(IUnitOfWork uow)
         {
@@ -67,7 +66,7 @@ namespace MismeAPI.Service.Impls
 
             if (newPoints < 0)
             {
-                return newPoints * -1;
+                return statistics.Points;
             }
 
             return points;
