@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MismeAPI.Data;
 
 namespace MismeAPI.Data.Migrations
 {
     [DbContext(typeof(MismeContext))]
-    partial class MismeContextModelSnapshot : ModelSnapshot
+    [Migration("20200515222135_create_reward_system_initial_db")]
+    partial class create_reward_system_initial_db
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -515,13 +517,13 @@ namespace MismeAPI.Data.Migrations
                     b.Property<bool>("IsPlus")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<DateTime>("ModifiedAt")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<int>("Points")
                         .HasColumnType("int");
 
                     b.Property<int>("RewardCategoryId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("RewardPoints")
                         .HasColumnType("int");
 
                     b.Property<int>("UserId")
