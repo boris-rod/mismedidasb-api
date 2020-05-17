@@ -96,6 +96,7 @@ namespace MismeAPI.Service.Impls
                    .ThenInclude(ed => ed.Dish)
                        .ThenInclude(d => d.DishTags)
                            .ThenInclude(dt => dt.Tag)
+               .OrderBy(e => e.CreatedAt).ThenBy(e => e.EatType)
                .AsQueryable();
 
             //filter by type if not -1(null equivalent)
