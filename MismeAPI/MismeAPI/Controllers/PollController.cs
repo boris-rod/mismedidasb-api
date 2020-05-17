@@ -185,10 +185,9 @@ namespace MismeAPI.Controllers
 
             var alreadyAnswered = await _pollService.HasAnsweredConceptBeforeAsync(loggedUser, result);
 
-            //var message = await _pollService.SetPollResultByQuestionsAsync(loggedUser, result, language);
-            var message = "";
-            /*Reward section*/
+            var message = await _pollService.SetPollResultByQuestionsAsync(loggedUser, result, language);
 
+            /*Reward section*/
             if (!alreadyAnswered)
             {
                 var answeredPolls = _pollService.GetAnsweredPolls(result);
@@ -216,8 +215,8 @@ namespace MismeAPI.Controllers
                         await _hub.Clients.All.SendAsync(HubConstants.REWARD_CREATED, mapped);
                     }
                 }
-                /*#end reward section*/
             }
+            /*#end reward section*/
 
             return Ok(new ApiOkResponse(message));
         }
