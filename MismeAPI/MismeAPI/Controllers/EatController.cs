@@ -1,11 +1,17 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using MismeAPI.BasicResponses;
 using MismeAPI.Common.DTO;
 using MismeAPI.Common.DTO.Request;
+using MismeAPI.Common.DTO.Request.Reward;
 using MismeAPI.Common.DTO.Response;
+using MismeAPI.Common.DTO.Response.Reward;
+using MismeAPI.Data.Entities.Enums;
+using MismeAPI.Data.Entities.NonDatabase;
 using MismeAPI.Service;
+using MismeAPI.Service.Hubs;
 using MismeAPI.Utils;
 using Newtonsoft.Json;
 using System;
@@ -21,12 +27,16 @@ namespace MismeAPI.Controllers
         private readonly IEatService _eatService;
         private readonly IUserService _userService;
         private readonly IMapper _mapper;
+        private readonly IRewardService _rewardService;
+        private IHubContext<UserHub> _hub;
 
-        public EatController(IEatService eatService, IUserService userService, IMapper mapper)
+        public EatController(IEatService eatService, IUserService userService, IMapper mapper, IRewardService rewardService, IHubContext<UserHub> hub)
         {
             _eatService = eatService ?? throw new ArgumentNullException(nameof(eatService));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _rewardService = rewardService ?? throw new ArgumentNullException(nameof(rewardService));
+            _hub = hub ?? throw new ArgumentNullException(nameof(hub));
         }
 
         /// <summary>
@@ -157,6 +167,7 @@ namespace MismeAPI.Controllers
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
         public async Task<IActionResult> AddDish([FromBody]CreateEatRequest eat)
         {
+            /*This endpoint is not in use anymore - you should disable it*/
             var loggedUser = User.GetUserIdFromToken();
             var result = await _eatService.CreateEatAsync(loggedUser, eat);
             var mapped = _mapper.Map<EatResponse>(result);
@@ -191,7 +202,36 @@ namespace MismeAPI.Controllers
         public async Task<IActionResult> AddEats([FromBody]CreateBulkEatRequest eat)
         {
             var loggedUser = User.GetUserIdFromToken();
+            var editingPlan = await _eatService.AlreadyHavePlanByDateAsync(loggedUser, eat.DateInUtc);
+
             await _eatService.CreateBulkEatAsync(loggedUser, eat);
+
+            /*Reward section*/
+            if (!editingPlan)
+            {
+                var data = new RewardHistoryData
+                {
+                    // Make sure that this is an important info to store in the history
+                    Entity1 = eat
+                };
+                var reward = new CreateRewardRequest
+                {
+                    UserId = loggedUser,
+                    RewardCategoryEnum = eat.IsBalanced ? (int)RewardCategoryEnum.EAT_BALANCED_CREATED : (int)RewardCategoryEnum.EAT_CREATED,
+                    IsPlus = true,
+                    Data = JsonConvert.SerializeObject(data),
+                };
+
+                var dbReward = await _rewardService.CreateRewardAsync(reward);
+                // assign only if the reward was created after validations
+                if (dbReward != null)
+                {
+                    var mapped = _mapper.Map<RewardResponse>(dbReward);
+                    await _hub.Clients.All.SendAsync(HubConstants.REWARD_CREATED, mapped);
+                }
+            }
+            /*#end reward section*/
+
             return Ok();
         }
     }

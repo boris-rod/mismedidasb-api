@@ -183,30 +183,39 @@ namespace MismeAPI.Controllers
             var loggedUser = User.GetUserIdFromToken();
             var language = await _userService.GetUserLanguageFromUserIdAsync(loggedUser);
 
+            var alreadyAnswered = await _pollService.HasAnsweredConceptBeforeAsync(loggedUser, result);
+
             var message = await _pollService.SetPollResultByQuestionsAsync(loggedUser, result, language);
 
             /*Reward section*/
-            var data = new RewardHistoryData
+            if (!alreadyAnswered)
             {
-                // Make sure that this is an important info to store in the history
-                Entity = message
-            };
-            var reward = new CreateRewardRequest
-            {
-                UserId = loggedUser,
-                RewardCategoryEnum = (int)RewardCategoryEnum.POLL_ANSWERED,
-                IsPlus = true,
-                Data = JsonConvert.SerializeObject(data),
-            };
+                var answeredPolls = _pollService.GetAnsweredPolls(result);
+                foreach (var pollId in answeredPolls)
+                {
+                    var data = new RewardHistoryData
+                    {
+                        // Make sure that this is an important info to store in the history
+                        Entity1 = message,
+                        Entity2 = pollId
+                    };
+                    var reward = new CreateRewardRequest
+                    {
+                        UserId = loggedUser,
+                        RewardCategoryEnum = (int)RewardCategoryEnum.POLL_ANSWERED,
+                        IsPlus = true,
+                        Data = JsonConvert.SerializeObject(data),
+                    };
 
-            var dbReward = await _rewardService.CreateRewardAsync(reward);
-            // assign only if the reward was created after validations
-            if (dbReward != null)
-            {
-                var mapped = _mapper.Map<RewardResponse>(dbReward);
-                await _hub.Clients.All.SendAsync(HubConstants.REWARD_CREATED, mapped);
+                    var dbReward = await _rewardService.CreateRewardAsync(reward);
+                    // assign only if the reward was created after validations
+                    if (dbReward != null)
+                    {
+                        var mapped = _mapper.Map<RewardResponse>(dbReward);
+                        await _hub.Clients.All.SendAsync(HubConstants.REWARD_CREATED, mapped);
+                    }
+                }
             }
-
             /*#end reward section*/
 
             return Ok(new ApiOkResponse(message));

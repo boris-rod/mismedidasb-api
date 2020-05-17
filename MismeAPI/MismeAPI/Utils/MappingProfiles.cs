@@ -7,6 +7,7 @@ using MismeAPI.Common.DTO.Response.Reminder;
 using MismeAPI.Common.DTO.Response.Result;
 using MismeAPI.Common.DTO.Response.Reward;
 using MismeAPI.Common.DTO.Response.Settings;
+using MismeAPI.Common.DTO.Response.UserStatistics;
 using MismeAPI.Data.Entities;
 using MismeAPI.Services;
 using System;
@@ -123,6 +124,7 @@ namespace MismeAPI.Utils
                .ForMember(d => d.Priority, opts => opts.MapFrom(source => source.Priority.ToString()));
 
             CreateMap<RewardHistory, RewardResponse>();
+            CreateMap<UserStatistics, UserStatisticsResponse>();
         }
 
         private int GetLastAnswer(Question src, Dictionary<int, int> dictionary)
