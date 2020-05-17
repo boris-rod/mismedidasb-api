@@ -6,6 +6,7 @@ namespace MismeAPI.Data.Entities.NonDatabase
 {
     public class RewardHistoryData
     {
-        public object Entity { get; set; }
+        public object Entity1 { get; set; }
+        public object Entity2 { get; set; }
     }
 }

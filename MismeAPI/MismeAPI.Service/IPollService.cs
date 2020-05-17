@@ -44,5 +44,9 @@ namespace MismeAPI.Service
         Task ChangePollTranslationAsync(int loggedUser, PollTranslationRequest pollTranslationRequest, int id);
 
         Task<Dictionary<int, int>> GetLastAnsweredDictAsync(int loggedUser);
+
+        Task<bool> HasAnsweredConceptBeforeAsync(int loggedUser, ListOfPollResultsRequest result);
+
+        IList<int> GetAnsweredPolls(ListOfPollResultsRequest result);
     }
 }
