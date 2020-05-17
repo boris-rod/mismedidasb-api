@@ -8,6 +8,7 @@ using MismeAPI.Data.Entities;
 using MismeAPI.Data.Entities.Enums;
 using MismeAPI.Data.UoW;
 using MismeAPI.Services;
+using MismeAPI.Services.Utils;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -23,6 +24,87 @@ namespace MismeAPI.Service.Impls
         public UserStatisticsService(IUnitOfWork uow)
         {
             _uow = uow ?? throw new ArgumentNullException(nameof(uow));
+        }
+
+        public async Task<PaginatedList<UserStatistics>> GetUserStatisticsAsync(int loggedUser, int pag, int perPag, string sortOrder)
+        {
+            var result = _uow.UserStatisticsRepository.GetAll()
+                .Include(u => u.User)
+                .AsQueryable();
+
+            // define sort order
+            if (!string.IsNullOrWhiteSpace(sortOrder))
+            {
+                // sort order section
+                switch (sortOrder)
+                {
+                    case "points_desc":
+                        result = result.OrderByDescending(i => i.Points);
+                        break;
+
+                    case "pointse_asc":
+                        result = result.OrderBy(i => i.Points);
+                        break;
+
+                    case "balancedEatCurrentStreak_desc":
+                        result = result.OrderByDescending(i => i.BalancedEatCurrentStreak);
+                        break;
+
+                    case "email_asc":
+                        result = result.OrderBy(i => i.BalancedEatCurrentStreak);
+                        break;
+
+                    case "balancedEatMaxStreak_desc":
+                        result = result.OrderByDescending(i => i.BalancedEatMaxStreak);
+                        break;
+
+                    case "phone_asc":
+                        result = result.OrderBy(i => i.BalancedEatMaxStreak);
+                        break;
+
+                    case "eatCurrentStreak_desc":
+                        result = result.OrderByDescending(i => i.EatCurrentStreak);
+                        break;
+
+                    case "eatCurrentStreak_asc":
+                        result = result.OrderBy(i => i.EatCurrentStreak);
+                        break;
+
+                    case "eatMaxStreak_desc":
+                        result = result.OrderByDescending(i => i.EatMaxStreak);
+                        break;
+
+                    case "eatMaxStreak_asc":
+                        result = result.OrderBy(i => i.EatMaxStreak);
+                        break;
+
+                    default:
+                        break;
+                }
+            }
+
+            return await PaginatedList<UserStatistics>.CreateAsync(result, pag, perPag);
+        }
+
+        public async Task<UserStatistics> GetUserStatisticsByUserAsync(int userId)
+        {
+            var existUser = await _uow.UserRepository.GetAll()
+                .Include(u => u.UserStatics)
+                    .ThenInclude(us => us.User)
+                .Where(d => d.Id == userId)
+                .FirstOrDefaultAsync();
+
+            if (existUser == null)
+            {
+                throw new NotFoundException(ExceptionConstants.NOT_FOUND, "User");
+            }
+
+            if (existUser.UserStatics == null)
+            {
+                throw new NotFoundException(ExceptionConstants.NOT_FOUND, "User Statistics");
+            }
+
+            return existUser.UserStatics;
         }
 
         public async Task<UserStatistics> UpdateTotalPoints(User user, int points)
