@@ -19,6 +19,7 @@ namespace MismeAPI.Data.Entities
         public DateTime CreatedAt { get; set; }
         public DateTime ModifiedAt { get; set; }
         public EatTypeEnum EatType { get; set; }
+        public bool IsValanced { get; set; }
         public virtual ICollection<EatDish> EatDishes { get; set; }
     }
 }
