@@ -1,8 +1,6 @@
-﻿using Microsoft.Extensions.Configuration;
-using MismeAPI.Common;
-using MismeAPI.Common.Exceptions;
-using SendGrid;
-using SendGrid.Helpers.Mail;
+﻿using MailKit.Net.Smtp;
+using Microsoft.Extensions.Configuration;
+using MimeKit;
 using System;
 using System.Threading.Tasks;
 
@@ -19,20 +17,25 @@ namespace MismeAPI.Services.Impls
 
         public async Task SendEmailResponseAsync(string subject, string message, string email)
         {
-            var apiKey = _configuration.GetValue<string>("Sendgrid:SendGridKey");
-            string sandBoxMode = _configuration.GetValue<string>("Sendgrid:UseSandbox");
-            string userSendgrid = _configuration.GetValue<string>("Sendgrid:SendGridUser");
-
-            var client = new SendGridClient(apiKey);
-            var from = new EmailAddress(userSendgrid);
-            var to = new EmailAddress(email);
-            var msg = MailHelper.CreateSingleEmail(from, to, subject, "", message);
-
-            var response = await client.SendEmailAsync(msg);
-
-            if (response.StatusCode.ToString() != "Accepted")
+            using (var client = new SmtpClient())
             {
-                throw new InvalidDataException(ExceptionConstants.INVALID_DATA, "Email");
+                client.ServerCertificateValidationCallback = (s, c, h, e) => true;
+                await client.ConnectAsync(_configuration.GetValue<string>("SMTP:Server"), int.Parse(_configuration.GetValue<string>("SMTP:Port")), true);
+
+                await client.AuthenticateAsync(_configuration.GetValue<string>("SMTP:User"), _configuration.GetValue<string>("SMTP:Password"));
+
+                var mess = new MimeMessage();
+
+                mess.From.Add(new MailboxAddress(_configuration.GetValue<string>("SMTP:From")));
+                mess.To.Add(new MailboxAddress(email));
+                mess.Subject = subject;
+                mess.Body = new TextPart("html")
+                {
+                    Text = message
+                };
+
+                await client.SendAsync(mess);
+                client.Disconnect(true);
             }
         }
     }
