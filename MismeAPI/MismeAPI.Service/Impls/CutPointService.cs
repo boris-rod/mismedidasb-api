@@ -109,6 +109,10 @@ namespace MismeAPI.Service.Impls
         {
             var cutPoint = await GetCutPointAsync(id);
 
+            var alreadyExist = await _uow.CutPointRepository.FindAsync(c => c.Points == request.Points && c.Id != id);
+            if (alreadyExist != null)
+                throw new AlreadyExistsException("Cut point already exists");
+
             cutPoint.Points = request.Points;
             cutPoint.Description = request.Description;
             cutPoint.IsActive = request.IsActive;
