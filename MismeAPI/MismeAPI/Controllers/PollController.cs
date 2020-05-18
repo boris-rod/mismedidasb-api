@@ -29,16 +29,14 @@ namespace MismeAPI.Controllers
         private readonly IPollService _pollService;
         private readonly IMapper _mapper;
         private readonly IUserService _userService;
-        private readonly IRewardService _rewardService;
-        private IHubContext<UserHub> _hub;
+        private readonly IRewardHelper _rewardHelper;
 
-        public PollController(IPollService pollService, IMapper mapper, IUserService userService, IRewardService rewardService, IHubContext<UserHub> hub)
+        public PollController(IPollService pollService, IMapper mapper, IUserService userService, IRewardHelper rewardHelper)
         {
             _pollService = pollService ?? throw new ArgumentNullException(nameof(pollService));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
-            _rewardService = rewardService ?? throw new ArgumentNullException(nameof(rewardService));
-            _hub = hub ?? throw new ArgumentNullException(nameof(hub));
+            _rewardHelper = rewardHelper ?? throw new ArgumentNullException(nameof(rewardHelper));
         }
 
         /// <summary>
@@ -193,27 +191,7 @@ namespace MismeAPI.Controllers
                 var answeredPolls = _pollService.GetAnsweredPolls(result);
                 foreach (var pollId in answeredPolls)
                 {
-                    var data = new RewardHistoryData
-                    {
-                        // Make sure that this is an important info to store in the history
-                        Entity1 = message,
-                        Entity2 = pollId
-                    };
-                    var reward = new CreateRewardRequest
-                    {
-                        UserId = loggedUser,
-                        RewardCategoryEnum = (int)RewardCategoryEnum.POLL_ANSWERED,
-                        IsPlus = true,
-                        Data = JsonConvert.SerializeObject(data),
-                    };
-
-                    var dbReward = await _rewardService.CreateRewardAsync(reward);
-                    // assign only if the reward was created after validations
-                    if (dbReward != null)
-                    {
-                        var mapped = _mapper.Map<RewardResponse>(dbReward);
-                        await _hub.Clients.All.SendAsync(HubConstants.REWARD_CREATED, mapped);
-                    }
+                    await _rewardHelper.HandleRewardAsync(RewardCategoryEnum.POLL_ANSWERED, loggedUser, true, message, pollId);
                 }
             }
             /*#end reward section*/
