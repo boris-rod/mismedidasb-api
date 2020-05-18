@@ -6,7 +6,9 @@ using MismeAPI.Common.DTO.Response.ContactUs;
 using MismeAPI.Common.DTO.Response.GeneralContent;
 using MismeAPI.Common.DTO.Response.Reminder;
 using MismeAPI.Common.DTO.Response.Result;
+using MismeAPI.Common.DTO.Response.Reward;
 using MismeAPI.Common.DTO.Response.Settings;
+using MismeAPI.Common.DTO.Response.UserStatistics;
 using MismeAPI.Data.Entities;
 using MismeAPI.Services;
 using System;
@@ -121,6 +123,9 @@ namespace MismeAPI.Utils
                 .ForMember(d => d.UserName, opts => opts.MapFrom(source => source.User.FullName))
                 .ForMember(d => d.PriorityId, opts => opts.MapFrom(source => (int)source.Priority))
                .ForMember(d => d.Priority, opts => opts.MapFrom(source => source.Priority.ToString()));
+
+            CreateMap<RewardHistory, RewardResponse>();
+            CreateMap<UserStatistics, UserStatisticsResponse>();
 
             CreateMap<DishCompoundDish, DishCompoundDishResponse>()
               .ForMember(d => d.Qty, opts => opts.MapFrom(source => source.DishQty))

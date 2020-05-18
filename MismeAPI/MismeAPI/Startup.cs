@@ -83,6 +83,9 @@ namespace MismeAPI
             services.AddTransient<ISettingService, SettingService>();
             services.AddTransient<IGeneralContentService, GeneralContentService>();
             services.AddTransient<IContactUsService, ContactUsService>();
+            services.AddTransient<IRewardCategoryService, RewardCategoryService>();
+            services.AddTransient<IRewardService, RewardService>();
+            services.AddTransient<IUserStatisticsService, UserStatisticsService>();
             services.AddTransient<ICompoundDishService, CompoundDishService>();
 
             var provider = services.BuildServiceProvider();
@@ -131,6 +134,7 @@ namespace MismeAPI
                 endpoints.MapControllers();
             });
             CreateAdminUserAsync(services).Wait();
+            InitRewardCategories(services).Wait();
             //try
             //{
             //    ImportDishesAsync(services).Wait();
@@ -168,6 +172,12 @@ namespace MismeAPI
                     await _uow.CommitAsync();
                 }
             }
+        }
+
+        private async Task InitRewardCategories(IServiceProvider serviceProvider)
+        {
+            var _categoryRewardService = serviceProvider.GetRequiredService<IRewardCategoryService>();
+            await _categoryRewardService.InitRewardCategoriesAsync();
         }
 
         //private async Task ImportDishesAsync(IServiceProvider serviceProvider)

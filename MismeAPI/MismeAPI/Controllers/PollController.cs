@@ -1,13 +1,20 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using MismeAPI.BasicResponses;
 using MismeAPI.Common.DTO.Request;
 using MismeAPI.Common.DTO.Request.Poll;
+using MismeAPI.Common.DTO.Request.Reward;
 using MismeAPI.Common.DTO.Request.Tip;
 using MismeAPI.Common.DTO.Response;
+using MismeAPI.Common.DTO.Response.Reward;
+using MismeAPI.Data.Entities.Enums;
+using MismeAPI.Data.Entities.NonDatabase;
 using MismeAPI.Service;
+using MismeAPI.Service.Hubs;
 using MismeAPI.Utils;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,12 +29,16 @@ namespace MismeAPI.Controllers
         private readonly IPollService _pollService;
         private readonly IMapper _mapper;
         private readonly IUserService _userService;
+        private readonly IRewardService _rewardService;
+        private IHubContext<UserHub> _hub;
 
-        public PollController(IPollService pollService, IMapper mapper, IUserService userService)
+        public PollController(IPollService pollService, IMapper mapper, IUserService userService, IRewardService rewardService, IHubContext<UserHub> hub)
         {
             _pollService = pollService ?? throw new ArgumentNullException(nameof(pollService));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _rewardService = rewardService ?? throw new ArgumentNullException(nameof(rewardService));
+            _hub = hub ?? throw new ArgumentNullException(nameof(hub));
         }
 
         /// <summary>
@@ -172,7 +183,40 @@ namespace MismeAPI.Controllers
             var loggedUser = User.GetUserIdFromToken();
             var language = await _userService.GetUserLanguageFromUserIdAsync(loggedUser);
 
+            var alreadyAnswered = await _pollService.HasAnsweredConceptBeforeAsync(loggedUser, result);
+
             var message = await _pollService.SetPollResultByQuestionsAsync(loggedUser, result, language);
+
+            /*Reward section*/
+            if (!alreadyAnswered)
+            {
+                var answeredPolls = _pollService.GetAnsweredPolls(result);
+                foreach (var pollId in answeredPolls)
+                {
+                    var data = new RewardHistoryData
+                    {
+                        // Make sure that this is an important info to store in the history
+                        Entity1 = message,
+                        Entity2 = pollId
+                    };
+                    var reward = new CreateRewardRequest
+                    {
+                        UserId = loggedUser,
+                        RewardCategoryEnum = (int)RewardCategoryEnum.POLL_ANSWERED,
+                        IsPlus = true,
+                        Data = JsonConvert.SerializeObject(data),
+                    };
+
+                    var dbReward = await _rewardService.CreateRewardAsync(reward);
+                    // assign only if the reward was created after validations
+                    if (dbReward != null)
+                    {
+                        var mapped = _mapper.Map<RewardResponse>(dbReward);
+                        await _hub.Clients.All.SendAsync(HubConstants.REWARD_CREATED, mapped);
+                    }
+                }
+            }
+            /*#end reward section*/
 
             return Ok(new ApiOkResponse(message));
         }

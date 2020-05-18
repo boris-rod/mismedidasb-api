@@ -185,6 +185,7 @@ namespace MismeAPI.Service.Impls
                 e.ModifiedAt = DateTime.UtcNow;
                 e.EatType = (EatTypeEnum)item.EatType;
                 e.UserId = loggedUser;
+                e.IsValanced = eat.IsBalanced;
                 await _uow.EatRepository.AddAsync(e);
                 foreach (var d in item.Dishes)
                 {
@@ -369,6 +370,13 @@ namespace MismeAPI.Service.Impls
                 return (0.0, 0.0);
             }
             return (0.0, 0.0);
+        }
+
+        public async Task<bool> AlreadyHavePlanByDateAsync(int userId, DateTime date)
+        {
+            var eatsCount = await _uow.EatRepository.GetAll().Where(e => e.UserId == userId && e.CreatedAt.Date == date.Date).CountAsync();
+
+            return eatsCount > 0;
         }
     }
 }

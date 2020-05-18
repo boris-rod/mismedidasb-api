@@ -2955,5 +2955,38 @@ namespace MismeAPI.Service.Impls
             }
             return dict;
         }
+
+        public async Task<bool> HasAnsweredConceptBeforeAsync(int loggedUser, ListOfPollResultsRequest result)
+        {
+            var poll = await _uow.PollRepository.GetAll().Where(p => p.Id == result.PollDatas.ElementAt(0).PollId)
+                  .Include(p => p.Concept)
+                  .FirstOrDefaultAsync();
+
+            if (poll != null)
+            {
+                var existUserConcept = await _uow.UserConceptRepository.GetAll()
+                    .Where(c => c.Id == poll.ConceptId && c.UserId == loggedUser)
+                    .FirstOrDefaultAsync();
+
+                if (existUserConcept != null)
+                    return true;
+            }
+
+            return false;
+        }
+
+        public IList<int> GetAnsweredPolls(ListOfPollResultsRequest result)
+        {
+            var polls = new List<int>();
+            foreach (var item in result.PollDatas)
+            {
+                if (item.PollId != 0 && !polls.Contains(item.PollId))
+                {
+                    polls.Add(item.PollId);
+                }
+            }
+
+            return polls;
+        }
     }
 }

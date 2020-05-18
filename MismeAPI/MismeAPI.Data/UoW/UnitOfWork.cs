@@ -35,6 +35,10 @@ namespace MismeAPI.Data.UoW
             ResultRepository = ResultRepository ?? new GenericRepository<Result>(_context);
             GeneralContentRepository = GeneralContentRepository ?? new GenericRepository<GeneralContent>(_context);
             ContactUsRepository = ContactUsRepository ?? new GenericRepository<ContactUs>(_context);
+            RewardCategoryRepository = RewardCategoryRepository ?? new GenericRepository<RewardCategory>(_context);
+            RewardAcumulateRepository = RewardAcumulateRepository ?? new GenericRepository<RewardAcumulate>(_context);
+            RewardHistoryRepository = RewardHistoryRepository ?? new GenericRepository<RewardHistory>(_context);
+            UserStatisticsRepository = UserStatisticsRepository ?? new GenericRepository<UserStatistics>(_context);
             DishCompoundDishRepository = DishCompoundDishRepository ?? new GenericRepository<DishCompoundDish>(_context);
             CompoundDishRepository = CompoundDishRepository ?? new GenericRepository<CompoundDish>(_context);
         }
@@ -61,6 +65,10 @@ namespace MismeAPI.Data.UoW
         public IGenericRepository<Result> ResultRepository { get; set; }
         public IGenericRepository<GeneralContent> GeneralContentRepository { get; set; }
         public IGenericRepository<ContactUs> ContactUsRepository { get; set; }
+        public IGenericRepository<RewardCategory> RewardCategoryRepository { get; set; }
+        public IGenericRepository<RewardAcumulate> RewardAcumulateRepository { get; set; }
+        public IGenericRepository<RewardHistory> RewardHistoryRepository { get; set; }
+        public IGenericRepository<UserStatistics> UserStatisticsRepository { get; set; }
         public IGenericRepository<CompoundDish> CompoundDishRepository { get; set; }
         public IGenericRepository<DishCompoundDish> DishCompoundDishRepository { get; set; }
 
