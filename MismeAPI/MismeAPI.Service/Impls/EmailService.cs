@@ -17,25 +17,32 @@ namespace MismeAPI.Services.Impls
 
         public async Task SendEmailResponseAsync(string subject, string message, string email)
         {
-            using (var client = new SmtpClient())
+            try
             {
-                client.ServerCertificateValidationCallback = (s, c, h, e) => true;
-                await client.ConnectAsync(_configuration.GetValue<string>("SMTP:Server"), int.Parse(_configuration.GetValue<string>("SMTP:Port")), true);
-
-                await client.AuthenticateAsync(_configuration.GetValue<string>("SMTP:User"), _configuration.GetValue<string>("SMTP:Password"));
-
-                var mess = new MimeMessage();
-
-                mess.From.Add(new MailboxAddress(_configuration.GetValue<string>("SMTP:From")));
-                mess.To.Add(new MailboxAddress(email));
-                mess.Subject = subject;
-                mess.Body = new TextPart("html")
+                using (var client = new SmtpClient())
                 {
-                    Text = message
-                };
+                    client.ServerCertificateValidationCallback = (s, c, h, e) => true;
+                    await client.ConnectAsync(_configuration.GetValue<string>("SMTP:Server"), int.Parse(_configuration.GetValue<string>("SMTP:Port")), false);
 
-                await client.SendAsync(mess);
-                client.Disconnect(true);
+                    await client.AuthenticateAsync(_configuration.GetValue<string>("SMTP:User"), _configuration.GetValue<string>("SMTP:Password"));
+
+                    var mess = new MimeMessage();
+
+                    mess.From.Add(new MailboxAddress(_configuration.GetValue<string>("SMTP:From")));
+                    mess.To.Add(new MailboxAddress(email));
+                    mess.Subject = subject;
+                    mess.Body = new TextPart("html")
+                    {
+                        Text = message
+                    };
+
+                    await client.SendAsync(mess);
+                    client.Disconnect(true);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
             }
         }
     }
