@@ -1,6 +1,7 @@
 using AutoMapper;
 using MismeAPI.Common;
 using MismeAPI.Common.DTO.Response;
+using MismeAPI.Common.DTO.Response.CompoundDish;
 using MismeAPI.Common.DTO.Response.ContactUs;
 using MismeAPI.Common.DTO.Response.GeneralContent;
 using MismeAPI.Common.DTO.Response.Reminder;
@@ -120,6 +121,61 @@ namespace MismeAPI.Utils
                 .ForMember(d => d.UserName, opts => opts.MapFrom(source => source.User.FullName))
                 .ForMember(d => d.PriorityId, opts => opts.MapFrom(source => (int)source.Priority))
                .ForMember(d => d.Priority, opts => opts.MapFrom(source => source.Priority.ToString()));
+
+            CreateMap<DishCompoundDish, DishCompoundDishResponse>()
+              .ForMember(d => d.Qty, opts => opts.MapFrom(source => source.DishQty))
+              .ForMember(d => d.Dish, opts => opts.MapFrom(source => source.Dish));
+            CreateMap<CompoundDish, CompoundDishResponse>()
+                .ForMember(d => d.Image, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Image) ? "" : _amazonS3Service.GetPresignUrl(source.Image)))
+                .ForMember(d => d.DishCompoundDishResponse, opts => opts.MapFrom(source => source.DishCompoundDishes))
+                .ForMember(d => d.Calcium, opts => opts.MapFrom(source => source.DishCompoundDishes.Sum(d => d.Dish.Calcium * d.DishQty)))
+                .ForMember(d => d.Calories, opts => opts.MapFrom(source => source.DishCompoundDishes.Sum(d => d.Dish.Calories * d.DishQty)))
+                .ForMember(d => d.Carbohydrates, opts => opts.MapFrom(source => source.DishCompoundDishes.Sum(d => d.Dish.Carbohydrates * d.DishQty)))
+                .ForMember(d => d.Cholesterol, opts => opts.MapFrom(source => source.DishCompoundDishes.Sum(d => d.Dish.Cholesterol * d.DishQty)))
+                .ForMember(d => d.Fat, opts => opts.MapFrom(source => source.DishCompoundDishes.Sum(d => d.Dish.Fat * d.DishQty)))
+                .ForMember(d => d.Fiber, opts => opts.MapFrom(source => source.DishCompoundDishes.Sum(d => d.Dish.Fiber * d.DishQty)))
+                .ForMember(d => d.FolicAcid, opts => opts.MapFrom(source => source.DishCompoundDishes.Sum(d => d.Dish.FolicAcid * d.DishQty)))
+                .ForMember(d => d.Iron, opts => opts.MapFrom(source => source.DishCompoundDishes.Sum(d => d.Dish.Iron * d.DishQty)))
+                .ForMember(d => d.Magnesium, opts => opts.MapFrom(source => source.DishCompoundDishes.Sum(d => d.Dish.Magnesium * d.DishQty)))
+                .ForMember(d => d.Niacin, opts => opts.MapFrom(source => source.DishCompoundDishes.Sum(d => d.Dish.Niacin * d.DishQty)))
+                .ForMember(d => d.Phosphorus, opts => opts.MapFrom(source => source.DishCompoundDishes.Sum(d => d.Dish.Phosphorus * d.DishQty)))
+                .ForMember(d => d.Potassium, opts => opts.MapFrom(source => source.DishCompoundDishes.Sum(d => d.Dish.Potassium * d.DishQty)))
+                .ForMember(d => d.Proteins, opts => opts.MapFrom(source => source.DishCompoundDishes.Sum(d => d.Dish.Proteins * d.DishQty)))
+                .ForMember(d => d.Ribofla, opts => opts.MapFrom(source => source.DishCompoundDishes.Sum(d => d.Dish.Ribofla * d.DishQty)))
+                .ForMember(d => d.Sodium, opts => opts.MapFrom(source => source.DishCompoundDishes.Sum(d => d.Dish.Sodium * d.DishQty)))
+                .ForMember(d => d.Thiamine, opts => opts.MapFrom(source => source.DishCompoundDishes.Sum(d => d.Dish.Thiamine * d.DishQty)))
+                .ForMember(d => d.VitaminA, opts => opts.MapFrom(source => source.DishCompoundDishes.Sum(d => d.Dish.VitaminA * d.DishQty)))
+                .ForMember(d => d.VitaminB12, opts => opts.MapFrom(source => source.DishCompoundDishes.Sum(d => d.Dish.VitaminB12 * d.DishQty)))
+                .ForMember(d => d.VitaminB6, opts => opts.MapFrom(source => source.DishCompoundDishes.Sum(d => d.Dish.VitaminB6 * d.DishQty)))
+                .ForMember(d => d.VitaminC, opts => opts.MapFrom(source => source.DishCompoundDishes.Sum(d => d.Dish.VitaminC * d.DishQty)))
+                .ForMember(d => d.Zinc, opts => opts.MapFrom(source => source.DishCompoundDishes.Sum(d => d.Dish.Zinc * d.DishQty)));
+            CreateMap<CompoundDish, AdminCompoundDishResponse>()
+                .ForMember(d => d.Username, opts => opts.MapFrom(source => source.CreatedBy.Username))
+                .ForMember(d => d.Fullname, opts => opts.MapFrom(source => source.CreatedBy.FullName))
+                .ForMember(d => d.Email, opts => opts.MapFrom(source => source.CreatedBy.Email))
+                .ForMember(d => d.Image, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Image) ? "" : _amazonS3Service.GetPresignUrl(source.Image)))
+                .ForMember(d => d.DishCompoundDishResponse, opts => opts.MapFrom(source => source.DishCompoundDishes))
+                .ForMember(d => d.Calcium, opts => opts.MapFrom(source => source.DishCompoundDishes.Sum(d => d.Dish.Calcium * d.DishQty)))
+                .ForMember(d => d.Calories, opts => opts.MapFrom(source => source.DishCompoundDishes.Sum(d => d.Dish.Calories * d.DishQty)))
+                .ForMember(d => d.Carbohydrates, opts => opts.MapFrom(source => source.DishCompoundDishes.Sum(d => d.Dish.Carbohydrates * d.DishQty)))
+                .ForMember(d => d.Cholesterol, opts => opts.MapFrom(source => source.DishCompoundDishes.Sum(d => d.Dish.Cholesterol * d.DishQty)))
+                .ForMember(d => d.Fat, opts => opts.MapFrom(source => source.DishCompoundDishes.Sum(d => d.Dish.Fat * d.DishQty)))
+                .ForMember(d => d.Fiber, opts => opts.MapFrom(source => source.DishCompoundDishes.Sum(d => d.Dish.Fiber * d.DishQty)))
+                .ForMember(d => d.FolicAcid, opts => opts.MapFrom(source => source.DishCompoundDishes.Sum(d => d.Dish.FolicAcid * d.DishQty)))
+                .ForMember(d => d.Iron, opts => opts.MapFrom(source => source.DishCompoundDishes.Sum(d => d.Dish.Iron * d.DishQty)))
+                .ForMember(d => d.Magnesium, opts => opts.MapFrom(source => source.DishCompoundDishes.Sum(d => d.Dish.Magnesium * d.DishQty)))
+                .ForMember(d => d.Niacin, opts => opts.MapFrom(source => source.DishCompoundDishes.Sum(d => d.Dish.Niacin * d.DishQty)))
+                .ForMember(d => d.Phosphorus, opts => opts.MapFrom(source => source.DishCompoundDishes.Sum(d => d.Dish.Phosphorus * d.DishQty)))
+                .ForMember(d => d.Potassium, opts => opts.MapFrom(source => source.DishCompoundDishes.Sum(d => d.Dish.Potassium * d.DishQty)))
+                .ForMember(d => d.Proteins, opts => opts.MapFrom(source => source.DishCompoundDishes.Sum(d => d.Dish.Proteins * d.DishQty)))
+                .ForMember(d => d.Ribofla, opts => opts.MapFrom(source => source.DishCompoundDishes.Sum(d => d.Dish.Ribofla * d.DishQty)))
+                .ForMember(d => d.Sodium, opts => opts.MapFrom(source => source.DishCompoundDishes.Sum(d => d.Dish.Sodium * d.DishQty)))
+                .ForMember(d => d.Thiamine, opts => opts.MapFrom(source => source.DishCompoundDishes.Sum(d => d.Dish.Thiamine * d.DishQty)))
+                .ForMember(d => d.VitaminA, opts => opts.MapFrom(source => source.DishCompoundDishes.Sum(d => d.Dish.VitaminA * d.DishQty)))
+                .ForMember(d => d.VitaminB12, opts => opts.MapFrom(source => source.DishCompoundDishes.Sum(d => d.Dish.VitaminB12 * d.DishQty)))
+                .ForMember(d => d.VitaminB6, opts => opts.MapFrom(source => source.DishCompoundDishes.Sum(d => d.Dish.VitaminB6 * d.DishQty)))
+                .ForMember(d => d.VitaminC, opts => opts.MapFrom(source => source.DishCompoundDishes.Sum(d => d.Dish.VitaminC * d.DishQty)))
+                .ForMember(d => d.Zinc, opts => opts.MapFrom(source => source.DishCompoundDishes.Sum(d => d.Dish.Zinc * d.DishQty)));
         }
 
         private int GetLastAnswer(Question src, Dictionary<int, int> dictionary)

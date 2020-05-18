@@ -49,5 +49,7 @@ namespace MismeAPI.Services
         Task UpdateUserSettingsAsync(int loggedUser, List<UpdateSettingRequest> request);
 
         Task DisableAccountAsync(int loggedUser, bool softDeletion);
+
+        Task UpdateProfileAsync(int loggedUser, UpdateUserProfileRequest userProfileRequest);
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MismeAPI.Data.Entities
@@ -17,6 +18,8 @@ namespace MismeAPI.Data.Entities
         public string Name { get; set; }
         public string Image { get; set; }
         public string ImageMimeType { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime ModifiedAt { get; set; }
 
         public virtual ICollection<DishCompoundDish> DishCompoundDishes { get; set; }
     }
