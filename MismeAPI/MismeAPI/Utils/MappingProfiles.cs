@@ -2,6 +2,7 @@ using AutoMapper;
 using MismeAPI.Common;
 using MismeAPI.Common.DTO.Response;
 using MismeAPI.Common.DTO.Response.ContactUs;
+using MismeAPI.Common.DTO.Response.CutPoint;
 using MismeAPI.Common.DTO.Response.GeneralContent;
 using MismeAPI.Common.DTO.Response.Reminder;
 using MismeAPI.Common.DTO.Response.Result;
@@ -125,6 +126,7 @@ namespace MismeAPI.Utils
 
             CreateMap<RewardHistory, RewardResponse>();
             CreateMap<UserStatistics, UserStatisticsResponse>();
+            CreateMap<CutPoint, CutPointResponse>();
         }
 
         private int GetLastAnswer(Question src, Dictionary<int, int> dictionary)
