@@ -400,5 +400,20 @@ namespace APITaxi.API.Controllers
             await _hub.Clients.All.SendAsync(HubConstants.USER_DISABLED, null);
             return Ok();
         }
+
+        /// <summary>
+        /// Update user profile. Requires authentication.
+        /// </summary>
+        /// <param name="userProfileRequest">Update user profile request.</param>
+        [Authorize]
+        [HttpPost("profile")]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        public async Task<IActionResult> UpdateUserProfile([FromBody] UpdateUserProfileRequest userProfileRequest)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            await _accountService.UpdateProfileAsync(loggedUser, userProfileRequest);
+            return Ok();
+        }
     }
 }

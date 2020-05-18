@@ -377,8 +377,9 @@ namespace MismeAPI.Services.Impls
 
             if (string.IsNullOrWhiteSpace(suRequest.Password) ||
                 suRequest.Password.Length < 6
-                || CheckStringWithoutSpecialChars(suRequest.Password)
-                || !CheckStringWithUppercaseLetters(suRequest.Password))
+                //|| CheckStringWithoutSpecialChars(suRequest.Password)
+                //|| !CheckStringWithUppercaseLetters(suRequest.Password)
+                )
             {
                 throw new MismeAPI.Common.Exceptions.InvalidDataException("password.");
             }
@@ -536,8 +537,9 @@ namespace MismeAPI.Services.Impls
 
             if (string.IsNullOrWhiteSpace(changePassword.NewPassword) ||
                 changePassword.NewPassword.Length < 6
-                || CheckStringWithoutSpecialChars(changePassword.NewPassword)
-                || !CheckStringWithUppercaseLetters(changePassword.NewPassword))
+                //|| CheckStringWithoutSpecialChars(changePassword.NewPassword)
+                //|| !CheckStringWithUppercaseLetters(changePassword.NewPassword)
+                )
             {
                 throw new MismeAPI.Common.Exceptions.InvalidDataException(ExceptionConstants.INVALID_DATA, "Password");
             }
@@ -699,7 +701,7 @@ namespace MismeAPI.Services.Impls
                 throw new NotFoundException(ExceptionConstants.NOT_FOUND, "User");
             }
 
-            var generator = new PasswordGenerator(6, 6, 1, 1, 1, 1);
+            var generator = new PasswordGenerator(6, 6, 0, 0, 0, 0);
 
             string newPass = generator.Generate();
 
@@ -818,6 +820,21 @@ namespace MismeAPI.Services.Impls
             {
                 _uow.UserRepository.Delete(user);
             }
+            await _uow.CommitAsync();
+        }
+
+        public async Task UpdateProfileAsync(int loggedUser, UpdateUserProfileRequest userProfileRequest)
+        {
+            var user = await _uow.UserRepository.GetAsync(loggedUser);
+            if (user == null)
+            {
+                throw new NotFoundException(ExceptionConstants.NOT_FOUND, "User");
+            }
+            //TODO: Validate Unique Username
+            user.Username = userProfileRequest.Username;
+            user.FullName = userProfileRequest.FullName;
+            user.Phone = userProfileRequest.Phone;
+            _uow.UserRepository.Update(user);
             await _uow.CommitAsync();
         }
     }

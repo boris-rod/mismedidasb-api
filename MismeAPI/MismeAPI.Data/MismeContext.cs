@@ -35,6 +35,8 @@ namespace MismeAPI.Data
         public DbSet<RewardAcumulate> RewardAcumulate { get; set; }
         public DbSet<RewardHistory> RewardHistory { get; set; }
         public DbSet<UserStatistics> UserStatistics { get; set; }
+        public DbSet<DishCompoundDish> DishCompoundDishes { get; set; }
+        public DbSet<CompoundDish> CompoundDishes { get; set; }
         public DbSet<CutPoint> CutPoint { get; set; }
     }
 }

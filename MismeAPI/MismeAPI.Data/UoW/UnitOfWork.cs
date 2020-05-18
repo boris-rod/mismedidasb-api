@@ -39,6 +39,8 @@ namespace MismeAPI.Data.UoW
             RewardAcumulateRepository = RewardAcumulateRepository ?? new GenericRepository<RewardAcumulate>(_context);
             RewardHistoryRepository = RewardHistoryRepository ?? new GenericRepository<RewardHistory>(_context);
             UserStatisticsRepository = UserStatisticsRepository ?? new GenericRepository<UserStatistics>(_context);
+            DishCompoundDishRepository = DishCompoundDishRepository ?? new GenericRepository<DishCompoundDish>(_context);
+            CompoundDishRepository = CompoundDishRepository ?? new GenericRepository<CompoundDish>(_context);
             CutPointRepository = CutPointRepository ?? new GenericRepository<CutPoint>(_context);
         }
 
@@ -68,6 +70,8 @@ namespace MismeAPI.Data.UoW
         public IGenericRepository<RewardAcumulate> RewardAcumulateRepository { get; set; }
         public IGenericRepository<RewardHistory> RewardHistoryRepository { get; set; }
         public IGenericRepository<UserStatistics> UserStatisticsRepository { get; set; }
+        public IGenericRepository<CompoundDish> CompoundDishRepository { get; set; }
+        public IGenericRepository<DishCompoundDish> DishCompoundDishRepository { get; set; }
         public IGenericRepository<CutPoint> CutPointRepository { get; set; }
 
         public async Task<int> CommitAsync()

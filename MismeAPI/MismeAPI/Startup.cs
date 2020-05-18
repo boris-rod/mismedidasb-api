@@ -86,6 +86,7 @@ namespace MismeAPI
             services.AddTransient<IRewardCategoryService, RewardCategoryService>();
             services.AddTransient<IRewardService, RewardService>();
             services.AddTransient<IUserStatisticsService, UserStatisticsService>();
+            services.AddTransient<ICompoundDishService, CompoundDishService>();
             services.AddTransient<ICutPointService, CutPointService>();
             services.AddTransient<IRewardHelper, RewardHelper>();
 
