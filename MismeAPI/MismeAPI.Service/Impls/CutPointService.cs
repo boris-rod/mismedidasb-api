@@ -131,5 +131,16 @@ namespace MismeAPI.Service.Impls
             _uow.CutPointRepository.Delete(cutPoint);
             await _uow.CommitAsync();
         }
+
+        public async Task<IList<CutPoint>> GetNextCutPointsAsync(int points, int qty)
+        {
+            var result = await _uow.CutPointRepository.GetAll()
+                .Where(c => c.Points > points)
+                .OrderBy(c => c.Points)
+                .Take(qty)
+                .ToListAsync();
+
+            return result;
+        }
     }
 }

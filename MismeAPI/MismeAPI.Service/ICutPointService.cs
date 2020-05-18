@@ -20,5 +20,7 @@ namespace MismeAPI.Service
         Task<CutPoint> UpdateCutPointAsync(int id, UpdateCutPointRequest request);
 
         Task DeleteCutPointAsync(int id);
+
+        Task<IList<CutPoint>> GetNextCutPointsAsync(int points, int qty);
     }
 }
