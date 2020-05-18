@@ -33,6 +33,7 @@ namespace MismeAPI.Data.UoW
         IGenericRepository<RewardAcumulate> RewardAcumulateRepository { get; set; }
         IGenericRepository<RewardHistory> RewardHistoryRepository { get; set; }
         IGenericRepository<UserStatistics> UserStatisticsRepository { get; set; }
+        IGenericRepository<CutPoint> CutPointRepository { get; set; }
 
         Task<int> CommitAsync();
     }

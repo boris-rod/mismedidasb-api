@@ -86,6 +86,7 @@ namespace MismeAPI
             services.AddTransient<IRewardCategoryService, RewardCategoryService>();
             services.AddTransient<IRewardService, RewardService>();
             services.AddTransient<IUserStatisticsService, UserStatisticsService>();
+            services.AddTransient<ICutPointService, CutPointService>();
 
             var provider = services.BuildServiceProvider();
             var amazonS3Service = provider.GetService<IAmazonS3Service>();
