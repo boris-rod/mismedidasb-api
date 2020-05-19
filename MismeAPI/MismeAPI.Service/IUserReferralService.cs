@@ -12,5 +12,7 @@ namespace MismeAPI.Service
         Task<IList<UserReferral>> CreateReferralsAsync(int loggedUser, IList<CreateUserReferralRequest> request);
 
         Task RemoveReferralsAsync(int loggedUser, IList<UserReferral> referrals);
+
+        Task<UserReferral> SetReferralUserAsync(User user);
     }
 }

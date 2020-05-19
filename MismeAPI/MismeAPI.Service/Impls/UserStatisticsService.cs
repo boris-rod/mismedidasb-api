@@ -86,6 +86,11 @@ namespace MismeAPI.Service.Impls
             return await PaginatedList<UserStatistics>.CreateAsync(result, pag, perPag);
         }
 
+        /// <summary>
+        /// Method to get without update database. Security vulnerability patch.
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns>Exeption is thwown if the statics does not exist.</returns>
         public async Task<UserStatistics> GetUserStatisticsByUserAsync(int userId)
         {
             var existUser = await _uow.UserRepository.GetAll()
@@ -154,6 +159,29 @@ namespace MismeAPI.Service.Impls
             return points;
         }
 
+        public async Task<UserStatistics> GetOrCreateUserStatisticsByUserAsync(int userId)
+        {
+            var existUser = await _uow.UserRepository.GetAll()
+               .Include(u => u.UserStatics)
+                   .ThenInclude(us => us.User)
+               .Where(d => d.Id == userId)
+               .FirstOrDefaultAsync();
+
+            if (existUser == null)
+            {
+                throw new NotFoundException(ExceptionConstants.NOT_FOUND, "User");
+            }
+
+            var stats = existUser.UserStatics;
+
+            if (stats == null)
+            {
+                stats = await GetOrCreateUserStatisticsAsync(existUser);
+            }
+
+            return stats;
+        }
+
         private async Task<UserStatistics> GetOrCreateUserStatisticsAsync(User user)
         {
             var statistics = await _uow.UserStatisticsRepository.GetAll()
@@ -175,6 +203,7 @@ namespace MismeAPI.Service.Impls
                 };
 
                 await _uow.UserStatisticsRepository.AddAsync(statistics);
+                await _uow.CommitAsync();
             }
 
             return statistics;

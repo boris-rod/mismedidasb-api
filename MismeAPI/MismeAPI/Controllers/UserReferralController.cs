@@ -86,7 +86,7 @@ namespace MismeAPI.Controllers
                 //}
             }
 
-            var mapped = _mapper.Map<UserReferralResponse>(result);
+            var mapped = _mapper.Map<List<UserReferralResponse>>(result);
 
             return Created("", new ApiOkResponse(mapped));
         }

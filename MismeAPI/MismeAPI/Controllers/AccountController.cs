@@ -9,6 +9,7 @@ using MismeAPI.Common.DTO.Request;
 using MismeAPI.Common.DTO.Response;
 using MismeAPI.Common.DTO.Response.Settings;
 using MismeAPI.Data.Entities.Enums;
+using MismeAPI.Service;
 using MismeAPI.Service.Hubs;
 using MismeAPI.Services;
 using MismeAPI.Utils;
@@ -30,14 +31,19 @@ namespace APITaxi.API.Controllers
         private IWebHostEnvironment _env;
         private readonly IEmailService _emailService;
         private IHubContext<UserHub> _hub;
+        private IUserReferralService _userReferralService;
+        private IRewardHelper _rewardHelper;
 
-        public AccountController(IAccountService accountService, IMapper mapper, IEmailService emailService, IWebHostEnvironment env, IHubContext<UserHub> hub)
+        public AccountController(IAccountService accountService, IMapper mapper, IEmailService emailService, IWebHostEnvironment env,
+            IHubContext<UserHub> hub, IUserReferralService userReferralService, IRewardHelper rewardHelper)
         {
             _accountService = accountService ?? throw new ArgumentNullException(nameof(accountService));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _env = env ?? throw new ArgumentNullException(nameof(env));
             _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
             _hub = hub ?? throw new ArgumentNullException(nameof(hub));
+            _userReferralService = userReferralService ?? throw new ArgumentNullException(nameof(userReferralService));
+            _rewardHelper = rewardHelper ?? throw new ArgumentNullException(nameof(rewardHelper));
         }
 
         /// <summary>
@@ -72,6 +78,13 @@ namespace APITaxi.API.Controllers
             await _emailService.SendEmailResponseAsync(subject, emailBody, to);
             var mapped = _mapper.Map<UserResponse>(user);
             await _hub.Clients.All.SendAsync(HubConstants.USER_REGISTERED, mapped);
+
+            var referral = await _userReferralService.SetReferralUserAsync(user);
+            if (referral != null)
+            {
+                var mapped2 = _mapper.Map<UserReferralResponse>(referral);
+                await _rewardHelper.HandleRewardAsync(RewardCategoryEnum.NEW_REFERAL, referral.UserId, true, mapped2, null);
+            }
 
             return Created("", new ApiOkResponse(mapped));
         }

@@ -43,7 +43,7 @@ namespace MismeAPI.Utils
         /// <returns>void - notify client that a reward was created via websocket</returns>
         public async Task HandleRewardAsync(RewardCategoryEnum category, int targetUser, bool isPlus, object entity1, object entity2)
         {
-            var userStatics = await _userStatisticsService.GetUserStatisticsByUserAsync(targetUser);
+            var userStatics = await _userStatisticsService.GetOrCreateUserStatisticsByUserAsync(targetUser);
             var currentPoints = userStatics.Points;
             var cutPoints = await _cutPointService.GetNextCutPointsAsync(currentPoints, 5);
 
@@ -76,7 +76,7 @@ namespace MismeAPI.Utils
         {
             foreach (var cutPoint in cutPoints)
             {
-                var userStatics = await _userStatisticsService.GetUserStatisticsByUserAsync(targetUser);
+                var userStatics = await _userStatisticsService.GetOrCreateUserStatisticsByUserAsync(targetUser);
                 var currentPoints = userStatics.Points;
 
                 if (cutPoint.Points <= currentPoints)
