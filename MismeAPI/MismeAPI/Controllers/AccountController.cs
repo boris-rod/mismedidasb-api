@@ -68,7 +68,8 @@ namespace APITaxi.API.Controllers
 
             var subject = "Activation Account";
 
-            await _emailService.SendEmailResponseAsync(subject, emailBody, user.Email);
+            var to = new List<string> { user.Email };
+            await _emailService.SendEmailResponseAsync(subject, emailBody, to);
             var mapped = _mapper.Map<UserResponse>(user);
             await _hub.Clients.All.SendAsync(HubConstants.USER_REGISTERED, mapped);
 
@@ -268,7 +269,8 @@ namespace APITaxi.API.Controllers
 
             var subject = "Password Reset";
 
-            await _emailService.SendEmailResponseAsync(subject, emailBody, email);
+            var to = new List<string> { email };
+            await _emailService.SendEmailResponseAsync(subject, emailBody, to);
 
             return Ok();
         }
@@ -314,7 +316,8 @@ namespace APITaxi.API.Controllers
 
             var subject = "Resend Verification Code";
 
-            await _emailService.SendEmailResponseAsync(subject, emailBody, email);
+            var to = new List<string> { email };
+            await _emailService.SendEmailResponseAsync(subject, emailBody, to);
 
             return Ok();
         }

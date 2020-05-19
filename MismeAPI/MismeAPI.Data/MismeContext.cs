@@ -38,5 +38,12 @@ namespace MismeAPI.Data
         public DbSet<DishCompoundDish> DishCompoundDishes { get; set; }
         public DbSet<CompoundDish> CompoundDishes { get; set; }
         public DbSet<CutPoint> CutPoint { get; set; }
+        public DbSet<UserReferral> UserReferral { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<User>().HasOne(p => p.Invitation).WithOne(b => b.Invited).OnDelete(DeleteBehavior.SetNull);
+            modelBuilder.Entity<User>().HasMany(p => p.Referrals).WithOne(b => b.User).OnDelete(DeleteBehavior.Cascade);
+        }
     }
 }

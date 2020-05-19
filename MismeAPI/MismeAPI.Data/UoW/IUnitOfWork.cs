@@ -36,6 +36,7 @@ namespace MismeAPI.Data.UoW
         IGenericRepository<CompoundDish> CompoundDishRepository { get; set; }
         IGenericRepository<DishCompoundDish> DishCompoundDishRepository { get; set; }
         IGenericRepository<CutPoint> CutPointRepository { get; set; }
+        IGenericRepository<UserReferral> UserReferralRepository { get; set; }
 
         Task<int> CommitAsync();
     }

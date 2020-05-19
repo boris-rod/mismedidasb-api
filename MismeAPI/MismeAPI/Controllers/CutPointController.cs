@@ -36,7 +36,7 @@ namespace MismeAPI.Controllers
         /// <param name="search">search a text/numer</param>
         /// <returns>Active cut points</returns>
         [HttpGet]
-        [ProducesResponseType(typeof(IEnumerable<ConceptResponse>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(IEnumerable<CutPointResponse>), (int)HttpStatusCode.OK)]
         public async Task<IActionResult> Index(int? page, int? perPage, string sortOrder, string search)
         {
             var pag = page ?? 1;
@@ -63,7 +63,7 @@ namespace MismeAPI.Controllers
         /// <returns>Active cut points</returns>
         [HttpGet("admin")]
         [Authorize(Roles = "ADMIN")]
-        [ProducesResponseType(typeof(IEnumerable<ConceptResponse>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(IEnumerable<CutPointResponse>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
         public async Task<IActionResult> IndexAdmin(int? page, int? perPage, string sortOrder, bool? isActive, string search)
         {

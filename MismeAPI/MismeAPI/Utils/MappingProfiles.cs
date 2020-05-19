@@ -182,7 +182,9 @@ namespace MismeAPI.Utils
                 .ForMember(d => d.VitaminB6, opts => opts.MapFrom(source => source.DishCompoundDishes.Sum(d => d.Dish.VitaminB6 * d.DishQty)))
                 .ForMember(d => d.VitaminC, opts => opts.MapFrom(source => source.DishCompoundDishes.Sum(d => d.Dish.VitaminC * d.DishQty)))
                 .ForMember(d => d.Zinc, opts => opts.MapFrom(source => source.DishCompoundDishes.Sum(d => d.Dish.Zinc * d.DishQty)));
+
             CreateMap<CutPoint, CutPointResponse>();
+            CreateMap<UserReferral, UserReferralResponse>();
         }
 
         private int GetLastAnswer(Question src, Dictionary<int, int> dictionary)

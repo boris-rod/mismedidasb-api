@@ -42,7 +42,6 @@
 
   <ItemGroup>
     <Folder Include="logs\" />
-    <Folder Include="Templates\" />
   </ItemGroup>
 
   <ItemGroup>
@@ -56,6 +55,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Templates\SendInvitation.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Templates\AccountActivation.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

@@ -18,6 +18,7 @@ namespace MismeAPI.Data.Entities
             UserSettings = new HashSet<UserSetting>();
             CompoundDishs = new HashSet<CompoundDish>();
             RewardAcumulates = new HashSet<RewardAcumulate>();
+            Referrals = new HashSet<UserReferral>();
         }
 
         public int Id { get; set; }
@@ -49,6 +50,7 @@ namespace MismeAPI.Data.Entities
         public int VerificationCode { get; set; }
         public bool TermsAndConditionsAccepted { get; set; }
         public UserStatistics UserStatics { get; set; }
+        public UserReferral Invitation { get; set; }
         public virtual ICollection<UserToken> UserTokens { get; set; }
         public virtual ICollection<Eat> Eats { get; set; }
         public virtual ICollection<Device> Devices { get; set; }
@@ -56,5 +58,6 @@ namespace MismeAPI.Data.Entities
         public virtual ICollection<UserSetting> UserSettings { get; set; }
         public virtual ICollection<CompoundDish> CompoundDishs { get; set; }
         public virtual ICollection<RewardAcumulate> RewardAcumulates { get; set; }
+        public virtual ICollection<UserReferral> Referrals { get; set; }
     }
 }
