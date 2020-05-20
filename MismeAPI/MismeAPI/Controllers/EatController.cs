@@ -27,16 +27,14 @@ namespace MismeAPI.Controllers
         private readonly IEatService _eatService;
         private readonly IUserService _userService;
         private readonly IMapper _mapper;
-        private readonly IRewardService _rewardService;
-        private IHubContext<UserHub> _hub;
+        private readonly IRewardHelper _rewardHelper;
 
-        public EatController(IEatService eatService, IUserService userService, IMapper mapper, IRewardService rewardService, IHubContext<UserHub> hub)
+        public EatController(IEatService eatService, IUserService userService, IMapper mapper, IRewardHelper rewardHelper)
         {
             _eatService = eatService ?? throw new ArgumentNullException(nameof(eatService));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
-            _rewardService = rewardService ?? throw new ArgumentNullException(nameof(rewardService));
-            _hub = hub ?? throw new ArgumentNullException(nameof(hub));
+            _rewardHelper = rewardHelper ?? throw new ArgumentNullException(nameof(rewardHelper));
         }
 
         /// <summary>
@@ -209,26 +207,8 @@ namespace MismeAPI.Controllers
             /*Reward section*/
             if (!editingPlan)
             {
-                var data = new RewardHistoryData
-                {
-                    // Make sure that this is an important info to store in the history
-                    Entity1 = eat
-                };
-                var reward = new CreateRewardRequest
-                {
-                    UserId = loggedUser,
-                    RewardCategoryEnum = eat.IsBalanced ? (int)RewardCategoryEnum.EAT_BALANCED_CREATED : (int)RewardCategoryEnum.EAT_CREATED,
-                    IsPlus = true,
-                    Data = JsonConvert.SerializeObject(data),
-                };
-
-                var dbReward = await _rewardService.CreateRewardAsync(reward);
-                // assign only if the reward was created after validations
-                if (dbReward != null)
-                {
-                    var mapped = _mapper.Map<RewardResponse>(dbReward);
-                    await _hub.Clients.All.SendAsync(HubConstants.REWARD_CREATED, mapped);
-                }
+                var rewardCategory = eat.IsBalanced ? RewardCategoryEnum.EAT_BALANCED_CREATED : RewardCategoryEnum.EAT_CREATED;
+                await _rewardHelper.HandleRewardAsync(rewardCategory, loggedUser, true, eat, null);
             }
             /*#end reward section*/
 

@@ -14,6 +14,11 @@ namespace MismeAPI.Utils
             return resource.Replace("#CODE#", code);
         }
 
+        public static string ToSendInvitationEmail(this string resource, string fullname, string downloadLink)
+        {
+            return resource.Replace("#FULLNAME#", fullname).Replace("#APKLINK#", downloadLink);
+        }
+
         public static int GetUserIdFromToken(this ClaimsPrincipal user)
         {
             var claimsIdentity = user.Identity as ClaimsIdentity;

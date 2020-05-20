@@ -516,6 +516,7 @@ namespace MismeAPI.Services.Impls
             claims.Add(new Claim(ClaimTypes.AuthenticationMethod, "bearer", ClaimValueTypes.String, issuer));
             claims.Add(new Claim(ClaimTypes.NameIdentifier, user.FullName, ClaimValueTypes.String, issuer));
             claims.Add(new Claim(ClaimTypes.UserData, user.Id.ToString(), ClaimValueTypes.String, issuer));
+            claims.Add(new Claim(ClaimTypes.Role, user.Role.ToString(), ClaimValueTypes.String, issuer));
             return claims;
         }
 
