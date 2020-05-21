@@ -6,6 +6,7 @@ namespace MismeAPI.Common.DTO.Request
     public class CreateBulkEatRequest
     {
         public DateTime DateInUtc { get; set; }
+        public DateTime DateTimeInUserLocalTime { get; set; }
 
         /// <summary>
         /// says if the plan is balanced or not.

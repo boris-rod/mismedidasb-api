@@ -19,7 +19,20 @@ namespace MismeAPI.Data.Entities
         public DateTime CreatedAt { get; set; }
         public DateTime ModifiedAt { get; set; }
         public EatTypeEnum EatType { get; set; }
-        public bool IsValanced { get; set; }
+        public bool IsBalanced { get; set; }
+
+        /// <summary>
+        /// Datetime sent by user to register when he created this eat. Do not update after current
+        /// day 9:00 AM local user time
+        /// </summary>
+        public DateTime PlanCreatedAt { get; set; }
+
+        /// <summary>
+        /// Mark if this was a Balanced plan before become a reported eat. Do not update after
+        /// current day 9:00 AM local user time
+        /// </summary>
+        public bool IsBalancedPlan { get; set; }
+
         public virtual ICollection<EatDish> EatDishes { get; set; }
     }
 }

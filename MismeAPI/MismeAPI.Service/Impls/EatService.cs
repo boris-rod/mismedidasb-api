@@ -170,8 +170,13 @@ namespace MismeAPI.Service.Impls
                 .Include(e => e.EatDishes)
                 .ToListAsync();
 
+            var isNew = true;
+
             foreach (var d in userEats)
             {
+                if (isNew)
+                    isNew = false;
+
                 _uow.EatRepository.Delete(d);
             }
 
@@ -185,7 +190,14 @@ namespace MismeAPI.Service.Impls
                 e.ModifiedAt = DateTime.UtcNow;
                 e.EatType = (EatTypeEnum)item.EatType;
                 e.UserId = loggedUser;
-                e.IsValanced = eat.IsBalanced;
+                e.IsBalanced = eat.IsBalanced;
+
+                if (isNew && IsValidDateForPlan(eat.DateInUtc, eat.DateTimeInUserLocalTime))
+                {
+                    e.PlanCreatedAt = eat.DateInUtc;
+                    e.IsBalancedPlan = eat.IsBalanced;
+                }
+
                 await _uow.EatRepository.AddAsync(e);
                 foreach (var d in item.Dishes)
                 {
@@ -377,6 +389,22 @@ namespace MismeAPI.Service.Impls
             var eatsCount = await _uow.EatRepository.GetAll().Where(e => e.UserId == userId && e.CreatedAt.Date == date.Date).CountAsync();
 
             return eatsCount > 0;
+        }
+
+        private bool IsValidDateForPlan(DateTime planDateUtc, DateTime userCurrentLocalTime)
+        {
+            var today = DateTime.UtcNow.Date;
+
+            if (planDateUtc.Date > today.Date)
+                return true;
+
+            if (userCurrentLocalTime.Date == today.Date)
+            {
+                if (userCurrentLocalTime.Hour <= 9)
+                    return true;
+            }
+
+            return false;
         }
     }
 }

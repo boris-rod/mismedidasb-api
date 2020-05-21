@@ -23,7 +23,7 @@ namespace MismeAPI.Service.Impls
             _config = config ?? throw new ArgumentNullException(nameof(config));
         }
 
-        public async Task<IList<UserReferral>> CreateReferralsAsync(int loggedUser, IList<CreateUserReferralRequest> request)
+        public async Task<IEnumerable<UserReferral>> CreateReferralsAsync(int loggedUser, IEnumerable<CreateUserReferralRequest> request)
         {
             var result = new List<UserReferral>();
             var user = await _uow.UserRepository.GetAsync(loggedUser);
@@ -50,7 +50,7 @@ namespace MismeAPI.Service.Impls
             return result;
         }
 
-        public async Task RemoveReferralsAsync(int loggedUser, IList<UserReferral> referrals)
+        public async Task RemoveReferralsAsync(int loggedUser, IEnumerable<UserReferral> referrals)
         {
             foreach (var referral in referrals)
             {

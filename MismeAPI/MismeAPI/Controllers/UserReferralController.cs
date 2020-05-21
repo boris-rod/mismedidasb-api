@@ -48,13 +48,13 @@ namespace MismeAPI.Controllers
         [ProducesResponseType(typeof(UserReferralResponse), (int)HttpStatusCode.Created)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Unauthorized)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
-        public async Task<IActionResult> AddReferrals([FromBody]IList<CreateUserReferralRequest> request)
+        public async Task<IActionResult> AddReferrals([FromBody]IEnumerable<CreateUserReferralRequest> request)
         {
             var loggedUser = User.GetUserIdFromToken();
 
             var result = await _userReferralService.CreateReferralsAsync(loggedUser, request);
 
-            if (result.Count > 0)
+            if (result.Count() > 0)
             {
                 var to = new List<string>();
                 var fullName = result.First().User.FullName;

@@ -1,5 +1,8 @@
 ﻿using AutoMapper;
+using CorePush.Google;
+using FirebaseAdmin.Messaging;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Configuration;
 using MismeAPI.Common.DTO.Request.Reward;
 using MismeAPI.Common.DTO.Response.Reward;
 using MismeAPI.Data.Entities;
@@ -8,6 +11,7 @@ using MismeAPI.Data.Entities.NonDatabase;
 using MismeAPI.Service;
 using MismeAPI.Service.Hubs;
 using Newtonsoft.Json;
+using Serilog;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -22,14 +26,19 @@ namespace MismeAPI.Utils
         private readonly ICutPointService _cutPointService;
         private IHubContext<UserHub> _hub;
         private readonly IMapper _mapper;
+        private readonly IUserService _userService;
+        private readonly IConfiguration _config;
 
-        public RewardHelper(IMapper mapper, IRewardService rewardService, IHubContext<UserHub> hub, IUserStatisticsService userStatisticsService, ICutPointService cutPointService)
+        public RewardHelper(IMapper mapper, IRewardService rewardService, IHubContext<UserHub> hub, IUserStatisticsService userStatisticsService,
+            ICutPointService cutPointService, IUserService userService, IConfiguration config)
         {
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _rewardService = rewardService ?? throw new ArgumentNullException(nameof(rewardService));
             _hub = hub ?? throw new ArgumentNullException(nameof(hub));
             _userStatisticsService = userStatisticsService ?? throw new ArgumentNullException(nameof(userStatisticsService));
             _cutPointService = cutPointService ?? throw new ArgumentNullException(nameof(cutPointService));
+            _userService = userService ?? throw new ArgumentNullException(nameof(userService));
+            _config = config ?? throw new ArgumentNullException(nameof(config));
         }
 
         /// <summary>
@@ -40,8 +49,11 @@ namespace MismeAPI.Utils
         /// <param name="isPlus">Sum or rest points this reward</param>
         /// <param name="entity1">Info to store in the history</param>
         /// <param name="entity2">Other info to store in the history</param>
+        /// <param name="notificationType">How will be the user notified</param>
+        /// <param name="devices">Firebase notification targets</param>
         /// <returns>void - notify client that a reward was created via websocket</returns>
-        public async Task HandleRewardAsync(RewardCategoryEnum category, int targetUser, bool isPlus, object entity1, object entity2)
+        public async Task HandleRewardAsync(RewardCategoryEnum category, int targetUser, bool isPlus, object entity1, object entity2,
+            NotificationTypeEnum notificationType = NotificationTypeEnum.SIGNAL_R, IEnumerable<Device> devices = null)
         {
             var userStatics = await _userStatisticsService.GetOrCreateUserStatisticsByUserAsync(targetUser);
             var currentPoints = userStatics.Points;
@@ -66,13 +78,33 @@ namespace MismeAPI.Utils
             if (dbReward != null)
             {
                 var mapped = _mapper.Map<RewardResponse>(dbReward);
-                await _hub.Clients.All.SendAsync(HubConstants.REWARD_CREATED, mapped);
+
+                switch (notificationType)
+                {
+                    case NotificationTypeEnum.SIGNAL_R:
+                        await SendSignalRNotificationAsync(HubConstants.REWARD_CREATED, mapped);
+                        break;
+
+                    case NotificationTypeEnum.FIREBASE:
+                        if (category == RewardCategoryEnum.EAT_BALANCED_CREATED_STREAK || category == RewardCategoryEnum.EAT_CREATED_STREAK)
+                        {
+                            var lang = await _userService.GetUserLanguageFromUserIdAsync(mapped.UserId);
+                            var title = (lang == "EN") ? "You have receipt a new reward" : "Has recibido una nueva recompensa";
+                            var body = GetFirebaseMessageForStreakReward(category, (int)entity1, mapped, lang);
+
+                            await SendFirebaseNotificationAsync(title, body, devices);
+                        }
+                        break;
+
+                    default:
+                        break;
+                }
 
                 await HandleCutPointRewardsAsync(cutPoints, targetUser);
             }
         }
 
-        private async Task HandleCutPointRewardsAsync(IList<CutPoint> cutPoints, int targetUser)
+        private async Task HandleCutPointRewardsAsync(IEnumerable<CutPoint> cutPoints, int targetUser)
         {
             foreach (var cutPoint in cutPoints)
             {
@@ -84,6 +116,87 @@ namespace MismeAPI.Utils
                     await HandleRewardAsync(RewardCategoryEnum.CUT_POINT_REACHED, targetUser, true, cutPoint, null);
                 }
             }
+        }
+
+        private async Task SendSignalRNotificationAsync(string hubConstant, object data)
+        {
+            await _hub.Clients.All.SendAsync(hubConstant, data);
+        }
+
+        private async Task SendFirebaseNotificationAsync(string title, string body, IEnumerable<Device> devices)
+        {
+            var serverKey = _config["Firebase:ServerKey"];
+            var senderId = _config["Firebase:SenderId"];
+
+            foreach (var device in devices)
+            {
+                using (var fcm = new FcmSender(serverKey, senderId))
+                {
+                    Message message = new Message()
+                    {
+                        Notification = new Notification
+                        {
+                            Title = title,
+                            Body = body,
+                        },
+                        Token = device.Token
+                    };
+                    try
+                    {
+                        var response = await fcm.SendAsync(device.Token, message);
+                        Log.Information("Notification sent", response.ToString());
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Error(e, "Notification send exception");
+                    }
+                }
+            }
+        }
+
+        private string GetFirebaseMessageForStreakReward(RewardCategoryEnum category, int streak, RewardResponse rewardResponse, string lang)
+        {
+            var reason = "";
+
+            switch (category)
+            {
+                case RewardCategoryEnum.EAT_CREATED_STREAK:
+                    switch (lang)
+                    {
+                        case "EN":
+                            reason = "consecutive days planning your eat";
+                            break;
+
+                        default:
+                            reason = "dias consecutivo planificando tu comida";
+                            break;
+                    }
+                    break;
+
+                case RewardCategoryEnum.EAT_BALANCED_CREATED_STREAK:
+                    switch (lang)
+                    {
+                        case "EN":
+                            reason = "consecutive days planning your eat balanced";
+                            break;
+
+                        default:
+                            reason = "dias consecutivo planificando tu comida balanceada";
+                            break;
+                    }
+
+                    break;
+
+                default:
+                    break;
+            }
+
+            string message = lang switch
+            {
+                "EN" => streak.ToString() + reason + ". You receipt " + rewardResponse.Points + " points.",
+                _ => streak.ToString() + reason + ". Has recivido " + rewardResponse.Points + " puntos.",
+            };
+            return message;
         }
     }
 }

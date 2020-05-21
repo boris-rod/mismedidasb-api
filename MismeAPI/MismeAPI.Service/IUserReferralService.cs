@@ -9,9 +9,9 @@ namespace MismeAPI.Service
 {
     public interface IUserReferralService
     {
-        Task<IList<UserReferral>> CreateReferralsAsync(int loggedUser, IList<CreateUserReferralRequest> request);
+        Task<IEnumerable<UserReferral>> CreateReferralsAsync(int loggedUser, IEnumerable<CreateUserReferralRequest> request);
 
-        Task RemoveReferralsAsync(int loggedUser, IList<UserReferral> referrals);
+        Task RemoveReferralsAsync(int loggedUser, IEnumerable<UserReferral> referrals);
 
         Task<UserReferral> SetReferralUserAsync(User user);
     }

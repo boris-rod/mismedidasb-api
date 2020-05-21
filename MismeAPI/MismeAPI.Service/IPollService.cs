@@ -47,6 +47,6 @@ namespace MismeAPI.Service
 
         Task<bool> HasAnsweredConceptBeforeAsync(int loggedUser, ListOfPollResultsRequest result);
 
-        IList<int> GetAnsweredPolls(ListOfPollResultsRequest result);
+        IEnumerable<int> GetAnsweredPolls(ListOfPollResultsRequest result);
     }
 }

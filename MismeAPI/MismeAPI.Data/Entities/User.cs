@@ -49,7 +49,7 @@ namespace MismeAPI.Data.Entities
         public bool MarkedForDeletion { get; set; }
         public int VerificationCode { get; set; }
         public bool TermsAndConditionsAccepted { get; set; }
-        public UserStatistics UserStatics { get; set; }
+        public UserStatistics UserStatistics { get; set; }
         public UserReferral Invitation { get; set; }
         public virtual ICollection<UserToken> UserTokens { get; set; }
         public virtual ICollection<Eat> Eats { get; set; }
