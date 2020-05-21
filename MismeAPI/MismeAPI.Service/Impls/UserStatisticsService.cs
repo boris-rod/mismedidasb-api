@@ -94,7 +94,7 @@ namespace MismeAPI.Service.Impls
         public async Task<UserStatistics> GetUserStatisticsByUserAsync(int userId)
         {
             var existUser = await _uow.UserRepository.GetAll()
-                .Include(u => u.UserStatics)
+                .Include(u => u.UserStatistics)
                     .ThenInclude(us => us.User)
                 .Where(d => d.Id == userId)
                 .FirstOrDefaultAsync();
@@ -104,12 +104,12 @@ namespace MismeAPI.Service.Impls
                 throw new NotFoundException(ExceptionConstants.NOT_FOUND, "User");
             }
 
-            if (existUser.UserStatics == null)
+            if (existUser.UserStatistics == null)
             {
                 throw new NotFoundException(ExceptionConstants.NOT_FOUND, "User Statistics");
             }
 
-            return existUser.UserStatics;
+            return existUser.UserStatistics;
         }
 
         public async Task<UserStatistics> UpdateTotalPoints(User user, int points)
@@ -162,7 +162,7 @@ namespace MismeAPI.Service.Impls
         public async Task<UserStatistics> GetOrCreateUserStatisticsByUserAsync(int userId)
         {
             var existUser = await _uow.UserRepository.GetAll()
-               .Include(u => u.UserStatics)
+               .Include(u => u.UserStatistics)
                    .ThenInclude(us => us.User)
                .Where(d => d.Id == userId)
                .FirstOrDefaultAsync();
@@ -172,7 +172,7 @@ namespace MismeAPI.Service.Impls
                 throw new NotFoundException(ExceptionConstants.NOT_FOUND, "User");
             }
 
-            var stats = existUser.UserStatics;
+            var stats = existUser.UserStatistics;
 
             if (stats == null)
             {
@@ -180,6 +180,36 @@ namespace MismeAPI.Service.Impls
             }
 
             return stats;
+        }
+
+        public async Task<UserStatistics> IncrementCurrentStreakAsync(UserStatistics statistic, StreakEnum streak)
+        {
+            switch (streak)
+            {
+                case StreakEnum.EAT:
+                    statistic.EatCurrentStreak++;
+                    if (statistic.EatMaxStreak < statistic.EatCurrentStreak)
+                    {
+                        statistic.EatMaxStreak = statistic.EatCurrentStreak;
+                    }
+                    break;
+
+                case StreakEnum.BALANCED_EAT:
+                    statistic.BalancedEatCurrentStreak++;
+                    if (statistic.BalancedEatMaxStreak < statistic.BalancedEatCurrentStreak)
+                    {
+                        statistic.BalancedEatMaxStreak = statistic.BalancedEatCurrentStreak;
+                    }
+                    break;
+
+                default:
+                    break;
+            }
+
+            await _uow.UserStatisticsRepository.UpdateAsync(statistic, statistic.Id);
+            await _uow.CommitAsync();
+
+            return statistic;
         }
 
         private async Task<UserStatistics> GetOrCreateUserStatisticsAsync(User user)

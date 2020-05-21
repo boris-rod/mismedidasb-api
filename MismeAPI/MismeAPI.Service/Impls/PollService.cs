@@ -2975,7 +2975,7 @@ namespace MismeAPI.Service.Impls
             return false;
         }
 
-        public IList<int> GetAnsweredPolls(ListOfPollResultsRequest result)
+        public IEnumerable<int> GetAnsweredPolls(ListOfPollResultsRequest result)
         {
             var polls = new List<int>();
             foreach (var item in result.PollDatas)

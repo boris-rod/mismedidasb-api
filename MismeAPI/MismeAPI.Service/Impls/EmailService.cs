@@ -16,7 +16,7 @@ namespace MismeAPI.Services.Impls
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
-        public async Task SendEmailResponseAsync(string subject, string message, IList<string> emails)
+        public async Task SendEmailResponseAsync(string subject, string message, IEnumerable<string> emails)
         {
             try
             {

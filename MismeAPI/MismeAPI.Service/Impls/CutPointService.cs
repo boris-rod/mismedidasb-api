@@ -132,7 +132,7 @@ namespace MismeAPI.Service.Impls
             await _uow.CommitAsync();
         }
 
-        public async Task<IList<CutPoint>> GetNextCutPointsAsync(int points, int qty)
+        public async Task<IEnumerable<CutPoint>> GetNextCutPointsAsync(int points, int qty)
         {
             var result = await _uow.CutPointRepository.GetAll()
                 .Where(c => c.Points > points)

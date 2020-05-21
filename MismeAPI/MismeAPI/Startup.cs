@@ -90,6 +90,7 @@ namespace MismeAPI
             services.AddTransient<ICutPointService, CutPointService>();
             services.AddTransient<IRewardHelper, RewardHelper>();
             services.AddTransient<IUserReferralService, UserReferralService>();
+            services.AddTransient<IBackgroundJobProcessor, BackgroundJobProcessor>();
 
             var provider = services.BuildServiceProvider();
             var amazonS3Service = provider.GetService<IAmazonS3Service>();
@@ -105,9 +106,11 @@ namespace MismeAPI
             app.UseCors();
             app.UseHangfireDashboard();
             var mismeBackJobs = services.GetRequiredService<IMismeBackgroundService>();
+            var backgroundJobProcessor = services.GetRequiredService<IBackgroundJobProcessor>();
             recurringJobs.AddOrUpdate<IMismeBackgroundService>("ExpiredTokens", (e) => e.CleanExpiredTokensAsync(), "0 3 * * *");
             recurringJobs.AddOrUpdate<IMismeBackgroundService>("DisabledAccount", (e) => e.RemoveDisabledAccountsAsync(), "0 3 * * *");
             recurringJobs.AddOrUpdate<IMismeBackgroundService>("Notifications", (e) => e.SendFireBaseNotificationsRemindersAsync(), "0 18 * * *");
+            recurringJobs.AddOrUpdate<IBackgroundJobProcessor>("HandleUserStreaks", (e) => e.HandleUserStreaksAsync(), "0 22 * * *");
 
             if (env.IsDevelopment())
             {

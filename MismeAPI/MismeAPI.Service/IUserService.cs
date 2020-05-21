@@ -2,6 +2,7 @@
 using MismeAPI.Common.DTO.Response;
 using MismeAPI.Data.Entities;
 using MismeAPI.Services.Utils;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -26,5 +27,7 @@ namespace MismeAPI.Service
         Task<IEnumerable<EatsByDateSeriesResponse>> GetEatsStatsByDateAsync(int loggedUser, int type);
 
         Task<int> GetEatsCountAsync(int loggedUser);
+
+        Task<IEnumerable<User>> GetUsersWithPlanAsync(DateTime date);
     }
 }
