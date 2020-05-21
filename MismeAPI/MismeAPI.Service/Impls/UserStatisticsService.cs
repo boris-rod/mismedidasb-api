@@ -207,6 +207,7 @@ namespace MismeAPI.Service.Impls
             }
 
             await _uow.UserStatisticsRepository.UpdateAsync(statistic, statistic.Id);
+            await _uow.CommitAsync();
 
             return statistic;
         }

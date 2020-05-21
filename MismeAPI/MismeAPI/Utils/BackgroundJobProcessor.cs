@@ -47,7 +47,7 @@ namespace MismeAPI.Utils
                 var userStatistics = await _userStatisticsService.GetOrCreateUserStatisticsByUserAsync(user.Id);
                 var balancedCurrentStreak = userStatistics.BalancedEatCurrentStreak;
                 var eatCurrentStreak = userStatistics.EatCurrentStreak;
-                var isBalanced = user.Eats.Any(e => e.IsBalancedPlan && e.PlanCreatedAt.Date == today.Date);
+                var isBalanced = user.Eats.Any(e => (e.IsBalancedPlan.HasValue && e.IsBalancedPlan.Value) && (e.PlanCreatedAt.HasValue && e.PlanCreatedAt.Value.Date == today.Date));
                 var streakType = isBalanced ? StreakEnum.BALANCED_EAT : StreakEnum.EAT;
 
                 userStatistics = await _userStatisticsService.IncrementCurrentStreakAsync(userStatistics, streakType);
@@ -56,14 +56,14 @@ namespace MismeAPI.Utils
                 {
                     /*Give reward for eat current streak*/
                     await _rewardHelper.HandleRewardAsync(RewardCategoryEnum.EAT_CREATED_STREAK, user.Id, true,
-                        userStatistics.EatCurrentStreak, userStatistics.EatMaxStreak, NotificationTypeEnum.FIREBASE);
+                        userStatistics.EatCurrentStreak, userStatistics.EatMaxStreak, NotificationTypeEnum.FIREBASE, user.Devices);
                 }
 
                 if (balancedCurrentStreak != userStatistics.BalancedEatCurrentStreak && STREAK_REWARDS.Any(s => s == userStatistics.BalancedEatCurrentStreak))
                 {
                     /*Give reward for balanced eat current streak*/
                     await _rewardHelper.HandleRewardAsync(RewardCategoryEnum.EAT_CREATED_STREAK, user.Id, true,
-                        userStatistics.BalancedEatCurrentStreak, userStatistics.BalancedEatMaxStreak, NotificationTypeEnum.FIREBASE);
+                        userStatistics.BalancedEatCurrentStreak, userStatistics.BalancedEatMaxStreak, NotificationTypeEnum.FIREBASE, user.Devices);
                 }
             }
         }

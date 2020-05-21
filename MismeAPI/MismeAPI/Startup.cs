@@ -110,7 +110,7 @@ namespace MismeAPI
             recurringJobs.AddOrUpdate<IMismeBackgroundService>("ExpiredTokens", (e) => e.CleanExpiredTokensAsync(), "0 3 * * *");
             recurringJobs.AddOrUpdate<IMismeBackgroundService>("DisabledAccount", (e) => e.RemoveDisabledAccountsAsync(), "0 3 * * *");
             recurringJobs.AddOrUpdate<IMismeBackgroundService>("Notifications", (e) => e.SendFireBaseNotificationsRemindersAsync(), "0 18 * * *");
-            recurringJobs.AddOrUpdate<IBackgroundJobProcessor>("HandleUserStreaks", (e) => e.HandleUserStreaksAsync(), Cron.Minutely);
+            recurringJobs.AddOrUpdate<IBackgroundJobProcessor>("HandleUserStreaks", (e) => e.HandleUserStreaksAsync(), "0 22 * * *");
 
             if (env.IsDevelopment())
             {

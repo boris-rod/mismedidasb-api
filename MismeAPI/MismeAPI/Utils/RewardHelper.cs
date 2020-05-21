@@ -91,8 +91,8 @@ namespace MismeAPI.Utils
                             var lang = await _userService.GetUserLanguageFromUserIdAsync(mapped.UserId);
                             var title = (lang == "EN") ? "You have receipt a new reward" : "Has recibido una nueva recompensa";
                             var body = GetFirebaseMessageForStreakReward(category, (int)entity1, mapped, lang);
-
-                            await SendFirebaseNotificationAsync(title, body, devices);
+                            if (devices != null)
+                                await SendFirebaseNotificationAsync(title, body, devices);
                         }
                         break;
 
@@ -193,8 +193,8 @@ namespace MismeAPI.Utils
 
             string message = lang switch
             {
-                "EN" => streak.ToString() + reason + ". You receipt " + rewardResponse.Points + " points.",
-                _ => streak.ToString() + reason + ". Has recivido " + rewardResponse.Points + " puntos.",
+                "EN" => streak.ToString() + " " + reason + ". You receipt " + rewardResponse.Points + " points.",
+                _ => streak.ToString() + " " + reason + ". Has recivido " + rewardResponse.Points + " puntos.",
             };
             return message;
         }

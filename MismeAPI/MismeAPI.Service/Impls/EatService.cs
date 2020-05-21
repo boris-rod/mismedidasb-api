@@ -391,16 +391,16 @@ namespace MismeAPI.Service.Impls
             return eatsCount > 0;
         }
 
-        private bool IsValidDateForPlan(DateTime planDateUtc, DateTime userCurrentLocalTime)
+        private bool IsValidDateForPlan(DateTime planDateUtc, DateTime? userCurrentLocalTime)
         {
             var today = DateTime.UtcNow.Date;
 
             if (planDateUtc.Date > today.Date)
                 return true;
 
-            if (userCurrentLocalTime.Date == today.Date)
+            if (planDateUtc.Date == today.Date)
             {
-                if (userCurrentLocalTime.Hour <= 9)
+                if (userCurrentLocalTime.HasValue && userCurrentLocalTime.Value.Hour <= 9)
                     return true;
             }
 

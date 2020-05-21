@@ -183,14 +183,14 @@ namespace MismeAPI.Service.Impls
                         break;
 
                     case RewardCategoryEnum.EAT_CREATED_STREAK:
-                        rewardCategory.PointsToIncrement = 5;
-                        rewardCategory.PointsToDecrement = 5;
+                        rewardCategory.PointsToIncrement = 30;
+                        rewardCategory.PointsToDecrement = 30;
 
                         break;
 
                     case RewardCategoryEnum.EAT_BALANCED_CREATED_STREAK:
-                        rewardCategory.PointsToIncrement = 10;
-                        rewardCategory.PointsToDecrement = 10;
+                        rewardCategory.PointsToIncrement = 40;
+                        rewardCategory.PointsToDecrement = 40;
                         break;
 
                     case RewardCategoryEnum.DISH_BUILT:

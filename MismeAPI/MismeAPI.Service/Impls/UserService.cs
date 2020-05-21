@@ -730,7 +730,7 @@ namespace MismeAPI.Service.Impls
                 .Include(u => u.Devices)
                 .Include(u => u.UserSettings)
                     .ThenInclude(s => s.Setting)
-                .Where(u => u.Eats.Any(e => e.PlanCreatedAt.Date == date.Date))
+                .Where(u => u.Eats.Any(e => e.PlanCreatedAt.HasValue && e.PlanCreatedAt.Value.Date == date.Date))
                 .ToListAsync();
 
             return usersWithPlans;
