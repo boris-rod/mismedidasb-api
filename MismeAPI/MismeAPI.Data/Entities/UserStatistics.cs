@@ -10,6 +10,7 @@ namespace MismeAPI.Data.Entities
         public int UserId { get; set; }
         public User User { get; set; }
         public int Points { get; set; }
+        public int Coins { get; set; }
         public int EatCurrentStreak { get; set; }
         public int EatMaxStreak { get; set; }
         public int BalancedEatCurrentStreak { get; set; }
