@@ -735,5 +735,19 @@ namespace MismeAPI.Service.Impls
 
             return usersWithPlans;
         }
+
+        public async Task<IEnumerable<User>> GetUsersWithoutPlanAsync(DateTime date)
+        {
+            var usersWithPlans = await _uow.UserRepository.GetAll()
+                .Include(u => u.UserStatistics)
+                .Include(u => u.Eats)
+                .Include(u => u.Devices)
+                .Include(u => u.UserSettings)
+                    .ThenInclude(s => s.Setting)
+                .Where(u => !u.Eats.Any(e => e.PlanCreatedAt.HasValue && e.PlanCreatedAt.Value.Date == date.Date))
+                .ToListAsync();
+
+            return usersWithPlans;
+        }
     }
 }
