@@ -5,6 +5,7 @@ using MismeAPI.BasicResponses;
 using MismeAPI.Common.DTO.Request;
 using MismeAPI.Common.DTO.Request.CompoundDish;
 using MismeAPI.Common.DTO.Response.CompoundDish;
+using MismeAPI.Data.Entities.Enums;
 using MismeAPI.Service;
 using MismeAPI.Utils;
 using System;
@@ -20,12 +21,14 @@ namespace MismeAPI.Controllers
         private readonly ICompoundDishService _compoundDishService;
         private readonly IMapper _mapper;
         private readonly IUserService _userService;
+        private readonly IRewardHelper _rewardHelper;
 
-        public CompoundDishController(ICompoundDishService compoundDishService, IMapper mapper, IUserService userService)
+        public CompoundDishController(ICompoundDishService compoundDishService, IMapper mapper, IUserService userService, IRewardHelper rewardHelper)
         {
             _compoundDishService = compoundDishService ?? throw new ArgumentNullException(nameof(compoundDishService));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
+            _rewardHelper = rewardHelper ?? throw new ArgumentNullException(nameof(rewardHelper));
         }
 
         /// <summary>
@@ -156,6 +159,11 @@ namespace MismeAPI.Controllers
         {
             var loggedUser = User.GetUserIdFromToken();
             await _compoundDishService.ConvertUserDishAsync(loggedUser, dish);
+
+            /*Reward section*/
+            await _rewardHelper.HandleRewardAsync(RewardCategoryEnum.DISH_BUILT, dish.UserId, true, dish, null);
+            /*#end reward section*/
+
             return Created("", null);
         }
     }

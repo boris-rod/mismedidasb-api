@@ -4,5 +4,8 @@
     {
         public int Id { get; set; }
         public string RemovedImage { get; set; }
+
+        //for reward system purposes
+        public int UserId { get; set; }
     }
 }
