@@ -3,18 +3,14 @@ using FirebaseAdmin.Messaging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using MismeAPI.Common;
-using MismeAPI.Common.DTO.Request;
-using MismeAPI.Common.DTO.Request.Dish;
-using MismeAPI.Common.DTO.Request.Reward;
+using MismeAPI.Common.DTO.Response;
 using MismeAPI.Common.Exceptions;
 using MismeAPI.Data.Entities;
 using MismeAPI.Data.Entities.Enums;
 using MismeAPI.Data.UoW;
-using MismeAPI.Services;
 using MismeAPI.Services.Utils;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -117,6 +113,38 @@ namespace MismeAPI.Service.Impls
             }
 
             return existUser.UserStatistics;
+        }
+
+        public async Task<UserRankingResponse> GetUserRankingAsync(int userId)
+        {
+            var userStatics = await GetOrCreateUserStatisticsByUserAsync(userId);
+            var usersWithNoStatistics = await _uow.UserRepository.GetAll()
+                .Include(u => u.UserStatistics)
+                .Where(u => u.UserStatistics == null)
+                .CountAsync();
+
+            var ranking = await _uow.UserStatisticsRepository.GetAll()
+                .OrderByDescending(u => u.Points)
+                .ToListAsync();
+
+            var position = ranking.FindIndex(x => x.UserId == userId) + 1;
+            var total = ranking.Count() + usersWithNoStatistics;
+
+            if (position == 0)
+            {
+                position = total - 1;
+            }
+
+            var percentageB = ((total - position) * 100) / total;
+
+            var userRanking = new UserRankingResponse
+            {
+                Points = userStatics.Points,
+                RankingPosition = position,
+                PercentageBehind = percentageB
+            };
+
+            return userRanking;
         }
 
         public async Task<UserStatistics> UpdateTotalPoints(User user, int points)

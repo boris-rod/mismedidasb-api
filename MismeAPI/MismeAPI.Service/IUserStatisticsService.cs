@@ -1,6 +1,4 @@
-﻿using MismeAPI.Common.DTO.Request;
-using MismeAPI.Common.DTO.Request.Dish;
-using MismeAPI.Common.DTO.Request.Reward;
+﻿using MismeAPI.Common.DTO.Response;
 using MismeAPI.Data.Entities;
 using MismeAPI.Data.Entities.Enums;
 using MismeAPI.Services.Utils;
@@ -26,5 +24,7 @@ namespace MismeAPI.Service
         Task<UserStatistics> IncrementCurrentStreakAsync(UserStatistics statistic, StreakEnum streak);
 
         Task<UserStatistics> CutCurrentStreakAsync(UserStatistics statistic, StreakEnum streak, IEnumerable<Device> devices);
+
+        Task<UserRankingResponse> GetUserRankingAsync(int userId);
     }
 }

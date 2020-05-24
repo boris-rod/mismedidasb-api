@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MismeAPI.Data.Entities
 {
-    [Table("userstatics")]
+    [Table("userstatistics")]
     public class UserStatistics
     {
         public int Id { get; set; }

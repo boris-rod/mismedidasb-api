@@ -10,6 +10,7 @@
         public int EatMaxStreak { get; set; }
         public int BalancedEatCurrentStreak { get; set; }
         public int BalancedEatMaxStreak { get; set; }
+        public UserRankingResponse PersonalRanking { get; set; }
         public UserResponse User { get; set; }
     }
 }
