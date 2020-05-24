@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MismeAPI.Data;
 
 namespace MismeAPI.Data.Migrations
 {
     [DbContext(typeof(MismeContext))]
-    partial class MismeContextModelSnapshot : ModelSnapshot
+    [Migration("20200523025131_add_coins_to_statistics")]
+    partial class add_coins_to_statistics
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -68,12 +70,6 @@ namespace MismeAPI.Data.Migrations
 
                     b.Property<string>("ImageMimeType")
                         .HasColumnType("longtext CHARACTER SET utf8mb4");
-
-                    b.Property<bool>("IsAdminConverted")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<bool>("IsAdminReviewed")
-                        .HasColumnType("tinyint(1)");
 
                     b.Property<DateTime>("ModifiedAt")
                         .HasColumnType("datetime(6)");
@@ -968,7 +964,7 @@ namespace MismeAPI.Data.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("userstatistics");
+                    b.ToTable("userstatics");
                 });
 
             modelBuilder.Entity("MismeAPI.Data.Entities.UserToken", b =>

@@ -94,9 +94,10 @@ namespace MismeAPI
 
             var provider = services.BuildServiceProvider();
             var amazonS3Service = provider.GetService<IAmazonS3Service>();
+            var userStatisticsService = provider.GetService<IUserStatisticsService>();
             //var contextAccessor = provider.GetService<IHttpContextAccessor>();
 
-            var apiMappings = new MappingProfiles(amazonS3Service/*, contextAccessor*/);
+            var apiMappings = new MappingProfiles(amazonS3Service, userStatisticsService);
             services.AddAutoMapper(x => x.AddProfile(apiMappings), typeof(Startup));
         }
 

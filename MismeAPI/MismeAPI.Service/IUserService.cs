@@ -29,5 +29,7 @@ namespace MismeAPI.Service
         Task<int> GetEatsCountAsync(int loggedUser);
 
         Task<IEnumerable<User>> GetUsersWithPlanAsync(DateTime date);
+
+        Task<IEnumerable<User>> GetUsersWithoutPlanAsync(DateTime date);
     }
 }

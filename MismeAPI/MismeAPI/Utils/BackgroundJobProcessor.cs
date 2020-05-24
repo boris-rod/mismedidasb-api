@@ -1,17 +1,7 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.Configuration;
-using MismeAPI.Common;
-using MismeAPI.Common.DTO.Request.Reward;
-using MismeAPI.Common.DTO.Response.Reward;
-using MismeAPI.Data.Entities;
+﻿using Microsoft.Extensions.Configuration;
 using MismeAPI.Data.Entities.Enums;
-using MismeAPI.Data.Entities.NonDatabase;
 using MismeAPI.Service;
-using MismeAPI.Service.Hubs;
-using Newtonsoft.Json;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -36,9 +26,6 @@ namespace MismeAPI.Utils
 
         public async Task HandleUserStreaksAsync()
         {
-            var serverKey = _config["Firebase:ServerKey"];
-            var senderId = _config["Firebase:SenderId"];
-
             var today = DateTime.UtcNow;
             var usersWithPlans = await _userService.GetUsersWithPlanAsync(today);
 
@@ -57,6 +44,11 @@ namespace MismeAPI.Utils
                     /*Give reward for eat current streak*/
                     await _rewardHelper.HandleRewardAsync(RewardCategoryEnum.EAT_CREATED_STREAK, user.Id, true,
                         userStatistics.EatCurrentStreak, userStatistics.EatMaxStreak, NotificationTypeEnum.FIREBASE, user.Devices);
+
+                    if (balancedCurrentStreak > 0)
+                    {
+                        await _userStatisticsService.CutCurrentStreakAsync(userStatistics, StreakEnum.BALANCED_EAT, user.Devices);
+                    }
                 }
 
                 if (balancedCurrentStreak != userStatistics.BalancedEatCurrentStreak && STREAK_REWARDS.Any(s => s == userStatistics.BalancedEatCurrentStreak))
@@ -64,6 +56,26 @@ namespace MismeAPI.Utils
                     /*Give reward for balanced eat current streak*/
                     await _rewardHelper.HandleRewardAsync(RewardCategoryEnum.EAT_CREATED_STREAK, user.Id, true,
                         userStatistics.BalancedEatCurrentStreak, userStatistics.BalancedEatMaxStreak, NotificationTypeEnum.FIREBASE, user.Devices);
+                }
+            }
+
+            // Cut current streak section
+            var usersWithoutPlans = await _userService.GetUsersWithoutPlanAsync(today);
+
+            foreach (var user in usersWithoutPlans)
+            {
+                var userStatistics = await _userStatisticsService.GetOrCreateUserStatisticsByUserAsync(user.Id);
+                var balancedCurrentStreak = userStatistics.BalancedEatCurrentStreak;
+                var eatCurrentStreak = userStatistics.EatCurrentStreak;
+
+                if (balancedCurrentStreak > 0)
+                {
+                    await _userStatisticsService.CutCurrentStreakAsync(userStatistics, StreakEnum.BALANCED_EAT, user.Devices);
+                    await _userStatisticsService.CutCurrentStreakAsync(userStatistics, StreakEnum.EAT, null);
+                }
+                else if (eatCurrentStreak > 0)
+                {
+                    await _userStatisticsService.CutCurrentStreakAsync(userStatistics, StreakEnum.EAT, user.Devices);
                 }
             }
         }

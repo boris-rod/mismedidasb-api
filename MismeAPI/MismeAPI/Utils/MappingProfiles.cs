@@ -11,6 +11,7 @@ using MismeAPI.Common.DTO.Response.Reward;
 using MismeAPI.Common.DTO.Response.Settings;
 using MismeAPI.Common.DTO.Response.UserStatistics;
 using MismeAPI.Data.Entities;
+using MismeAPI.Service;
 using MismeAPI.Services;
 using System;
 using System.Collections.Generic;
@@ -21,15 +22,17 @@ namespace MismeAPI.Utils
     public class MappingProfiles : Profile
     {
         private readonly IAmazonS3Service _amazonS3Service;
+        private readonly IUserStatisticsService _userStatisticsService;
         //private readonly IHttpContextAccessor _httpContextAccessor;
 
         public MappingProfiles()
         {
         }
 
-        public MappingProfiles(IAmazonS3Service amazonS3Service/*, IHttpContextAccessor httpContextAccessor*/)
+        public MappingProfiles(IAmazonS3Service amazonS3Service, IUserStatisticsService userStatisticsService)
         {
             _amazonS3Service = amazonS3Service ?? throw new ArgumentNullException(nameof(amazonS3Service));
+            _userStatisticsService = userStatisticsService ?? throw new ArgumentNullException(nameof(userStatisticsService));
             //_httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(amazonS3Service));
 
             CreateMap<User, UserResponse>()
@@ -126,7 +129,8 @@ namespace MismeAPI.Utils
                .ForMember(d => d.Priority, opts => opts.MapFrom(source => source.Priority.ToString()));
 
             CreateMap<RewardHistory, RewardResponse>();
-            CreateMap<UserStatistics, UserStatisticsResponse>();
+            CreateMap<UserStatistics, UserStatisticsResponse>()
+                .ForMember(d => d.PersonalRanking, opts => opts.MapFrom(source => _userStatisticsService.GetUserRankingAsync(source.UserId).Result));
 
             CreateMap<DishCompoundDish, DishCompoundDishResponse>()
               .ForMember(d => d.Qty, opts => opts.MapFrom(source => source.DishQty))
