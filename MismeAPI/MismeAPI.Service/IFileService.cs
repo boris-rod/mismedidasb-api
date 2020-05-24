@@ -8,5 +8,7 @@ namespace MismeAPI.Services
         Task UploadFileAsync(IFormFile file, string guid);
 
         Task DeleteFileAsync(string guid);
+
+        Task CopyFileAsync(string sourceKey, string destinationKey);
     }
 }

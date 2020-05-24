@@ -86,5 +86,28 @@ namespace MismeAPI.Services.Impls
             //    throw e;
             //}
         }
+
+        public async Task<CopyObjectResponse> CopyObjectAsync(string originKey, string destinationKey)
+        {
+            try
+            {
+                var client = GetAmazonClient();
+
+                var bucketName = _config["AWS:BucketName"];
+                var copyRequest = new CopyObjectRequest
+                {
+                    SourceBucket = bucketName,
+                    DestinationBucket = bucketName,
+                    SourceKey = originKey,
+                    DestinationKey = destinationKey
+                };
+                var response = await client.CopyObjectAsync(copyRequest);
+                return response;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
     }
 }

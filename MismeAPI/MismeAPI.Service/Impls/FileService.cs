@@ -18,6 +18,11 @@ namespace MismeAPI.Services.Impls
             _config = config ?? throw new ArgumentNullException(nameof(config));
         }
 
+        public async Task CopyFileAsync(string sourceKey, string destinationKey)
+        {
+            await _s3Service.CopyObjectAsync(sourceKey, destinationKey);
+        }
+
         public async Task DeleteFileAsync(string guid)
         {
             await _s3Service.DeleteObjectAsync(guid);

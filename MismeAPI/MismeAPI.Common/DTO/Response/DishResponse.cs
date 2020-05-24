@@ -4,6 +4,11 @@ namespace MismeAPI.Common.DTO.Response
 {
     public class DishResponse
     {
+        public DishResponse()
+        {
+            Tags = new HashSet<TagResponse>();
+        }
+
         public int Id { get; set; }
         public string Name { get; set; }
         public double Calories { get; set; }
@@ -11,7 +16,7 @@ namespace MismeAPI.Common.DTO.Response
         public double Proteins { get; set; }
         public double Fat { get; set; }
         public double Fiber { get; set; }
-        public List<TagResponse> Tags { get; set; }
+        public ICollection<TagResponse> Tags { get; set; }
         public string Image { get; set; }
         public string ImageMimeType { get; set; }
 

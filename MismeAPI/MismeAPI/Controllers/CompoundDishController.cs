@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MismeAPI.BasicResponses;
+using MismeAPI.Common.DTO.Request;
 using MismeAPI.Common.DTO.Request.CompoundDish;
 using MismeAPI.Common.DTO.Response.CompoundDish;
 using MismeAPI.Service;
@@ -71,11 +72,14 @@ namespace MismeAPI.Controllers
         [Authorize]
         [ProducesResponseType(typeof(IEnumerable<AdminCompoundDishResponse>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(IEnumerable<ApiResponse>), (int)HttpStatusCode.Forbidden)]
-        public async Task<IActionResult> GetDishesAdmin(string search)
+        public async Task<IActionResult> GetDishesAdmin(string search, int filter)
         {
             var loggedUser = User.GetUserIdFromToken();
-            var result = await _compoundDishService.GetAllCompoundDishesAsync(loggedUser, search);
-            var mapped = _mapper.Map<IEnumerable<AdminCompoundDishResponse>>(result);
+            var result = await _compoundDishService.GetAllCompoundDishesAsync(loggedUser, search, filter);
+            var mapped = _mapper.Map<IEnumerable<AdminCompoundDishResponse>>(result, opt =>
+            {
+                opt.Items["lang"] = "es";
+            });
             return Ok(new ApiOkResponse(mapped));
         }
 
@@ -93,7 +97,10 @@ namespace MismeAPI.Controllers
         {
             var loggedUser = User.GetUserIdFromToken();
             var result = await _compoundDishService.CreateCompoundDishAsync(loggedUser, dish);
-            var mapped = _mapper.Map<CompoundDishResponse>(result);
+            var mapped = _mapper.Map<AdminCompoundDishResponse>(result, opt =>
+            {
+                opt.Items["lang"] = "es";
+            });
             return Created("", new ApiOkResponse(mapped));
         }
 
@@ -113,6 +120,43 @@ namespace MismeAPI.Controllers
             var result = await _compoundDishService.UpdateCompoundDishAsync(loggedUser, id, dish);
             var mapped = _mapper.Map<CompoundDishResponse>(result);
             return Ok(new ApiOkResponse(mapped));
+        }
+
+        /// <summary>
+        /// Mark a compound dish as reviewed. Only an admin can do this operation. Requires authentication.
+        /// </summary>
+        /// <param name="id">Dish id.</param>
+        [HttpPost("{id}/reviewed")]
+        [Authorize]
+        [ProducesResponseType(typeof(CompoundDishResponse), (int)HttpStatusCode.Created)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
+        public async Task<IActionResult> MarkCompoundDishReviewed([FromRoute] int id)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            await _compoundDishService.MarkCompoundDishAsReviewedAsync(loggedUser, id);
+            //var mapped = _mapper.Map<AdminCompoundDishResponse>(result, opt =>
+            //{
+            //    opt.Items["lang"] = "es";
+            //});
+            return Ok();
+        }
+
+        /// <summary>
+        /// Convert a user dish in a general dish. Only an admin can do this operation. Requires authentication.
+        /// </summary>
+        /// <param name="dish">Dish request object.</param>
+        [HttpPost("create-dish")]
+        [Authorize]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
+        public async Task<IActionResult> AddDish(UpdateDishRequest dish)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            await _compoundDishService.ConvertUserDishAsync(loggedUser, dish);
+            return Created("", null);
         }
     }
 }
