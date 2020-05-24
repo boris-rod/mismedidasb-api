@@ -22,6 +22,11 @@ namespace MismeAPI.Data.Entities
         public bool IsBalanced { get; set; }
 
         /// <summary>
+        /// UTC datetime when the user plan to take this eat
+        /// </summary>
+        public DateTime? EatUtcAt { get; set; }
+
+        /// <summary>
         /// Datetime sent by user to register when he created this eat. Do not update after current
         /// day 9:00 AM local user time
         /// </summary>
@@ -32,6 +37,8 @@ namespace MismeAPI.Data.Entities
         /// current day 9:00 AM local user time
         /// </summary>
         public bool? IsBalancedPlan { get; set; }
+
+        public EatSchedule EatSchedule { get; set; }
 
         public virtual ICollection<EatDish> EatDishes { get; set; }
     }

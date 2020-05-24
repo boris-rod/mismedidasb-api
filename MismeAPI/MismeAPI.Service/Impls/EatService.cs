@@ -16,10 +16,12 @@ namespace MismeAPI.Service.Impls
     public class EatService : IEatService
     {
         private readonly IUnitOfWork _uow;
+        private readonly IScheduleService _scheduleService;
 
-        public EatService(IUnitOfWork uow)
+        public EatService(IUnitOfWork uow, IScheduleService scheduleService)
         {
             _uow = uow ?? throw new ArgumentNullException(nameof(uow));
+            _scheduleService = scheduleService ?? throw new ArgumentNullException(nameof(scheduleService));
         }
 
         public async Task<Eat> CreateEatAsync(int loggedUser, CreateEatRequest eat)
@@ -168,6 +170,8 @@ namespace MismeAPI.Service.Impls
         {
             var userEats = await _uow.EatRepository.GetAll().Where(e => e.UserId == loggedUser && e.CreatedAt.Date == eat.DateInUtc.Date)
                 .Include(e => e.EatDishes)
+                .Include(e => e.EatSchedule)
+                    .ThenInclude(es => es.Schedule)
                 .ToListAsync();
 
             var isNew = true;
@@ -177,9 +181,13 @@ namespace MismeAPI.Service.Impls
                 if (isNew)
                     isNew = false;
 
+                var jobId = d.EatSchedule?.Schedule?.JobId;
+                if (!String.IsNullOrEmpty(jobId))
+                    await _scheduleService.RemoveJobIfExistIfExistAsync(jobId);
+
                 _uow.EatRepository.Delete(d);
             }
-
+            var eatResult = new List<Eat>();
             ////this days not eat yet
             //if (userEats.Count == 0)
             //{
@@ -191,6 +199,7 @@ namespace MismeAPI.Service.Impls
                 e.EatType = (EatTypeEnum)item.EatType;
                 e.UserId = loggedUser;
                 e.IsBalanced = eat.IsBalanced;
+                e.EatUtcAt = item.EatUtcAt;
 
                 if (isNew && IsValidDateForPlan(eat.DateInUtc, eat.DateTimeInUserLocalTime))
                 {
@@ -199,6 +208,9 @@ namespace MismeAPI.Service.Impls
                 }
 
                 await _uow.EatRepository.AddAsync(e);
+
+                eatResult.Add(e);
+
                 foreach (var d in item.Dishes)
                 {
                     var ed = new EatDish();
@@ -235,6 +247,23 @@ namespace MismeAPI.Service.Impls
             //        //await _uow.CommitAsync();
             //    }
             //}
+            await _uow.CommitAsync();
+
+            foreach (var e in eatResult)
+            {
+                if (e.EatUtcAt.HasValue)
+                {
+                    var timeReminder = e.EatUtcAt.Value.AddMinutes(-10);
+                    var schedule = await _scheduleService.ScheduleEatReminderNotificationAsync(e, timeReminder);
+                    e.EatSchedule = new EatSchedule
+                    {
+                        Schedule = schedule
+                    };
+
+                    await _uow.EatRepository.UpdateAsync(e, e.Id);
+                }
+            }
+
             await _uow.CommitAsync();
         }
 
