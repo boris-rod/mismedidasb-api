@@ -1,9 +1,10 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace MismeAPI.Services
 {
     public interface IEmailService
     {
-        Task SendEmailResponseAsync(string subject, string htmlMessage, string email);
+        Task SendEmailResponseAsync(string subject, string htmlMessage, IEnumerable<string> email);
     }
 }

@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MismeAPI.Data;
 
 namespace MismeAPI.Data.Migrations
 {
     [DbContext(typeof(MismeContext))]
-    partial class MismeContextModelSnapshot : ModelSnapshot
+    [Migration("20200518235557_add_referrals")]
+    partial class add_referrals
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -68,12 +70,6 @@ namespace MismeAPI.Data.Migrations
 
                     b.Property<string>("ImageMimeType")
                         .HasColumnType("longtext CHARACTER SET utf8mb4");
-
-                    b.Property<bool>("IsAdminConverted")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<bool>("IsAdminReviewed")
-                        .HasColumnType("tinyint(1)");
 
                     b.Property<DateTime>("ModifiedAt")
                         .HasColumnType("datetime(6)");
@@ -384,16 +380,10 @@ namespace MismeAPI.Data.Migrations
                     b.Property<int>("EatType")
                         .HasColumnType("int");
 
-                    b.Property<bool>("IsBalanced")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<bool?>("IsBalancedPlan")
+                    b.Property<bool>("IsValanced")
                         .HasColumnType("tinyint(1)");
 
                     b.Property<DateTime>("ModifiedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<DateTime?>("PlanCreatedAt")
                         .HasColumnType("datetime(6)");
 
                     b.Property<int>("UserId")
@@ -1229,7 +1219,7 @@ namespace MismeAPI.Data.Migrations
             modelBuilder.Entity("MismeAPI.Data.Entities.UserStatistics", b =>
                 {
                     b.HasOne("MismeAPI.Data.Entities.User", "User")
-                        .WithOne("UserStatistics")
+                        .WithOne("UserStatics")
                         .HasForeignKey("MismeAPI.Data.Entities.UserStatistics", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();

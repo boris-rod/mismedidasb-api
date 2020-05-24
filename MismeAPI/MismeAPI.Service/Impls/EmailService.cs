@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using MimeKit;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace MismeAPI.Services.Impls
@@ -15,7 +16,7 @@ namespace MismeAPI.Services.Impls
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
-        public async Task SendEmailResponseAsync(string subject, string message, string email)
+        public async Task SendEmailResponseAsync(string subject, string message, IEnumerable<string> emails)
         {
             try
             {
@@ -29,7 +30,10 @@ namespace MismeAPI.Services.Impls
                     var mess = new MimeMessage();
 
                     mess.From.Add(new MailboxAddress(_configuration.GetValue<string>("SMTP:From")));
-                    mess.To.Add(new MailboxAddress(email));
+                    foreach (var email in emails)
+                    {
+                        mess.To.Add(new MailboxAddress(email));
+                    }
                     mess.Subject = subject;
                     mess.Body = new TextPart("html")
                     {
