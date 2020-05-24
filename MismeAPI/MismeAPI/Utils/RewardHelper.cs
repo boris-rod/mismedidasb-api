@@ -96,7 +96,7 @@ namespace MismeAPI.Utils
 
                         if (category == RewardCategoryEnum.DISH_BUILT)
                         {
-                            body = GetFirebaseMessageForDishBuildReward(category, mapped, lang);
+                            body = GetFirebaseMessageForDishBuildReward(mapped, lang);
                         }
 
                         if (devices != null)
@@ -206,7 +206,7 @@ namespace MismeAPI.Utils
             return message;
         }
 
-        private string GetFirebaseMessageForDishBuildReward(RewardCategoryEnum category, RewardResponse rewardResponse, string lang)
+        private string GetFirebaseMessageForDishBuildReward(RewardResponse rewardResponse, string lang)
         {
             string message = lang switch
             {
