@@ -1,17 +1,16 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using CorePush.Google;
+using FirebaseAdmin.Messaging;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using MismeAPI.Common;
-using MismeAPI.Common.DTO.Request;
-using MismeAPI.Common.DTO.Request.Dish;
-using MismeAPI.Common.DTO.Request.Reward;
+using MismeAPI.Common.DTO.Response;
 using MismeAPI.Common.Exceptions;
 using MismeAPI.Data.Entities;
 using MismeAPI.Data.Entities.Enums;
 using MismeAPI.Data.UoW;
-using MismeAPI.Services;
 using MismeAPI.Services.Utils;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -20,10 +19,14 @@ namespace MismeAPI.Service.Impls
     public class UserStatisticsService : IUserStatisticsService
     {
         private readonly IUnitOfWork _uow;
+        private readonly IUserService _userService;
+        private readonly IConfiguration _config;
 
-        public UserStatisticsService(IUnitOfWork uow)
+        public UserStatisticsService(IUnitOfWork uow, IUserService userService, IConfiguration config)
         {
             _uow = uow ?? throw new ArgumentNullException(nameof(uow));
+            _userService = userService ?? throw new ArgumentNullException(nameof(userService));
+            _config = config ?? throw new ArgumentNullException(nameof(config));
         }
 
         public async Task<PaginatedList<UserStatistics>> GetUserStatisticsAsync(int loggedUser, int pag, int perPag, string sortOrder)
@@ -112,6 +115,38 @@ namespace MismeAPI.Service.Impls
             return existUser.UserStatistics;
         }
 
+        public async Task<UserRankingResponse> GetUserRankingAsync(int userId)
+        {
+            var userStatics = await GetOrCreateUserStatisticsByUserAsync(userId);
+            var usersWithNoStatistics = await _uow.UserRepository.GetAll()
+                .Include(u => u.UserStatistics)
+                .Where(u => u.UserStatistics == null)
+                .CountAsync();
+
+            var ranking = await _uow.UserStatisticsRepository.GetAll()
+                .OrderByDescending(u => u.Points)
+                .ToListAsync();
+
+            var position = ranking.FindIndex(x => x.UserId == userId) + 1;
+            var total = ranking.Count() + usersWithNoStatistics;
+
+            if (position == 0)
+            {
+                position = total - 1;
+            }
+
+            var percentageB = ((total - position) * 100) / total;
+
+            var userRanking = new UserRankingResponse
+            {
+                Points = userStatics.Points,
+                RankingPosition = position,
+                PercentageBehind = percentageB
+            };
+
+            return userRanking;
+        }
+
         public async Task<UserStatistics> UpdateTotalPoints(User user, int points)
         {
             // validate target user exists
@@ -132,6 +167,33 @@ namespace MismeAPI.Service.Impls
             }
 
             statistics.Points = newPoints;
+            statistics.ModifiedAt = DateTime.UtcNow;
+
+            await _uow.UserStatisticsRepository.UpdateAsync(statistics, statistics.Id);
+            await _uow.CommitAsync();
+
+            return statistics;
+        }
+
+        public async Task<UserStatistics> UpdateTotalCoins(User user, int coins)
+        {
+            // validate target user exists
+            var existUser = await _uow.UserRepository.GetAll().Where(d => d.Id == user.Id).FirstOrDefaultAsync();
+
+            if (existUser == null)
+            {
+                throw new NotFoundException(ExceptionConstants.NOT_FOUND, "User");
+            }
+
+            var statistics = await GetOrCreateUserStatisticsAsync(existUser);
+
+            var newCoints = statistics.Coins + coins;
+            if (newCoints < 0)
+            {
+                newCoints = 0;
+            }
+
+            statistics.Coins = newCoints;
             statistics.ModifiedAt = DateTime.UtcNow;
 
             await _uow.UserStatisticsRepository.UpdateAsync(statistics, statistics.Id);
@@ -196,9 +258,14 @@ namespace MismeAPI.Service.Impls
 
                 case StreakEnum.BALANCED_EAT:
                     statistic.BalancedEatCurrentStreak++;
+                    statistic.EatCurrentStreak++;
                     if (statistic.BalancedEatMaxStreak < statistic.BalancedEatCurrentStreak)
                     {
                         statistic.BalancedEatMaxStreak = statistic.BalancedEatCurrentStreak;
+                    }
+                    if (statistic.EatMaxStreak < statistic.EatCurrentStreak)
+                    {
+                        statistic.EatMaxStreak = statistic.EatCurrentStreak;
                     }
                     break;
 
@@ -208,6 +275,31 @@ namespace MismeAPI.Service.Impls
 
             await _uow.UserStatisticsRepository.UpdateAsync(statistic, statistic.Id);
             await _uow.CommitAsync();
+
+            return statistic;
+        }
+
+        public async Task<UserStatistics> CutCurrentStreakAsync(UserStatistics statistic, StreakEnum streak, IEnumerable<Device> devices)
+        {
+            switch (streak)
+            {
+                case StreakEnum.EAT:
+                    statistic.EatCurrentStreak = 0;
+
+                    break;
+
+                case StreakEnum.BALANCED_EAT:
+                    statistic.BalancedEatCurrentStreak = 0;
+                    break;
+
+                default:
+                    break;
+            }
+
+            await _uow.UserStatisticsRepository.UpdateAsync(statistic, statistic.Id);
+            await _uow.CommitAsync();
+
+            await NotifyStreekLooseAsync(statistic.User, streak, devices);
 
             return statistic;
         }
@@ -237,6 +329,88 @@ namespace MismeAPI.Service.Impls
             }
 
             return statistics;
+        }
+
+        private async Task NotifyStreekLooseAsync(User user, StreakEnum streak, IEnumerable<Device> devices)
+        {
+            if (streak == StreakEnum.BALANCED_EAT || streak == StreakEnum.EAT)
+            {
+                var lang = await _userService.GetUserLanguageFromUserIdAsync(user.Id);
+                var title = (lang == "EN") ? "Actual streak loose" : "Racha actual perdida";
+                var body = GetFirebaseMessageForStreakLoose(streak, lang);
+                if (devices != null)
+                    await SendFirebaseNotificationAsync(title, body, devices);
+            }
+        }
+
+        private async Task SendFirebaseNotificationAsync(string title, string body, IEnumerable<Device> devices)
+        {
+            var serverKey = _config["Firebase:ServerKey"];
+            var senderId = _config["Firebase:SenderId"];
+
+            foreach (var device in devices)
+            {
+                using (var fcm = new FcmSender(serverKey, senderId))
+                {
+                    Message message = new Message()
+                    {
+                        Notification = new Notification
+                        {
+                            Title = title,
+                            Body = body,
+                        },
+                        Token = device.Token
+                    };
+                    try
+                    {
+                        var response = await fcm.SendAsync(device.Token, message);
+                    }
+                    catch (Exception)
+                    {
+                        // TODO
+                    }
+                }
+            }
+        }
+
+        private string GetFirebaseMessageForStreakLoose(StreakEnum streak, string lang)
+        {
+            var reason = "";
+
+            switch (streak)
+            {
+                case StreakEnum.EAT:
+                    switch (lang)
+                    {
+                        case "EN":
+                            reason = "You has lost your actual streak planning your food";
+                            break;
+
+                        default:
+                            reason = "Has pedido la racha actual planificando tu comida";
+                            break;
+                    }
+                    break;
+
+                case StreakEnum.BALANCED_EAT:
+                    switch (lang)
+                    {
+                        case "EN":
+                            reason = "You has lost your actual streak planning your food balanced";
+                            break;
+
+                        default:
+                            reason = "Has pedido la racha actual planificando tu comida balanceada";
+                            break;
+                    }
+
+                    break;
+
+                default:
+                    break;
+            }
+
+            return reason;
         }
     }
 }

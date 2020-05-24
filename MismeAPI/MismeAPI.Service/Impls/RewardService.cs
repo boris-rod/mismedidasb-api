@@ -65,6 +65,7 @@ namespace MismeAPI.Service.Impls
 
             await _uow.RewardAcumulateRepository.UpdateAsync(rewardAcomulate, rewardAcomulate.Id);
             await _userStatisticsService.UpdateTotalPoints(existUser, allowedPoints);
+            await _userStatisticsService.UpdateTotalCoins(existUser, allowedPoints);
             await _uow.CommitAsync();
 
             return dbReward;
