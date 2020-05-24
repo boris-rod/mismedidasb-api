@@ -86,14 +86,21 @@ namespace MismeAPI.Utils
                         break;
 
                     case NotificationTypeEnum.FIREBASE:
+                        var lang = await _userService.GetUserLanguageFromUserIdAsync(mapped.UserId);
+                        var title = (lang == "EN") ? "You have receipt a new reward" : "Has recibido una nueva recompensa";
+                        var body = "";
                         if (category == RewardCategoryEnum.EAT_BALANCED_CREATED_STREAK || category == RewardCategoryEnum.EAT_CREATED_STREAK)
                         {
-                            var lang = await _userService.GetUserLanguageFromUserIdAsync(mapped.UserId);
-                            var title = (lang == "EN") ? "You have receipt a new reward" : "Has recibido una nueva recompensa";
-                            var body = GetFirebaseMessageForStreakReward(category, (int)entity1, mapped, lang);
-                            if (devices != null)
-                                await SendFirebaseNotificationAsync(title, body, devices);
+                            body = GetFirebaseMessageForStreakReward(category, (int)entity1, mapped, lang);
                         }
+
+                        if (category == RewardCategoryEnum.DISH_BUILT)
+                        {
+                            body = GetFirebaseMessageForDishBuildReward(category, mapped, lang);
+                        }
+
+                        if (devices != null)
+                            await SendFirebaseNotificationAsync(title, body, devices);
                         break;
 
                     default:
@@ -195,6 +202,16 @@ namespace MismeAPI.Utils
             {
                 "EN" => streak.ToString() + " " + reason + ". You receipt " + rewardResponse.Points + " points.",
                 _ => streak.ToString() + " " + reason + ". Has recivido " + rewardResponse.Points + " puntos.",
+            };
+            return message;
+        }
+
+        private string GetFirebaseMessageForDishBuildReward(RewardCategoryEnum category, RewardResponse rewardResponse, string lang)
+        {
+            string message = lang switch
+            {
+                "EN" => "Congratulations. Dr.PlaniFive have approved your your dish and it will be visible to other users." + ". You receipt " + rewardResponse.Points + " points.",
+                _ => "Enhorabuena! El Dr.PlaniFive ha aprobado su alimento y estara visible para otros usuarios en la base de datos general." + ". Ha ganado usted " + rewardResponse.Points + " puntos.",
             };
             return message;
         }
