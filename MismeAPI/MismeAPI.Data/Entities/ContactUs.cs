@@ -15,5 +15,6 @@ namespace MismeAPI.Data.Entities
         public DateTime CreatedAt { get; set; }
         public bool Read { get; set; }
         public ContactPriorityEnum Priority { get; set; }
+        public bool IsAnswered { get; set; }
     }
 }

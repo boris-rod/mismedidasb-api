@@ -5,8 +5,10 @@ using MismeAPI.Common.Exceptions;
 using MismeAPI.Data.Entities;
 using MismeAPI.Data.Entities.Enums;
 using MismeAPI.Data.UoW;
+using MismeAPI.Services;
 using MismeAPI.Services.Utils;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -15,10 +17,38 @@ namespace MismeAPI.Service.Impls
     public class ContactUsService : IContactUsService
     {
         private readonly IUnitOfWork _uow;
+        private readonly IEmailService _emailService;
 
-        public ContactUsService(IUnitOfWork uow)
+        public ContactUsService(IUnitOfWork uow, IEmailService emailService)
         {
             _uow = uow ?? throw new ArgumentNullException(nameof(uow));
+            _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
+        }
+
+        public async Task AnswerMmessageAsync(int loggedUser, ContactAnswerRequest answerRequest)
+        {
+            // validate admin user
+            var user = await _uow.UserRepository.FindByAsync(u => u.Id == loggedUser && u.Role == RoleEnum.ADMIN);
+            if (user.Count == 0)
+            {
+                throw new NotAllowedException(ExceptionConstants.NOT_ALLOWED);
+            }
+
+            var contactUs = await _uow.ContactUsRepository.GetAsync(answerRequest.ContactUsId);
+            if (contactUs is null)
+            {
+                throw new NotFoundException(ExceptionConstants.NOT_FOUND, "Contact Us");
+            }
+
+            var list = new List<string>();
+            list.Add(answerRequest.UserEmail);
+
+            await _emailService.SendEmailResponseAsync("RE: " + contactUs.Subject, answerRequest.Body, list);
+
+            contactUs.IsAnswered = true;
+
+            _uow.ContactUsRepository.Update(contactUs);
+            await _uow.CommitAsync();
         }
 
         public async Task<ContactUs> ChangeImportantStatusAsync(int loggedUser, int id, bool important)
