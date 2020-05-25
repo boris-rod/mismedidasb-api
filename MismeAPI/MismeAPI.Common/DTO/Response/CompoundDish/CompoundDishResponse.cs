@@ -5,13 +5,18 @@ namespace MismeAPI.Common.DTO.Response.CompoundDish
 {
     public class CompoundDishResponse
     {
+        public CompoundDishResponse()
+        {
+            DishCompoundDishResponse = new HashSet<DishCompoundDishResponse>();
+        }
+
         public int Id { get; set; }
         public string Name { get; set; }
         public string Image { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime ModifiedAt { get; set; }
 
-        public List<DishCompoundDishResponse> DishCompoundDishResponse { get; set; }
+        public ICollection<DishCompoundDishResponse> DishCompoundDishResponse { get; set; }
 
         public double Calories { get; set; }
         public double Carbohydrates { get; set; }
@@ -34,5 +39,7 @@ namespace MismeAPI.Common.DTO.Response.CompoundDish
         public double VitaminC { get; set; }
         public double VitaminB6 { get; set; }
         public double VitaminB12 { get; set; }
+        public bool IsAdminReviewed { get; set; }
+        public bool IsAdminConverted { get; set; }
     }
 }

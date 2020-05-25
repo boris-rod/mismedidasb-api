@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MismeAPI.Data;
 
 namespace MismeAPI.Data.Migrations
 {
     [DbContext(typeof(MismeContext))]
-    partial class MismeContextModelSnapshot : ModelSnapshot
+    [Migration("20200524153125_AddControlFieldsForConvertedDishes")]
+    partial class AddControlFieldsForConvertedDishes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -170,32 +172,6 @@ namespace MismeAPI.Data.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("contactus");
-                });
-
-            modelBuilder.Entity("MismeAPI.Data.Entities.CutPoint", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<DateTime>("ModifiedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("Points")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("cutpoint");
                 });
 
             modelBuilder.Entity("MismeAPI.Data.Entities.Device", b =>
@@ -384,16 +360,10 @@ namespace MismeAPI.Data.Migrations
                     b.Property<int>("EatType")
                         .HasColumnType("int");
 
-                    b.Property<bool>("IsBalanced")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<bool?>("IsBalancedPlan")
+                    b.Property<bool>("IsValanced")
                         .HasColumnType("tinyint(1)");
 
                     b.Property<DateTime>("ModifiedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<DateTime?>("PlanCreatedAt")
                         .HasColumnType("datetime(6)");
 
                     b.Property<int>("UserId")
@@ -875,37 +845,6 @@ namespace MismeAPI.Data.Migrations
                     b.ToTable("userconcept");
                 });
 
-            modelBuilder.Entity("MismeAPI.Data.Entities.UserReferral", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("Email")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
-
-                    b.Property<int?>("InvitedId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("ModifiedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("InvitedId")
-                        .IsUnique();
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("userreferral");
-                });
-
             modelBuilder.Entity("MismeAPI.Data.Entities.UserSetting", b =>
                 {
                     b.Property<int>("Id")
@@ -942,9 +881,6 @@ namespace MismeAPI.Data.Migrations
                     b.Property<int>("BalancedEatMaxStreak")
                         .HasColumnType("int");
 
-                    b.Property<int>("Coins")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
@@ -968,7 +904,7 @@ namespace MismeAPI.Data.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("userstatistics");
+                    b.ToTable("userstatics");
                 });
 
             modelBuilder.Entity("MismeAPI.Data.Entities.UserToken", b =>
@@ -1200,20 +1136,6 @@ namespace MismeAPI.Data.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("MismeAPI.Data.Entities.UserReferral", b =>
-                {
-                    b.HasOne("MismeAPI.Data.Entities.User", "Invited")
-                        .WithOne("Invitation")
-                        .HasForeignKey("MismeAPI.Data.Entities.UserReferral", "InvitedId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("MismeAPI.Data.Entities.User", "User")
-                        .WithMany("Referrals")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("MismeAPI.Data.Entities.UserSetting", b =>
                 {
                     b.HasOne("MismeAPI.Data.Entities.Setting", "Setting")
@@ -1232,7 +1154,7 @@ namespace MismeAPI.Data.Migrations
             modelBuilder.Entity("MismeAPI.Data.Entities.UserStatistics", b =>
                 {
                     b.HasOne("MismeAPI.Data.Entities.User", "User")
-                        .WithOne("UserStatistics")
+                        .WithOne("UserStatics")
                         .HasForeignKey("MismeAPI.Data.Entities.UserStatistics", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();

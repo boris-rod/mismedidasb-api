@@ -14,5 +14,7 @@ namespace MismeAPI.Services
         Task<PutObjectResponse> PutObjectAsync(string key, MemoryStream content);
 
         Task<DeleteObjectResponse> DeleteObjectAsync(string key);
+
+        Task<CopyObjectResponse> CopyObjectAsync(string originKey, string destinationKey);
     }
 }

@@ -20,6 +20,8 @@ namespace MismeAPI.Data.Entities
         public string ImageMimeType { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime ModifiedAt { get; set; }
+        public bool IsAdminReviewed { get; set; }
+        public bool IsAdminConverted { get; set; }
 
         public virtual ICollection<DishCompoundDish> DishCompoundDishes { get; set; }
     }
