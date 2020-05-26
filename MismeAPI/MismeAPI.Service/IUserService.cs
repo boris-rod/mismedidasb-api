@@ -31,5 +31,9 @@ namespace MismeAPI.Service
         Task<IEnumerable<User>> GetUsersWithPlanAsync(DateTime date);
 
         Task<IEnumerable<User>> GetUsersWithoutPlanAsync(DateTime date);
+
+        Task<User> GetUserDevicesAsync(int userId);
+
+        Task<bool> GetUserOptInNotificationAsync(int userId, string settingConstant);
     }
 }

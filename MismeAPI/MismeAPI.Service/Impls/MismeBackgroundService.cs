@@ -1,5 +1,6 @@
 ﻿using CorePush.Google;
 using FirebaseAdmin.Messaging;
+using Hangfire;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using MismeAPI.Common;
@@ -16,11 +17,15 @@ namespace MismeAPI.Service.Impls
     {
         private readonly IUnitOfWork _uow;
         private readonly IConfiguration _config;
+        private readonly IUserService _userService;
+        private readonly IScheduleService _scheduleService;
 
-        public MismeBackgroundService(IUnitOfWork uow, IConfiguration config)
+        public MismeBackgroundService(IUnitOfWork uow, IConfiguration config, IUserService userService, IScheduleService scheduleService)
         {
             _uow = uow ?? throw new ArgumentNullException(nameof(uow));
             _config = config ?? throw new ArgumentNullException(nameof(config));
+            _userService = userService ?? throw new ArgumentNullException(nameof(userService));
+            _scheduleService = scheduleService ?? throw new ArgumentNullException(nameof(scheduleService));
         }
 
         public async Task CleanExpiredTokensAsync()
@@ -154,6 +159,21 @@ namespace MismeAPI.Service.Impls
                         }
                     }
                 }
+            }
+
+            await RecurringJobSchedulerAsync();
+        }
+
+        private async Task RecurringJobSchedulerAsync()
+        {
+            var users = await _uow.UserRepository.GetAll()
+                .Include(u => u.UserSchedules)
+                    .ThenInclude(us => us.Schedule)
+                .ToListAsync();
+
+            foreach (var user in users)
+            {
+                await _scheduleService.UserRecurringJobsSchedulerAsync(user.Id, user);
             }
         }
     }

@@ -41,12 +41,17 @@ namespace MismeAPI.Data
         public DbSet<UserReferral> UserReferral { get; set; }
         public DbSet<Schedule> Schedule { get; set; }
         public DbSet<EatSchedule> EatSchedule { get; set; }
+        public DbSet<UserSchedule> UserSchedule { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<User>().HasOne(p => p.Invitation).WithOne(b => b.Invited).OnDelete(DeleteBehavior.SetNull);
             modelBuilder.Entity<User>().HasMany(p => p.Referrals).WithOne(b => b.User).OnDelete(DeleteBehavior.Cascade);
+
             modelBuilder.Entity<Eat>().HasOne(p => p.EatSchedule).WithOne(b => b.Eat).OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<Schedule>().HasMany(p => p.EatSchedules).WithOne(b => b.Schedule).OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<User>().HasMany(p => p.UserSchedules).WithOne(b => b.User).OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<Schedule>().HasMany(p => p.UserSchedules).WithOne(b => b.Schedule).OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

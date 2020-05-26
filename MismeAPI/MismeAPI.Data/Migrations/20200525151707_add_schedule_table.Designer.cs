@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MismeAPI.Data;
 
 namespace MismeAPI.Data.Migrations
 {
     [DbContext(typeof(MismeContext))]
-    partial class MismeContextModelSnapshot : ModelSnapshot
+    [Migration("20200525151707_add_schedule_table")]
+    partial class add_schedule_table
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -858,9 +860,6 @@ namespace MismeAPI.Data.Migrations
                     b.Property<bool>("TermsAndConditionsAccepted")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<string>("TimeZone")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
-
                     b.Property<string>("Username")
                         .HasColumnType("longtext CHARACTER SET utf8mb4");
 
@@ -949,33 +948,6 @@ namespace MismeAPI.Data.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("userreferral");
-                });
-
-            modelBuilder.Entity("MismeAPI.Data.Entities.UserSchedule", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<string>("JobConstant")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
-
-                    b.Property<int>("ScheduleId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UserTimeZone")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ScheduleId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("userschedule");
                 });
 
             modelBuilder.Entity("MismeAPI.Data.Entities.UserSetting", b =>
@@ -1296,21 +1268,6 @@ namespace MismeAPI.Data.Migrations
 
                     b.HasOne("MismeAPI.Data.Entities.User", "User")
                         .WithMany("Referrals")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("MismeAPI.Data.Entities.UserSchedule", b =>
-                {
-                    b.HasOne("MismeAPI.Data.Entities.Schedule", "Schedule")
-                        .WithMany("UserSchedules")
-                        .HasForeignKey("ScheduleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("MismeAPI.Data.Entities.User", "User")
-                        .WithMany("UserSchedules")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();

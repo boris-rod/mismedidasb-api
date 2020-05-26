@@ -39,6 +39,7 @@ namespace MismeAPI.Data.UoW
         IGenericRepository<UserReferral> UserReferralRepository { get; set; }
         IGenericRepository<Schedule> ScheduleRepository { get; set; }
         IGenericRepository<EatSchedule> EatScheduleRepository { get; set; }
+        IGenericRepository<UserSchedule> UserScheduleRepository { get; set; }
 
         Task<int> CommitAsync();
     }

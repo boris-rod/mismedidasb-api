@@ -33,9 +33,10 @@ namespace APITaxi.API.Controllers
         private IHubContext<UserHub> _hub;
         private IUserReferralService _userReferralService;
         private IRewardHelper _rewardHelper;
+        private IUserService _userService;
 
         public AccountController(IAccountService accountService, IMapper mapper, IEmailService emailService, IWebHostEnvironment env,
-            IHubContext<UserHub> hub, IUserReferralService userReferralService, IRewardHelper rewardHelper)
+            IHubContext<UserHub> hub, IUserReferralService userReferralService, IRewardHelper rewardHelper, IUserService userService)
         {
             _accountService = accountService ?? throw new ArgumentNullException(nameof(accountService));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
@@ -44,6 +45,7 @@ namespace APITaxi.API.Controllers
             _hub = hub ?? throw new ArgumentNullException(nameof(hub));
             _userReferralService = userReferralService ?? throw new ArgumentNullException(nameof(userReferralService));
             _rewardHelper = rewardHelper ?? throw new ArgumentNullException(nameof(rewardHelper));
+            _userService = userService ?? throw new ArgumentNullException(nameof(userService));
         }
 
         /// <summary>
@@ -83,7 +85,8 @@ namespace APITaxi.API.Controllers
             if (referral != null)
             {
                 var mapped2 = _mapper.Map<UserReferralResponse>(referral);
-                await _rewardHelper.HandleRewardAsync(RewardCategoryEnum.NEW_REFERAL, referral.UserId, true, mapped2, null);
+                var us = await _userService.GetUserDevicesAsync(referral.UserId);
+                await _rewardHelper.HandleRewardAsync(RewardCategoryEnum.NEW_REFERAL, referral.UserId, true, mapped2, null, NotificationTypeEnum.FIREBASE, us?.Devices);
             }
 
             return Created("", new ApiOkResponse(mapped));

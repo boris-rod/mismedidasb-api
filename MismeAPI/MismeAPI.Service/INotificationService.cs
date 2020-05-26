@@ -12,6 +12,8 @@ namespace MismeAPI.Service
     {
         Task NotifyEatReminderAsync(int eatId);
 
+        Task NotifyDrinWaterReminderAsync(int userId);
+
         Task SendFirebaseNotificationAsync(string title, string body, IEnumerable<Device> devices);
     }
 }

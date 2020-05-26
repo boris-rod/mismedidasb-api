@@ -45,6 +45,7 @@ namespace MismeAPI.Data.UoW
             UserReferralRepository = UserReferralRepository ?? new GenericRepository<UserReferral>(_context);
             ScheduleRepository = ScheduleRepository ?? new GenericRepository<Schedule>(_context);
             EatScheduleRepository = EatScheduleRepository ?? new GenericRepository<EatSchedule>(_context);
+            UserScheduleRepository = UserScheduleRepository ?? new GenericRepository<UserSchedule>(_context);
         }
 
         public IGenericRepository<User> UserRepository { get; set; }
@@ -79,6 +80,7 @@ namespace MismeAPI.Data.UoW
         public IGenericRepository<UserReferral> UserReferralRepository { get; set; }
         public IGenericRepository<Schedule> ScheduleRepository { get; set; }
         public IGenericRepository<EatSchedule> EatScheduleRepository { get; set; }
+        public IGenericRepository<UserSchedule> UserScheduleRepository { get; set; }
 
         public async Task<int> CommitAsync()
         {

@@ -17,10 +17,12 @@ namespace MismeAPI.Service.Impls
     {
         private readonly IUnitOfWork _uow;
         private readonly IScheduleService _scheduleService;
+        private readonly IUserService _userService;
 
-        public EatService(IUnitOfWork uow, IScheduleService scheduleService)
+        public EatService(IUnitOfWork uow, IScheduleService scheduleService, IUserService userService)
         {
             _uow = uow ?? throw new ArgumentNullException(nameof(uow));
+            _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _scheduleService = scheduleService ?? throw new ArgumentNullException(nameof(scheduleService));
         }
 
@@ -249,22 +251,25 @@ namespace MismeAPI.Service.Impls
             //}
             await _uow.CommitAsync();
 
-            foreach (var e in eatResult)
+            var wantNotification = await _userService.GetUserOptInNotificationAsync(loggedUser, SettingsConstants.PREPARE_EAT_REMINDER);
+            if (wantNotification)
             {
-                if (e.EatUtcAt.HasValue)
+                foreach (var e in eatResult)
                 {
-                    var timeReminder = e.EatUtcAt.Value.AddMinutes(-10);
-                    var schedule = await _scheduleService.ScheduleEatReminderNotificationAsync(e, timeReminder);
-                    e.EatSchedule = new EatSchedule
+                    if (e.EatUtcAt.HasValue && e.EatUtcAt.Value > DateTime.UtcNow)
                     {
-                        Schedule = schedule
-                    };
+                        var timeReminder = e.EatUtcAt.Value.AddMinutes(-10);
+                        var schedule = await _scheduleService.ScheduleEatReminderNotificationAsync(e, timeReminder);
+                        e.EatSchedule = new EatSchedule
+                        {
+                            Schedule = schedule
+                        };
 
-                    await _uow.EatRepository.UpdateAsync(e, e.Id);
+                        await _uow.EatRepository.UpdateAsync(e, e.Id);
+                    }
                 }
+                await _uow.CommitAsync();
             }
-
-            await _uow.CommitAsync();
         }
 
         public async Task<(double imc, double kcal)> GetKCalImcAsync(int userId, DateTime date)

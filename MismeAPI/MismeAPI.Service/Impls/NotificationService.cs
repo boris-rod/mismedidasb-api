@@ -32,16 +32,22 @@ namespace MismeAPI.Service.Impls
         public async Task NotifyEatReminderAsync(int eatId)
         {
             var eat = await _uow.EatRepository.GetAll().Where(e => e.Id == eatId)
+                .Include(e => e.EatSchedule)
+                    .ThenInclude(es => es.Schedule)
                 .Include(e => e.User)
                     .ThenInclude(u => u.Devices)
                 .FirstOrDefaultAsync();
 
-            if (eat != null)
+            var schedule = eat?.EatSchedule?.Schedule;
+            var isProcessed = schedule != null ? schedule.IsProcessed : false;
+
+            if (!isProcessed && eat != null)
             {
                 var devices = eat.User?.Devices;
+
                 if (devices != null)
                 {
-                    var wantNotification = await GetUserOptInNotificationAsync(eat.User.Id, SettingsConstants.PREPARE_EAT_REMINDER);
+                    var wantNotification = await _userService.GetUserOptInNotificationAsync(eat.User.Id, SettingsConstants.PREPARE_EAT_REMINDER);
                     if (wantNotification)
                     {
                         var lang = await _userService.GetUserLanguageFromUserIdAsync(eat.User.Id);
@@ -53,6 +59,28 @@ namespace MismeAPI.Service.Impls
                         await SendFirebaseNotificationAsync(title, body, devices);
                     }
                 }
+            }
+
+            if (!isProcessed && schedule != null)
+            {
+                schedule.IsProcessed = true;
+                await _uow.ScheduleRepository.UpdateAsync(schedule, schedule.Id);
+                await _uow.CommitAsync();
+            }
+        }
+
+        public async Task NotifyDrinWaterReminderAsync(int userId)
+        {
+            var user = await _userService.GetUserDevicesAsync(userId);
+            var wantNotification = await _userService.GetUserOptInNotificationAsync(userId, SettingsConstants.DRINK_WATER_REMINDER);
+
+            if (wantNotification && user?.Devices != null)
+            {
+                var lang = await _userService.GetUserLanguageFromUserIdAsync(userId);
+                var title = (lang == "EN") ? "Remember to drink enough water" : "Recuarda tomar suficiente agua";
+                var body = (lang == "EN") ? "Dr.PlaniFive recomends 2L of water every day between eats" : "El Dr.PlaniFive recomienda tomar 2L de agua cada dia entre las comidas";
+
+                await SendFirebaseNotificationAsync(title, body, user.Devices);
             }
         }
 
@@ -78,23 +106,6 @@ namespace MismeAPI.Service.Impls
                     var response = await fcm.SendAsync(device.Token, message);
                 }
             }
-        }
-
-        private async Task<bool> GetUserOptInNotificationAsync(int userId, string settingConstant)
-        {
-            if (settingConstant != SettingsConstants.PREPARE_EAT_REMINDER)
-                return false;
-
-            var setting = await _uow.SettingRepository.GetAll().Where(s => s.Name == settingConstant).FirstOrDefaultAsync();
-            if (setting != null)
-            {
-                var us = await _uow.UserSettingRepository.GetAll().Where(us => us.SettingId == setting.Id && us.UserId == userId).FirstOrDefaultAsync();
-                if (us != null && !string.IsNullOrWhiteSpace(us.Value))
-                {
-                    return us.Value == "true";
-                }
-            }
-            return false;
         }
     }
 }

@@ -738,7 +738,7 @@ namespace MismeAPI.Service.Impls
 
         public async Task<IEnumerable<User>> GetUsersWithoutPlanAsync(DateTime date)
         {
-            var usersWithPlans = await _uow.UserRepository.GetAll()
+            var usersWithoutPlans = await _uow.UserRepository.GetAll()
                 .Include(u => u.UserStatistics)
                 .Include(u => u.Eats)
                 .Include(u => u.Devices)
@@ -747,7 +747,34 @@ namespace MismeAPI.Service.Impls
                 .Where(u => !u.Eats.Any(e => e.PlanCreatedAt.HasValue && e.PlanCreatedAt.Value.Date == date.Date))
                 .ToListAsync();
 
-            return usersWithPlans;
+            return usersWithoutPlans;
+        }
+
+        public async Task<User> GetUserDevicesAsync(int userId)
+        {
+            var user = await _uow.UserRepository.GetAll()
+                .Include(u => u.Devices)
+                .Where(u => u.Id == userId)
+                .FirstOrDefaultAsync();
+
+            return user;
+        }
+
+        public async Task<bool> GetUserOptInNotificationAsync(int userId, string settingConstant)
+        {
+            if (settingConstant != SettingsConstants.PREPARE_EAT_REMINDER && settingConstant != SettingsConstants.DRINK_WATER_REMINDER)
+                return false;
+
+            var setting = await _uow.SettingRepository.GetAll().Where(s => s.Name == settingConstant).FirstOrDefaultAsync();
+            if (setting != null)
+            {
+                var us = await _uow.UserSettingRepository.GetAll().Where(us => us.SettingId == setting.Id && us.UserId == userId).FirstOrDefaultAsync();
+                if (us != null && !string.IsNullOrWhiteSpace(us.Value))
+                {
+                    return us.Value == "true";
+                }
+            }
+            return false;
         }
     }
 }
