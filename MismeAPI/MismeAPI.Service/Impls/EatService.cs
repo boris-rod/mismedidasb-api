@@ -177,15 +177,21 @@ namespace MismeAPI.Service.Impls
                 .ToListAsync();
 
             var isNew = true;
+            bool? oldPlanBalanced = null;
+            DateTime? oldPlanCreatedAt = null;
 
             foreach (var d in userEats)
             {
                 if (isNew)
+                {
                     isNew = false;
+                    oldPlanBalanced = d.IsBalancedPlan;
+                    oldPlanCreatedAt = d.PlanCreatedAt;
+                }
 
-                var jobId = d.EatSchedule?.Schedule?.JobId;
-                if (!String.IsNullOrEmpty(jobId))
-                    await _scheduleService.RemoveJobIfExistIfExistAsync(jobId);
+                //var jobId = d.EatSchedule?.Schedule?.JobId;
+                //if (!String.IsNullOrEmpty(jobId))
+                //    await _scheduleService.RemoveJobIfExistIfExistAsync(jobId);
 
                 _uow.EatRepository.Delete(d);
             }
@@ -203,10 +209,15 @@ namespace MismeAPI.Service.Impls
                 e.IsBalanced = eat.IsBalanced;
                 e.EatUtcAt = item.EatUtcAt;
 
-                if (isNew && IsValidDateForPlan(eat.DateInUtc, eat.DateTimeInUserLocalTime))
+                if (IsValidDateForPlan(eat.DateInUtc, eat.DateTimeInUserLocalTime))
                 {
                     e.PlanCreatedAt = eat.DateInUtc;
                     e.IsBalancedPlan = eat.IsBalanced;
+                }
+                else
+                {
+                    e.PlanCreatedAt = oldPlanCreatedAt;
+                    e.IsBalancedPlan = oldPlanBalanced;
                 }
 
                 await _uow.EatRepository.AddAsync(e);
@@ -251,6 +262,7 @@ namespace MismeAPI.Service.Impls
             //}
             await _uow.CommitAsync();
 
+            /*
             var wantNotification = await _userService.GetUserOptInNotificationAsync(loggedUser, SettingsConstants.PREPARE_EAT_REMINDER);
             if (wantNotification)
             {
@@ -270,6 +282,8 @@ namespace MismeAPI.Service.Impls
                 }
                 await _uow.CommitAsync();
             }
+            API reminder not in use anymore
+            */
         }
 
         public async Task<(double imc, double kcal)> GetKCalImcAsync(int userId, DateTime date)

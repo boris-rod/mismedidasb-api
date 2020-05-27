@@ -161,7 +161,7 @@ namespace MismeAPI.Service.Impls
                 }
             }
 
-            await RecurringJobSchedulerAsync();
+            //await RecurringJobSchedulerAsync();
         }
 
         private async Task RecurringJobSchedulerAsync()

@@ -102,6 +102,11 @@ namespace MismeAPI.Utils
                             body = GetFirebaseMessageForNewReferralReward(mapped, lang);
                         }
 
+                        if (category == RewardCategoryEnum.EAT_BALANCED_CREATED || category == RewardCategoryEnum.EAT_CREATED)
+                        {
+                            body = GetFirebaseMessageForCreateEatReward(mapped, lang, category);
+                        }
+
                         if (devices != null)
                             await _notificationService.SendFirebaseNotificationAsync(title, body, devices);
                         break;
@@ -194,6 +199,20 @@ namespace MismeAPI.Utils
             {
                 "EN" => "Congratulations. A user invited by you has just joined PlaniFive." + ". You receipt " + rewardResponse.Points + " points.",
                 _ => "Enhorabuena! Un usuario invitado por usted se ha unido a PlaniFive." + ". Ha ganado usted " + rewardResponse.Points + " puntos.",
+            };
+            return message;
+        }
+
+        private string GetFirebaseMessageForCreateEatReward(RewardResponse rewardResponse, string lang, RewardCategoryEnum category)
+        {
+            var eat = lang == "EN" ? "balaced " : "balanceado ";
+            if (category == RewardCategoryEnum.EAT_CREATED)
+                eat = "";
+
+            string message = lang switch
+            {
+                "EN" => "Congratulations. You have been rewarded for creating a " + eat + "plan today." + ". You receipt " + rewardResponse.Points + " points.",
+                _ => "Enhorabuena! Has sido premiado por crear un plan " + eat + "hoy." + ". Ha ganado usted " + rewardResponse.Points + " puntos.",
             };
             return message;
         }
