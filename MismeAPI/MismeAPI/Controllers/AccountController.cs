@@ -21,7 +21,7 @@ using System.Net;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
-namespace APITaxi.API.Controllers
+namespace MismeAPI.Controllers
 {
     [Route("api/account")]
     public class AccountController : Controller
@@ -100,7 +100,7 @@ namespace APITaxi.API.Controllers
         [ProducesResponseType(typeof(UserResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Unauthorized)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
-        public async Task<IActionResult> Login([FromBody]  LoginRequest loginRequest)
+        public async Task<IActionResult> Login([FromBody] LoginRequest loginRequest)
         {
             var result = await _accountService.LoginAsync(loginRequest);
             HttpContext.Response.Headers["Authorization"] = "Bearer " + result.accessToken;
@@ -267,7 +267,7 @@ namespace APITaxi.API.Controllers
         [AllowAnonymous]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> ForgotPassword([FromQuery]string email)
+        public async Task<IActionResult> ForgotPassword([FromQuery] string email)
         {
             var newPass = await _accountService.ForgotPasswordAsync(email);
 
