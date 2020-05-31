@@ -59,7 +59,7 @@ namespace MismeAPI.Controllers
         [Authorize]
         [ProducesResponseType(typeof(DishResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> GetById([FromRoute]int id)
+        public async Task<IActionResult> GetById([FromRoute] int id)
         {
             var loggedUser = User.GetUserIdFromToken();
             var language = await _userService.GetUserLanguageFromUserIdAsync(loggedUser);
@@ -86,7 +86,12 @@ namespace MismeAPI.Controllers
         {
             var loggedUser = User.GetUserIdFromToken();
             var result = await _dishService.CreateDishAsync(loggedUser, dish);
-            var mapped = _mapper.Map<DishResponse>(result);
+
+            var language = await _userService.GetUserLanguageFromUserIdAsync(loggedUser);
+            var mapped = _mapper.Map<DishResponse>(result, opt =>
+            {
+                opt.Items["lang"] = language;
+            });
             return Created("", new ApiOkResponse(mapped));
         }
 
@@ -116,7 +121,7 @@ namespace MismeAPI.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
-        public async Task<IActionResult> DeleteDish([FromRoute]int id)
+        public async Task<IActionResult> DeleteDish([FromRoute] int id)
         {
             var loggedUser = User.GetUserIdFromToken();
             await _dishService.DeleteDishAsync(loggedUser, id);
@@ -148,7 +153,7 @@ namespace MismeAPI.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> QuestionTranslation([FromRoute] int id, [FromBody]DishTranslationRequest dishTranslationRequest)
+        public async Task<IActionResult> QuestionTranslation([FromRoute] int id, [FromBody] DishTranslationRequest dishTranslationRequest)
         {
             var loggedUser = User.GetUserIdFromToken();
             await _dishService.ChangeDishTranslationAsync(loggedUser, dishTranslationRequest, id);
