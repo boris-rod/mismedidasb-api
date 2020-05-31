@@ -60,8 +60,8 @@ namespace MismeAPI.Utils
             var data = new RewardHistoryData
             {
                 // Make sure that this is an important info to store in the history
-                Entity1 = entity1,
-                Entity2 = entity2
+                Entity1 = JsonConvert.SerializeObject(entity1),
+                Entity2 = JsonConvert.SerializeObject(entity2)
             };
             var reward = new CreateRewardRequest
             {

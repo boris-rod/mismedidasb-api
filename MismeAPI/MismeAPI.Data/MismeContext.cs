@@ -42,6 +42,9 @@ namespace MismeAPI.Data
         public DbSet<Schedule> Schedule { get; set; }
         public DbSet<EatSchedule> EatSchedule { get; set; }
         public DbSet<UserSchedule> UserSchedule { get; set; }
+        public DbSet<SoloAnswer> SoloAnswer { get; set; }
+        public DbSet<SoloQuestion> SoloQuestion { get; set; }
+        public DbSet<UserSoloAnswer> UserSoloAnswers { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -52,6 +55,8 @@ namespace MismeAPI.Data
             modelBuilder.Entity<Schedule>().HasMany(p => p.EatSchedules).WithOne(b => b.Schedule).OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<User>().HasMany(p => p.UserSchedules).WithOne(b => b.User).OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<Schedule>().HasMany(p => p.UserSchedules).WithOne(b => b.Schedule).OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<SoloAnswer>().HasMany(p => p.UserSoloAnswers).WithOne(b => b.SoloAnswer).OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

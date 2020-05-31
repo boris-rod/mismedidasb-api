@@ -3,11 +3,14 @@ using MismeAPI.Common;
 using MismeAPI.Common.DTO.Request;
 using MismeAPI.Common.DTO.Request.Dish;
 using MismeAPI.Common.DTO.Request.Reward;
+using MismeAPI.Common.DTO.Response.SoloQuestion;
 using MismeAPI.Common.Exceptions;
 using MismeAPI.Data.Entities;
 using MismeAPI.Data.Entities.Enums;
+using MismeAPI.Data.Entities.NonDatabase;
 using MismeAPI.Data.UoW;
 using MismeAPI.Services;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -42,10 +45,28 @@ namespace MismeAPI.Service.Impls
             var rewardCategory = await _rewardCategoryService.GetRewardCategoryByCategoryAsync(rewardRequest.RewardCategoryEnum);
             var rewardAcomulate = await GetOrCreateRewardAcomulate(existUser, rewardCategory);
 
-            var allowedPoints = await AllowedPointsAsync(rewardCategory, rewardAcomulate, rewardRequest.IsPlus);
+            var allowedPoints = 0;
+
+            if (rewardCategory.Category == RewardCategoryEnum.SOLO_QUESTION_ANSWERED)
+            {
+                var data = JsonConvert.DeserializeObject<RewardHistoryData>(rewardRequest.Data);
+                var userAnswer = JsonConvert.DeserializeObject<UserSoloAnswerResponse>(data.Entity1);
+                allowedPoints = userAnswer.Points;
+            }
+            else
+            {
+                allowedPoints = await AllowedPointsAsync(rewardCategory, rewardAcomulate, rewardRequest.IsPlus);
+            }
+
             if (allowedPoints == 0)
             {
                 return null;
+            }
+
+            var rewardPoints = rewardRequest.IsPlus ? rewardCategory.PointsToIncrement : rewardCategory.PointsToDecrement;
+            if (rewardCategory.Category == RewardCategoryEnum.SOLO_QUESTION_ANSWERED)
+            {
+                rewardPoints = allowedPoints;
             }
 
             var dbReward = new RewardHistory();
@@ -53,7 +74,7 @@ namespace MismeAPI.Service.Impls
             dbReward.RewardCategory = rewardCategory;
             dbReward.IsPlus = rewardRequest.IsPlus;
             dbReward.Points = allowedPoints;
-            dbReward.RewardPoints = rewardRequest.IsPlus ? rewardCategory.PointsToIncrement : rewardCategory.PointsToDecrement;
+            dbReward.RewardPoints = rewardPoints;
             dbReward.Data = rewardRequest.Data;
             dbReward.CreatedAt = DateTime.UtcNow;
 

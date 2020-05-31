@@ -9,6 +9,7 @@ using MismeAPI.Common.DTO.Response.Reminder;
 using MismeAPI.Common.DTO.Response.Result;
 using MismeAPI.Common.DTO.Response.Reward;
 using MismeAPI.Common.DTO.Response.Settings;
+using MismeAPI.Common.DTO.Response.SoloQuestion;
 using MismeAPI.Common.DTO.Response.UserStatistics;
 using MismeAPI.Data.Entities;
 using MismeAPI.Service;
@@ -190,6 +191,7 @@ namespace MismeAPI.Utils
 
             CreateMap<CutPoint, CutPointResponse>();
             CreateMap<UserReferral, UserReferralResponse>();
+            CreateMap<UserSoloAnswer, UserSoloAnswerResponse>();
         }
 
         private int GetLastAnswer(Question src, Dictionary<int, int> dictionary)

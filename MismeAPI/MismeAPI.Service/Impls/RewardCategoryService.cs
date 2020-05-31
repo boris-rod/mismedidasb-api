@@ -148,6 +148,7 @@ namespace MismeAPI.Service.Impls
             await GetCreateRewardCategoryByCategorySaveAsync(RewardCategoryEnum.DISH_BUILT);
             await GetCreateRewardCategoryByCategorySaveAsync(RewardCategoryEnum.NEW_REFERAL);
             await GetCreateRewardCategoryByCategorySaveAsync(RewardCategoryEnum.CUT_POINT_REACHED);
+            await GetCreateRewardCategoryByCategorySaveAsync(RewardCategoryEnum.SOLO_QUESTION_ANSWERED);
 
             await _uow.CommitAsync();
         }
@@ -203,6 +204,11 @@ namespace MismeAPI.Service.Impls
 
                     case RewardCategoryEnum.CUT_POINT_REACHED:
                         rewardCategory.PointsToIncrement = 20;
+                        break;
+
+                    case RewardCategoryEnum.SOLO_QUESTION_ANSWERED:
+                        rewardCategory.PointsToIncrement = 0;
+                        rewardCategory.PointsToDecrement = 0;
                         break;
 
                     default:

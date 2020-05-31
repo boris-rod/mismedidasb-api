@@ -46,6 +46,9 @@ namespace MismeAPI.Data.UoW
             ScheduleRepository = ScheduleRepository ?? new GenericRepository<Schedule>(_context);
             EatScheduleRepository = EatScheduleRepository ?? new GenericRepository<EatSchedule>(_context);
             UserScheduleRepository = UserScheduleRepository ?? new GenericRepository<UserSchedule>(_context);
+            SoloQuestionRepository = SoloQuestionRepository ?? new GenericRepository<SoloQuestion>(_context);
+            SoloAnswerRepository = SoloAnswerRepository ?? new GenericRepository<SoloAnswer>(_context);
+            UserSoloAnswerRepository = UserSoloAnswerRepository ?? new GenericRepository<UserSoloAnswer>(_context);
         }
 
         public IGenericRepository<User> UserRepository { get; set; }
@@ -81,6 +84,9 @@ namespace MismeAPI.Data.UoW
         public IGenericRepository<Schedule> ScheduleRepository { get; set; }
         public IGenericRepository<EatSchedule> EatScheduleRepository { get; set; }
         public IGenericRepository<UserSchedule> UserScheduleRepository { get; set; }
+        public IGenericRepository<SoloQuestion> SoloQuestionRepository { get; set; }
+        public IGenericRepository<SoloAnswer> SoloAnswerRepository { get; set; }
+        public IGenericRepository<UserSoloAnswer> UserSoloAnswerRepository { get; set; }
 
         public async Task<int> CommitAsync()
         {
