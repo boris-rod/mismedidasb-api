@@ -7,6 +7,7 @@ using MismeAPI.Common.DTO.Request.Dish;
 using MismeAPI.Common.DTO.Response;
 using MismeAPI.Service;
 using MismeAPI.Utils;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -33,15 +34,22 @@ namespace MismeAPI.Controllers
         /// </summary>
         /// <param name="search">Search param.</param>
         /// <param name="tags">Tags id for filtering.</param>
+        /// <param name="page">Page to be listed. If null all the dishes will be returned.</param>
+        /// <param name="perPage">By defaul 10 but only will take effect if the page param is specified.</param>
+        /// <param name="harvardFilter">0- proteic, 1- caloric, 2- fruitVegetable.</param>
         [HttpGet]
         [Authorize]
         [ProducesResponseType(typeof(IEnumerable<DishResponse>), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> GetAll(string search, List<int> tags)
+        public async Task<IActionResult> GetAll(string search, List<int> tags, int? page, int? perPage, int? harvardFilter)
         {
             var loggedUser = User.GetUserIdFromToken();
             var language = await _userService.GetUserLanguageFromUserIdAsync(loggedUser);
 
-            var result = await _dishService.GetDishesAsync(search, tags);
+            var result = await _dishService.GetDishesAsync(search, tags, page, perPage, harvardFilter);
+
+            HttpContext.Response.Headers.Add("PagingData", JsonConvert.SerializeObject(result.GetPaginationData));
+            HttpContext.Response.Headers["Access-Control-Expose-Headers"] = "PagingData";
+            HttpContext.Response.Headers["Access-Control-Allow-Headers"] = "PagingData";
 
             var mapped = _mapper.Map<IEnumerable<DishResponse>>(result, opt =>
             {

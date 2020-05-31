@@ -1,6 +1,7 @@
 ﻿using MismeAPI.Common.DTO.Request;
 using MismeAPI.Common.DTO.Request.Dish;
 using MismeAPI.Data.Entities;
+using MismeAPI.Services.Utils;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -8,7 +9,7 @@ namespace MismeAPI.Service
 {
     public interface IDishService
     {
-        Task<IEnumerable<Dish>> GetDishesAsync(string search, List<int> tags);
+        Task<PaginatedList<Dish>> GetDishesAsync(string search, List<int> tags, int? page, int? perPage, int? harvardFilter);
 
         Task<Dish> GetDishByIdAsync(int id);
 
