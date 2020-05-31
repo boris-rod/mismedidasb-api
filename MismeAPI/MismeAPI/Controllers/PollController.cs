@@ -1,20 +1,14 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
 using MismeAPI.BasicResponses;
 using MismeAPI.Common.DTO.Request;
 using MismeAPI.Common.DTO.Request.Poll;
-using MismeAPI.Common.DTO.Request.Reward;
 using MismeAPI.Common.DTO.Request.Tip;
 using MismeAPI.Common.DTO.Response;
-using MismeAPI.Common.DTO.Response.Reward;
 using MismeAPI.Data.Entities.Enums;
-using MismeAPI.Data.Entities.NonDatabase;
 using MismeAPI.Service;
-using MismeAPI.Service.Hubs;
 using MismeAPI.Utils;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -72,7 +66,7 @@ namespace MismeAPI.Controllers
         [Authorize]
         [ProducesResponseType(typeof(PollResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> GetById([FromRoute]int id)
+        public async Task<IActionResult> GetById([FromRoute] int id)
         {
             var loggedUser = User.GetUserIdFromToken();
             var language = await _userService.GetUserLanguageFromUserIdAsync(loggedUser);
@@ -128,7 +122,7 @@ namespace MismeAPI.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> Delete([FromRoute]int id)
+        public async Task<IActionResult> Delete([FromRoute] int id)
         {
             var loggedUser = User.GetUserIdFromToken();
             await _pollService.DeletePollAsync(loggedUser, id);
@@ -208,7 +202,7 @@ namespace MismeAPI.Controllers
         [Authorize]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
-        public async Task<IActionResult> ChangePollQuestionsOrder([FromRoute] int id, [FromBody]QuestionOrderRequest questionOrderRequest)
+        public async Task<IActionResult> ChangePollQuestionsOrder([FromRoute] int id, [FromBody] QuestionOrderRequest questionOrderRequest)
         {
             var loggedUser = User.GetUserIdFromToken();
             await _pollService.ChangePollQuestionOrderAsync(loggedUser, questionOrderRequest, id);
@@ -225,7 +219,7 @@ namespace MismeAPI.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> ReadOnlyPoll([FromRoute] int id, [FromBody]PollReadOnlyRequest pollReadOnlyRequest)
+        public async Task<IActionResult> ReadOnlyPoll([FromRoute] int id, [FromBody] PollReadOnlyRequest pollReadOnlyRequest)
         {
             var loggedUser = User.GetUserIdFromToken();
             await _pollService.ChangePollReadOnlyAsync(loggedUser, pollReadOnlyRequest, id);
@@ -240,7 +234,7 @@ namespace MismeAPI.Controllers
         [Authorize]
         [ProducesResponseType(typeof(TipResponse), (int)HttpStatusCode.Created)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
-        public async Task<IActionResult> AddTip([FromBody]AddTipRequest tipRequest)
+        public async Task<IActionResult> AddTip([FromBody] AddTipRequest tipRequest)
         {
             var loggedUser = User.GetUserIdFromToken();
             var tip = await _pollService.AddTipRequestAsync(loggedUser, tipRequest);
@@ -257,7 +251,7 @@ namespace MismeAPI.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> DeleteTip([FromRoute]int id)
+        public async Task<IActionResult> DeleteTip([FromRoute] int id)
         {
             var loggedUser = User.GetUserIdFromToken();
             await _pollService.DeleteTipAsync(loggedUser, id);
@@ -310,7 +304,16 @@ namespace MismeAPI.Controllers
         {
             var loggedUser = User.GetUserIdFromToken();
             var result = await _pollService.GetAllPollsAdminAsync(loggedUser);
-            var mapped = _mapper.Map<IEnumerable<PollAdminResponse>>(result);
+
+            var language = await _userService.GetUserLanguageFromUserIdAsync(loggedUser);
+
+            //var mapped = _mapper.Map<IEnumerable<PollAdminResponse>>(result);
+
+            var mapped = _mapper.Map<IEnumerable<PollAdminResponse>>(result, opt =>
+            {
+                opt.Items["lang"] = language;
+            });
+
             mapped = mapped.OrderBy(m => m.Order);
             return Ok(new ApiOkResponse(mapped));
         }
@@ -325,7 +328,7 @@ namespace MismeAPI.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> PollTranslation([FromRoute] int id, [FromBody]PollTranslationRequest pollTranslationRequest)
+        public async Task<IActionResult> PollTranslation([FromRoute] int id, [FromBody] PollTranslationRequest pollTranslationRequest)
         {
             var loggedUser = User.GetUserIdFromToken();
             await _pollService.ChangePollTranslationAsync(loggedUser, pollTranslationRequest, id);
