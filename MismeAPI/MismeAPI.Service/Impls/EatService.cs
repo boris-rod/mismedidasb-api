@@ -73,6 +73,12 @@ namespace MismeAPI.Service.Impls
                   .ThenInclude(ed => ed.Dish)
                       .ThenInclude(d => d.DishTags)
                           .ThenInclude(dt => dt.Tag)
+              .Include(e => e.EatCompoundDishes)
+                  .ThenInclude(ed => ed.CompoundDish)
+                      .ThenInclude(d => d.DishCompoundDishes)
+                          .ThenInclude(dt => dt.Dish)
+                            .ThenInclude(dt => dt.DishTags)
+                                .ThenInclude(dt => dt.Tag)
               .AsQueryable();
 
             if (date.HasValue)
@@ -96,6 +102,12 @@ namespace MismeAPI.Service.Impls
                    .ThenInclude(ed => ed.Dish)
                        .ThenInclude(d => d.DishTags)
                            .ThenInclude(dt => dt.Tag)
+               .Include(e => e.EatCompoundDishes)
+                  .ThenInclude(ed => ed.CompoundDish)
+                      .ThenInclude(d => d.DishCompoundDishes)
+                          .ThenInclude(dt => dt.Dish)
+                            .ThenInclude(dt => dt.DishTags)
+                                .ThenInclude(dt => dt.Tag)
                .OrderBy(e => e.CreatedAt).ThenBy(e => e.EatType)
                .AsQueryable();
 
@@ -115,6 +127,12 @@ namespace MismeAPI.Service.Impls
                     .ThenInclude(ed => ed.Dish)
                         .ThenInclude(d => d.DishTags)
                             .ThenInclude(dt => dt.Tag)
+                .Include(e => e.EatCompoundDishes)
+                  .ThenInclude(ed => ed.CompoundDish)
+                      .ThenInclude(d => d.DishCompoundDishes)
+                          .ThenInclude(dt => dt.Dish)
+                            .ThenInclude(dt => dt.DishTags)
+                                .ThenInclude(dt => dt.Tag)
                 .AsQueryable();
 
             //filter by type if not -1(null equivalent)
@@ -133,6 +151,12 @@ namespace MismeAPI.Service.Impls
                             .ThenInclude(ed => ed.Dish)
                                 .ThenInclude(d => d.DishTags)
                                     .ThenInclude(dt => dt.Tag)
+                        .Include(e => e.EatCompoundDishes)
+                          .ThenInclude(ed => ed.CompoundDish)
+                              .ThenInclude(d => d.DishCompoundDishes)
+                                  .ThenInclude(dt => dt.Dish)
+                                    .ThenInclude(dt => dt.DishTags)
+                                        .ThenInclude(dt => dt.Tag)
                         .FirstOrDefaultAsync();
 
             if (e == null)
@@ -168,6 +192,7 @@ namespace MismeAPI.Service.Impls
         {
             var userEats = await _uow.EatRepository.GetAll().Where(e => e.UserId == loggedUser && e.CreatedAt.Date == eat.DateInUtc.Date)
                 .Include(e => e.EatDishes)
+                .Include(e => e.EatCompoundDishes)
                 .ToListAsync();
 
             var isNew = true;
@@ -207,6 +232,15 @@ namespace MismeAPI.Service.Impls
                     ed.Qty = d.Qty;
 
                     await _uow.EatDishRepository.AddAsync(ed);
+                }
+                foreach (var d in item.CompoundDishes)
+                {
+                    var ed = new EatCompoundDish();
+                    ed.CompoundDishId = d.DishId;
+                    ed.Eat = e;
+                    ed.Qty = d.Qty;
+
+                    await _uow.EatCompoundDishRepository.AddAsync(ed);
                 }
             }
             //}

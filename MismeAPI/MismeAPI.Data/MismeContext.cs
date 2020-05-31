@@ -39,6 +39,7 @@ namespace MismeAPI.Data
         public DbSet<CompoundDish> CompoundDishes { get; set; }
         public DbSet<CutPoint> CutPoint { get; set; }
         public DbSet<UserReferral> UserReferral { get; set; }
+        public DbSet<EatCompoundDish> EatCompoundDishes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

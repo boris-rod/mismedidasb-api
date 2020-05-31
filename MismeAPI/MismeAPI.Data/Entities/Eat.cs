@@ -11,6 +11,7 @@ namespace MismeAPI.Data.Entities
         public Eat()
         {
             EatDishes = new HashSet<EatDish>();
+            EatCompoundDishes = new HashSet<EatCompoundDish>();
         }
 
         public int Id { get; set; }
@@ -34,5 +35,6 @@ namespace MismeAPI.Data.Entities
         public bool? IsBalancedPlan { get; set; }
 
         public virtual ICollection<EatDish> EatDishes { get; set; }
+        public virtual ICollection<EatCompoundDish> EatCompoundDishes { get; set; }
     }
 }
