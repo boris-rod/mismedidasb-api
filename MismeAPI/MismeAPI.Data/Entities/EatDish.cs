@@ -10,6 +10,6 @@ namespace MismeAPI.Data.Entities
         public Dish Dish { get; set; }
         public int EatId { get; set; }
         public Eat Eat { get; set; }
-        public int Qty { get; set; }
+        public double Qty { get; set; }
     }
 }

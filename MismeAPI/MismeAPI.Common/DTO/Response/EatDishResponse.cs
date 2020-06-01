@@ -3,6 +3,6 @@
     public class EatDishResponse
     {
         public DishResponse Dish { get; set; }
-        public int Qty { get; set; }
+        public double Qty { get; set; }
     }
 }
