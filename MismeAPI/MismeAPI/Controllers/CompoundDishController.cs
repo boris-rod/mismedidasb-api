@@ -39,7 +39,7 @@ namespace MismeAPI.Controllers
         [Authorize]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> DeleteDish([FromRoute]int id)
+        public async Task<IActionResult> DeleteDish([FromRoute] int id)
         {
             var loggedUser = User.GetUserIdFromToken();
             await _compoundDishService.DeleteCompoundDishAsync(loggedUser, id);
@@ -96,7 +96,7 @@ namespace MismeAPI.Controllers
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
-        public async Task<IActionResult> AddCompoundDish([FromBody] CreateCompoundDishRequest dish)
+        public async Task<IActionResult> AddCompoundDish(CreateCompoundDishRequest dish)
         {
             var loggedUser = User.GetUserIdFromToken();
             var result = await _compoundDishService.CreateCompoundDishAsync(loggedUser, dish);
