@@ -57,6 +57,11 @@ namespace MismeAPI.Utils
                     await _rewardHelper.HandleRewardAsync(RewardCategoryEnum.EAT_CREATED_STREAK, user.Id, true,
                         userStatistics.BalancedEatCurrentStreak, userStatistics.BalancedEatMaxStreak, NotificationTypeEnum.FIREBASE, user.Devices);
                 }
+
+                /*Reward for creating an eat*/
+                var rewardCategory = isBalanced ? RewardCategoryEnum.EAT_BALANCED_CREATED : RewardCategoryEnum.EAT_CREATED;
+                await _rewardHelper.HandleRewardAsync(rewardCategory, user.Id, true, today, null, NotificationTypeEnum.FIREBASE, user.Devices);
+                /*#end*/
             }
 
             // Cut current streak section

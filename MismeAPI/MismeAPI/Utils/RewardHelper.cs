@@ -1,6 +1,4 @@
 ﻿using AutoMapper;
-using CorePush.Google;
-using FirebaseAdmin.Messaging;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using MismeAPI.Common.DTO.Request.Reward;
@@ -11,9 +9,7 @@ using MismeAPI.Data.Entities.NonDatabase;
 using MismeAPI.Service;
 using MismeAPI.Service.Hubs;
 using Newtonsoft.Json;
-using Serilog;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -28,9 +24,10 @@ namespace MismeAPI.Utils
         private readonly IMapper _mapper;
         private readonly IUserService _userService;
         private readonly IConfiguration _config;
+        private readonly INotificationService _notificationService;
 
         public RewardHelper(IMapper mapper, IRewardService rewardService, IHubContext<UserHub> hub, IUserStatisticsService userStatisticsService,
-            ICutPointService cutPointService, IUserService userService, IConfiguration config)
+            ICutPointService cutPointService, IUserService userService, IConfiguration config, INotificationService notificationService)
         {
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _rewardService = rewardService ?? throw new ArgumentNullException(nameof(rewardService));
@@ -39,6 +36,7 @@ namespace MismeAPI.Utils
             _cutPointService = cutPointService ?? throw new ArgumentNullException(nameof(cutPointService));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _config = config ?? throw new ArgumentNullException(nameof(config));
+            _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
         }
 
         /// <summary>
@@ -62,8 +60,8 @@ namespace MismeAPI.Utils
             var data = new RewardHistoryData
             {
                 // Make sure that this is an important info to store in the history
-                Entity1 = entity1,
-                Entity2 = entity2
+                Entity1 = JsonConvert.SerializeObject(entity1),
+                Entity2 = JsonConvert.SerializeObject(entity2)
             };
             var reward = new CreateRewardRequest
             {
@@ -99,8 +97,18 @@ namespace MismeAPI.Utils
                             body = GetFirebaseMessageForDishBuildReward(mapped, lang);
                         }
 
+                        if (category == RewardCategoryEnum.NEW_REFERAL)
+                        {
+                            body = GetFirebaseMessageForNewReferralReward(mapped, lang);
+                        }
+
+                        if (category == RewardCategoryEnum.EAT_BALANCED_CREATED || category == RewardCategoryEnum.EAT_CREATED)
+                        {
+                            body = GetFirebaseMessageForCreateEatReward(mapped, lang, category);
+                        }
+
                         if (devices != null)
-                            await SendFirebaseNotificationAsync(title, body, devices);
+                            await _notificationService.SendFirebaseNotificationAsync(title, body, devices);
                         break;
 
                     default:
@@ -128,37 +136,6 @@ namespace MismeAPI.Utils
         private async Task SendSignalRNotificationAsync(string hubConstant, object data)
         {
             await _hub.Clients.All.SendAsync(hubConstant, data);
-        }
-
-        private async Task SendFirebaseNotificationAsync(string title, string body, IEnumerable<Device> devices)
-        {
-            var serverKey = _config["Firebase:ServerKey"];
-            var senderId = _config["Firebase:SenderId"];
-
-            foreach (var device in devices)
-            {
-                using (var fcm = new FcmSender(serverKey, senderId))
-                {
-                    Message message = new Message()
-                    {
-                        Notification = new Notification
-                        {
-                            Title = title,
-                            Body = body,
-                        },
-                        Token = device.Token
-                    };
-                    try
-                    {
-                        var response = await fcm.SendAsync(device.Token, message);
-                        Log.Information("Notification sent", response.ToString());
-                    }
-                    catch (Exception e)
-                    {
-                        Log.Error(e, "Notification send exception");
-                    }
-                }
-            }
         }
 
         private string GetFirebaseMessageForStreakReward(RewardCategoryEnum category, int streak, RewardResponse rewardResponse, string lang)
@@ -212,6 +189,30 @@ namespace MismeAPI.Utils
             {
                 "EN" => "Congratulations. Dr.PlaniFive have approved your dish and it will be visible to other users now." + ". You receipt " + rewardResponse.Points + " points.",
                 _ => "Enhorabuena! El Dr.PlaniFive ha aprobado su alimento y estara visible para otros usuarios en la base de datos general." + ". Ha ganado usted " + rewardResponse.Points + " puntos.",
+            };
+            return message;
+        }
+
+        private string GetFirebaseMessageForNewReferralReward(RewardResponse rewardResponse, string lang)
+        {
+            string message = lang switch
+            {
+                "EN" => "Congratulations. A user invited by you has just joined PlaniFive." + ". You receipt " + rewardResponse.Points + " points.",
+                _ => "Enhorabuena! Un usuario invitado por usted se ha unido a PlaniFive." + ". Ha ganado usted " + rewardResponse.Points + " puntos.",
+            };
+            return message;
+        }
+
+        private string GetFirebaseMessageForCreateEatReward(RewardResponse rewardResponse, string lang, RewardCategoryEnum category)
+        {
+            var eat = lang == "EN" ? "balaced " : "balanceado ";
+            if (category == RewardCategoryEnum.EAT_CREATED)
+                eat = "";
+
+            string message = lang switch
+            {
+                "EN" => "Congratulations. You have been rewarded for creating a " + eat + "plan today." + ". You receipt " + rewardResponse.Points + " points.",
+                _ => "Enhorabuena! Has sido premiado por crear un plan " + eat + "hoy." + ". Ha ganado usted " + rewardResponse.Points + " puntos.",
             };
             return message;
         }

@@ -16,10 +16,14 @@ namespace MismeAPI.Service.Impls
     public class EatService : IEatService
     {
         private readonly IUnitOfWork _uow;
+        private readonly IScheduleService _scheduleService;
+        private readonly IUserService _userService;
 
-        public EatService(IUnitOfWork uow)
+        public EatService(IUnitOfWork uow, IScheduleService scheduleService, IUserService userService)
         {
             _uow = uow ?? throw new ArgumentNullException(nameof(uow));
+            _userService = userService ?? throw new ArgumentNullException(nameof(userService));
+            _scheduleService = scheduleService ?? throw new ArgumentNullException(nameof(scheduleService));
         }
 
         public async Task<Eat> CreateEatAsync(int loggedUser, CreateEatRequest eat)
@@ -193,18 +197,30 @@ namespace MismeAPI.Service.Impls
             var userEats = await _uow.EatRepository.GetAll().Where(e => e.UserId == loggedUser && e.CreatedAt.Date == eat.DateInUtc.Date)
                 .Include(e => e.EatDishes)
                 .Include(e => e.EatCompoundDishes)
+                .Include(e => e.EatSchedule)
+                    .ThenInclude(es => es.Schedule)
                 .ToListAsync();
 
             var isNew = true;
+            bool? oldPlanBalanced = null;
+            DateTime? oldPlanCreatedAt = null;
 
             foreach (var d in userEats)
             {
                 if (isNew)
+                {
                     isNew = false;
+                    oldPlanBalanced = d.IsBalancedPlan;
+                    oldPlanCreatedAt = d.PlanCreatedAt;
+                }
+
+                //var jobId = d.EatSchedule?.Schedule?.JobId;
+                //if (!String.IsNullOrEmpty(jobId))
+                //    await _scheduleService.RemoveJobIfExistIfExistAsync(jobId);
 
                 _uow.EatRepository.Delete(d);
             }
-
+            var eatResult = new List<Eat>();
             ////this days not eat yet
             //if (userEats.Count == 0)
             //{
@@ -216,14 +232,23 @@ namespace MismeAPI.Service.Impls
                 e.EatType = (EatTypeEnum)item.EatType;
                 e.UserId = loggedUser;
                 e.IsBalanced = eat.IsBalanced;
+                e.EatUtcAt = item.EatUtcAt;
 
-                if (isNew && IsValidDateForPlan(eat.DateInUtc, eat.DateTimeInUserLocalTime))
+                if (IsValidDateForPlan(eat.DateInUtc, eat.DateTimeInUserLocalTime))
                 {
                     e.PlanCreatedAt = eat.DateInUtc;
                     e.IsBalancedPlan = eat.IsBalanced;
                 }
+                else
+                {
+                    e.PlanCreatedAt = oldPlanCreatedAt;
+                    e.IsBalancedPlan = oldPlanBalanced;
+                }
 
                 await _uow.EatRepository.AddAsync(e);
+
+                eatResult.Add(e);
+
                 foreach (var d in item.Dishes)
                 {
                     var ed = new EatDish();
@@ -270,6 +295,29 @@ namespace MismeAPI.Service.Impls
             //    }
             //}
             await _uow.CommitAsync();
+
+            /*
+            var wantNotification = await _userService.GetUserOptInNotificationAsync(loggedUser, SettingsConstants.PREPARE_EAT_REMINDER);
+            if (wantNotification)
+            {
+                foreach (var e in eatResult)
+                {
+                    if (e.EatUtcAt.HasValue && e.EatUtcAt.Value > DateTime.UtcNow)
+                    {
+                        var timeReminder = e.EatUtcAt.Value.AddMinutes(-10);
+                        var schedule = await _scheduleService.ScheduleEatReminderNotificationAsync(e, timeReminder);
+                        e.EatSchedule = new EatSchedule
+                        {
+                            Schedule = schedule
+                        };
+
+                        await _uow.EatRepository.UpdateAsync(e, e.Id);
+                    }
+                }
+                await _uow.CommitAsync();
+            }
+            API reminder not in use anymore
+            */
         }
 
         public async Task<(double imc, double kcal)> GetKCalImcAsync(int userId, DateTime date)

@@ -104,7 +104,7 @@ namespace MismeAPI.Services.Impls
                 var response = await client.CopyObjectAsync(copyRequest);
                 return response;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 throw;
             }
