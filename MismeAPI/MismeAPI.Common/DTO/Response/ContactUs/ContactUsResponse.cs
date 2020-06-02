@@ -15,5 +15,6 @@ namespace MismeAPI.Common.DTO.Response.ContactUs
         public bool Read { get; set; }
         public string Priority { get; set; }
         public int PriorityId { get; set; }
+        public bool IsAnswered { get; set; }
     }
 }

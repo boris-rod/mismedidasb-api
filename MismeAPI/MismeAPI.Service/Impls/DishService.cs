@@ -8,6 +8,7 @@ using MismeAPI.Data.Entities;
 using MismeAPI.Data.Entities.Enums;
 using MismeAPI.Data.UoW;
 using MismeAPI.Services;
+using MismeAPI.Services.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -191,7 +192,7 @@ namespace MismeAPI.Service.Impls
             return dishes;
         }
 
-        public async Task<IEnumerable<Dish>> GetDishesAsync(string search, List<int> tags)
+        public async Task<PaginatedList<Dish>> GetDishesAsync(string search, List<int> tags, int? page, int? perPage, int? harvardFilter)
         {
             var results = await _context.Dishes
                 .Include(d => d.DishTags)
@@ -209,7 +210,26 @@ namespace MismeAPI.Service.Impls
                     results = results.Where(d => d.DishTags.Any(d => d.TagId == t));
                 }
             }
-            return results;
+            if (harvardFilter.HasValue)
+            {
+                switch (harvardFilter.Value)
+                {
+                    // proteic
+                    case 0:
+                        results = results.Where(r => r.IsProteic == true);
+                        break;
+                    // caloric
+                    case 1:
+                        results = results.Where(r => r.IsCaloric == true);
+                        break;
+
+                    default:
+                        results = results.Where(r => r.IsFruitAndVegetables == true);
+                        break;
+                }
+            }
+
+            return await PaginatedList<Dish>.CreateAsync(results.AsQueryable(), page ?? 1, page.HasValue == false ? results.Count() : perPage ?? 10);
         }
 
         public async Task<Dish> UpdateDishAsync(int loggedUser, UpdateDishRequest dish)

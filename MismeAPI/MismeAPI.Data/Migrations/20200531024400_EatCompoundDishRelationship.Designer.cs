@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MismeAPI.Data;
 
 namespace MismeAPI.Data.Migrations
 {
     [DbContext(typeof(MismeContext))]
-    partial class MismeContextModelSnapshot : ModelSnapshot
+    [Migration("20200531024400_EatCompoundDishRelationship")]
+    partial class EatCompoundDishRelationship
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -339,8 +341,8 @@ namespace MismeAPI.Data.Migrations
                     b.Property<int>("DishId")
                         .HasColumnType("int");
 
-                    b.Property<double>("DishQty")
-                        .HasColumnType("double");
+                    b.Property<int>("DishQty")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -387,9 +389,6 @@ namespace MismeAPI.Data.Migrations
                     b.Property<int>("EatType")
                         .HasColumnType("int");
 
-                    b.Property<DateTime?>("EatUtcAt")
-                        .HasColumnType("datetime(6)");
-
                     b.Property<bool>("IsBalanced")
                         .HasColumnType("tinyint(1)");
 
@@ -424,8 +423,8 @@ namespace MismeAPI.Data.Migrations
                     b.Property<int>("EatId")
                         .HasColumnType("int");
 
-                    b.Property<double>("Qty")
-                        .HasColumnType("double");
+                    b.Property<int>("Qty")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -448,8 +447,8 @@ namespace MismeAPI.Data.Migrations
                     b.Property<int>("EatId")
                         .HasColumnType("int");
 
-                    b.Property<double>("Qty")
-                        .HasColumnType("double");
+                    b.Property<int>("Qty")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -458,28 +457,6 @@ namespace MismeAPI.Data.Migrations
                     b.HasIndex("EatId");
 
                     b.ToTable("eatdish");
-                });
-
-            modelBuilder.Entity("MismeAPI.Data.Entities.EatSchedule", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<int>("EatId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ScheduleId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("EatId")
-                        .IsUnique();
-
-                    b.HasIndex("ScheduleId");
-
-                    b.ToTable("eatschedule");
                 });
 
             modelBuilder.Entity("MismeAPI.Data.Entities.GeneralContent", b =>
@@ -747,23 +724,6 @@ namespace MismeAPI.Data.Migrations
                     b.ToTable("rewardhistory");
                 });
 
-            modelBuilder.Entity("MismeAPI.Data.Entities.Schedule", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsProcessed")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("JobId")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("schedule");
-                });
-
             modelBuilder.Entity("MismeAPI.Data.Entities.Setting", b =>
                 {
                     b.Property<int>("Id")
@@ -779,104 +739,6 @@ namespace MismeAPI.Data.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("setting");
-                });
-
-            modelBuilder.Entity("MismeAPI.Data.Entities.SoloAnswer", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<string>("Code")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<DateTime>("ModifiedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("Points")
-                        .HasColumnType("int");
-
-                    b.Property<int>("SoloQuestionId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Title")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
-
-                    b.Property<string>("TitleEN")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
-
-                    b.Property<string>("TitleIT")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SoloQuestionId");
-
-                    b.ToTable("soloanswer");
-                });
-
-            modelBuilder.Entity("MismeAPI.Data.Entities.SoloQuestion", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<bool>("AllowCustomAnswer")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("Code")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<DateTime>("ModifiedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("Title")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
-
-                    b.Property<string>("TitleEN")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
-
-                    b.Property<string>("TitleIT")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("soloquestion");
-                });
-
-            modelBuilder.Entity("MismeAPI.Data.Entities.Subscription", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<DateTime>("ModifiedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
-
-                    b.Property<int>("Product")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ValueCoins")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("subscription");
                 });
 
             modelBuilder.Entity("MismeAPI.Data.Entities.Tag", b =>
@@ -983,9 +845,6 @@ namespace MismeAPI.Data.Migrations
                     b.Property<bool>("TermsAndConditionsAccepted")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<string>("TimeZone")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
-
                     b.Property<string>("Username")
                         .HasColumnType("longtext CHARACTER SET utf8mb4");
 
@@ -1076,33 +935,6 @@ namespace MismeAPI.Data.Migrations
                     b.ToTable("userreferral");
                 });
 
-            modelBuilder.Entity("MismeAPI.Data.Entities.UserSchedule", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<string>("JobConstant")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
-
-                    b.Property<int>("ScheduleId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UserTimeZone")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ScheduleId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("userschedule");
-                });
-
             modelBuilder.Entity("MismeAPI.Data.Entities.UserSetting", b =>
                 {
                     b.Property<int>("Id")
@@ -1125,45 +957,6 @@ namespace MismeAPI.Data.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("usersetting");
-                });
-
-            modelBuilder.Entity("MismeAPI.Data.Entities.UserSoloAnswer", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<string>("AnswerCode")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
-
-                    b.Property<string>("AnswerValue")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
-
-                    b.Property<int>("Coins")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("Points")
-                        .HasColumnType("int");
-
-                    b.Property<string>("QuestionCode")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
-
-                    b.Property<int?>("SoloAnswerId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SoloAnswerId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("usersoloanswer");
                 });
 
             modelBuilder.Entity("MismeAPI.Data.Entities.UserStatistics", b =>
@@ -1205,42 +998,6 @@ namespace MismeAPI.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("userstatistics");
-                });
-
-            modelBuilder.Entity("MismeAPI.Data.Entities.UserSubscription", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<DateTime>("ModifiedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("SubscriptionId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("ValidAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<TimeSpan>("ValidDays")
-                        .HasColumnType("time(6)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SubscriptionId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("usersubscription");
                 });
 
             modelBuilder.Entity("MismeAPI.Data.Entities.UserToken", b =>
@@ -1400,21 +1157,6 @@ namespace MismeAPI.Data.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("MismeAPI.Data.Entities.EatSchedule", b =>
-                {
-                    b.HasOne("MismeAPI.Data.Entities.Eat", "Eat")
-                        .WithOne("EatSchedule")
-                        .HasForeignKey("MismeAPI.Data.Entities.EatSchedule", "EatId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("MismeAPI.Data.Entities.Schedule", "Schedule")
-                        .WithMany("EatSchedules")
-                        .HasForeignKey("ScheduleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("MismeAPI.Data.Entities.Poll", b =>
                 {
                     b.HasOne("MismeAPI.Data.Entities.Concept", "Concept")
@@ -1459,15 +1201,6 @@ namespace MismeAPI.Data.Migrations
                     b.HasOne("MismeAPI.Data.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("MismeAPI.Data.Entities.SoloAnswer", b =>
-                {
-                    b.HasOne("MismeAPI.Data.Entities.SoloQuestion", "SoloQuestion")
-                        .WithMany("SoloAnswers")
-                        .HasForeignKey("SoloQuestionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -1525,21 +1258,6 @@ namespace MismeAPI.Data.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("MismeAPI.Data.Entities.UserSchedule", b =>
-                {
-                    b.HasOne("MismeAPI.Data.Entities.Schedule", "Schedule")
-                        .WithMany("UserSchedules")
-                        .HasForeignKey("ScheduleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("MismeAPI.Data.Entities.User", "User")
-                        .WithMany("UserSchedules")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("MismeAPI.Data.Entities.UserSetting", b =>
                 {
                     b.HasOne("MismeAPI.Data.Entities.Setting", "Setting")
@@ -1555,40 +1273,11 @@ namespace MismeAPI.Data.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("MismeAPI.Data.Entities.UserSoloAnswer", b =>
-                {
-                    b.HasOne("MismeAPI.Data.Entities.SoloAnswer", "SoloAnswer")
-                        .WithMany("UserSoloAnswers")
-                        .HasForeignKey("SoloAnswerId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("MismeAPI.Data.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("MismeAPI.Data.Entities.UserStatistics", b =>
                 {
                     b.HasOne("MismeAPI.Data.Entities.User", "User")
                         .WithOne("UserStatistics")
                         .HasForeignKey("MismeAPI.Data.Entities.UserStatistics", "UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("MismeAPI.Data.Entities.UserSubscription", b =>
-                {
-                    b.HasOne("MismeAPI.Data.Entities.Subscription", "Subscription")
-                        .WithMany("Subscribers")
-                        .HasForeignKey("SubscriptionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("MismeAPI.Data.Entities.User", "User")
-                        .WithMany("Subscriptions")
-                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

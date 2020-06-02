@@ -43,6 +43,7 @@ namespace MismeAPI.Data.UoW
             CompoundDishRepository = CompoundDishRepository ?? new GenericRepository<CompoundDish>(_context);
             CutPointRepository = CutPointRepository ?? new GenericRepository<CutPoint>(_context);
             UserReferralRepository = UserReferralRepository ?? new GenericRepository<UserReferral>(_context);
+            EatCompoundDishRepository = EatCompoundDishRepository ?? new GenericRepository<EatCompoundDish>(_context);
             ScheduleRepository = ScheduleRepository ?? new GenericRepository<Schedule>(_context);
             EatScheduleRepository = EatScheduleRepository ?? new GenericRepository<EatSchedule>(_context);
             UserScheduleRepository = UserScheduleRepository ?? new GenericRepository<UserSchedule>(_context);
@@ -83,6 +84,7 @@ namespace MismeAPI.Data.UoW
         public IGenericRepository<DishCompoundDish> DishCompoundDishRepository { get; set; }
         public IGenericRepository<CutPoint> CutPointRepository { get; set; }
         public IGenericRepository<UserReferral> UserReferralRepository { get; set; }
+        public IGenericRepository<EatCompoundDish> EatCompoundDishRepository { get; set; }
         public IGenericRepository<Schedule> ScheduleRepository { get; set; }
         public IGenericRepository<EatSchedule> EatScheduleRepository { get; set; }
         public IGenericRepository<UserSchedule> UserScheduleRepository { get; set; }

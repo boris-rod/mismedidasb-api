@@ -107,5 +107,21 @@ namespace MismeAPI.Controllers
             var mapped = _mapper.Map<IEnumerable<ContactUsResponse>>(result);
             return Ok(new ApiOkResponse(mapped));
         }
+
+        /// <summary>
+        /// ANswer a message. Only an admin can do this operation. Requires authentication.
+        /// </summary>
+        /// <param name="answerRequest">Answer request object.</param>
+        [HttpPost("answer")]
+        [Authorize]
+        [ProducesResponseType(typeof(ContactUsResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
+        public async Task<IActionResult> AnswerMesage([FromBody] ContactAnswerRequest answerRequest)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            await _contactUsService.AnswerMmessageAsync(loggedUser, answerRequest);
+            return Ok();
+        }
     }
 }

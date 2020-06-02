@@ -109,10 +109,15 @@ namespace MismeAPI.Utils
                 .ForMember(d => d.Qty, opts => opts.MapFrom(source => source.Qty))
                 .ForMember(d => d.Dish, opts => opts.MapFrom(source => source.Dish));
 
+            CreateMap<EatCompoundDish, EatCompoundDishResponse>()
+                .ForMember(d => d.Qty, opts => opts.MapFrom(source => source.Qty))
+                .ForMember(d => d.CompoundDish, opts => opts.MapFrom(source => source.CompoundDish));
+
             CreateMap<Eat, EatResponse>()
                        .ForMember(d => d.EatTypeId, opts => opts.MapFrom(source => (int)source.EatType))
                        .ForMember(d => d.EatType, opts => opts.MapFrom(source => source.EatType.ToString()))
-                       .ForMember(d => d.EatDishResponse, opts => opts.MapFrom(source => source.EatDishes));
+                       .ForMember(d => d.EatDishResponse, opts => opts.MapFrom(source => source.EatDishes))
+                       .ForMember(d => d.EatCompoundDishResponse, opts => opts.MapFrom(source => source.EatCompoundDishes));
 
             CreateMap<UserSetting, BasicSettingResponse>()
                    .ForMember(d => d.Setting, opts => opts.MapFrom(source => source.Setting.Name))

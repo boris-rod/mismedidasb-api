@@ -13,6 +13,7 @@ using MismeAPI.Data.Entities.Enums;
 using MismeAPI.Data.UoW;
 using MismeAPI.Service;
 using MismeAPI.Service.Utils;
+using rlcx.suid;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -402,7 +403,7 @@ namespace MismeAPI.Services.Impls
                 Password = passwordHash,
                 CreatedAt = DateTime.UtcNow,
                 ModifiedAt = DateTime.UtcNow,
-
+                Username = await GetUserNameAsync(suRequest.Email),
                 VerificationCode = number,
 
                 Status = StatusEnum.PENDING
@@ -425,6 +426,17 @@ namespace MismeAPI.Services.Impls
 
             await _uow.CommitAsync();
             return user;
+        }
+
+        private async Task<string> GetUserNameAsync(string email)
+        {
+            var username = email.Split('@')[0];
+            var exist = await _uow.UserRepository.FindByAsync(u => u.Username == username);
+            if (exist.Count > 0)
+            {
+                username = username + "_" + Suid.NewLettersOnlySuid();
+            }
+            return username;
         }
 
         private bool CheckStringWithoutSpecialChars(string word)

@@ -12,5 +12,6 @@ namespace MismeAPI.Common.DTO.Request
         public DateTime? EatUtcAt { get; set; }
 
         public BasicDishQtyRequest[] Dishes { get; set; }
+        public BasicDishQtyRequest[] CompoundDishes { get; set; }
     }
 }

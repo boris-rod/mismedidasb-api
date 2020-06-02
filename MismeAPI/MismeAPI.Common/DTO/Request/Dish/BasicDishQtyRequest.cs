@@ -3,6 +3,6 @@
     public class BasicDishQtyRequest
     {
         public int DishId { get; set; }
-        public int Qty { get; set; }
+        public double Qty { get; set; }
     }
 }
