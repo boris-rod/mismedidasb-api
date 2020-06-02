@@ -355,16 +355,16 @@ namespace APITaxi.API.Controllers
         }
 
         /// <summary>
-        /// Get user profile. Requires authentication.
+        /// Get user profile. Requires authentication. Includes subscriptions
         /// </summary>
         [Authorize]
         [HttpGet("profile")]
-        [ProducesResponseType(typeof(UserResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(UserWithSubscriptionResponse), (int)HttpStatusCode.OK)]
         public async Task<IActionResult> GetUserProfile()
         {
             var loggedUser = User.GetUserIdFromToken();
             var result = await _accountService.GetUserProfileUseAsync(loggedUser);
-            var user = _mapper.Map<UserResponse>(result.user);
+            var user = _mapper.Map<UserWithSubscriptionResponse>(result.user);
             user.KCal = result.kcal;
             user.IMC = result.IMC;
             user.FirstHealthMeasured = result.firstHealtMeasured;

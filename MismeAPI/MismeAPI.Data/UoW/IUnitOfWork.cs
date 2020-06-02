@@ -43,6 +43,8 @@ namespace MismeAPI.Data.UoW
         IGenericRepository<SoloQuestion> SoloQuestionRepository { get; set; }
         IGenericRepository<SoloAnswer> SoloAnswerRepository { get; set; }
         IGenericRepository<UserSoloAnswer> UserSoloAnswerRepository { get; set; }
+        IGenericRepository<Subscription> SubscriptionRepository { get; set; }
+        IGenericRepository<UserSubscription> UserSubscriptionRepository { get; set; }
 
         Task<int> CommitAsync();
     }

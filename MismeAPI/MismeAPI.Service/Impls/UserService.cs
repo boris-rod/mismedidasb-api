@@ -760,6 +760,23 @@ namespace MismeAPI.Service.Impls
             return user;
         }
 
+        public async Task<User> GetUserAsync(int userId)
+        {
+            var user = await _uow.UserRepository.GetAll()
+                .Include(u => u.Subscriptions)
+                    .ThenInclude(s => s.Subscription)
+                .Include(u => u.Devices)
+                .Include(u => u.UserSettings)
+                .Include(u => u.UserStatistics)
+                .Where(u => u.Id == userId)
+                .FirstOrDefaultAsync();
+
+            if (user == null)
+                throw new NotFoundException("User");
+
+            return user;
+        }
+
         public async Task<bool> GetUserOptInNotificationAsync(int userId, string settingConstant)
         {
             if (settingConstant != SettingsConstants.PREPARE_EAT_REMINDER && settingConstant != SettingsConstants.DRINK_WATER_REMINDER)

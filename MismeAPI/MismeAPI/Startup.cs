@@ -94,6 +94,7 @@ namespace MismeAPI
             services.AddTransient<IScheduleService, ScheduleService>();
             services.AddTransient<INotificationService, NotificationService>();
             services.AddTransient<ISoloQuestionService, SoloQuestionService>();
+            services.AddTransient<ISubscriptionService, SubscriptionService>();
 
             var provider = services.BuildServiceProvider();
             var amazonS3Service = provider.GetService<IAmazonS3Service>();

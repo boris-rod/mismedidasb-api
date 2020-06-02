@@ -20,11 +20,13 @@ namespace MismeAPI.Utils
             var _uow = serviceProvider.GetRequiredService<IUnitOfWork>();
             var _categoryRewardService = serviceProvider.GetRequiredService<IRewardCategoryService>();
             var _soloQuestionService = serviceProvider.GetRequiredService<ISoloQuestionService>();
+            var _subscriptionService = serviceProvider.GetRequiredService<ISubscriptionService>();
 
             await CreateAdminUserAsync(_uow);
 
             await _categoryRewardService.InitRewardCategoriesAsync();
             await _soloQuestionService.SeedSoloQuestionsAsync();
+            await _subscriptionService.SeedSubscriptionAsync();
 
             //try
             //{

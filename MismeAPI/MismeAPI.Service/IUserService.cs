@@ -34,6 +34,8 @@ namespace MismeAPI.Service
 
         Task<User> GetUserDevicesAsync(int userId);
 
+        Task<User> GetUserAsync(int userId);
+
         Task<bool> GetUserOptInNotificationAsync(int userId, string settingConstant);
     }
 }

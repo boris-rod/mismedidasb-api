@@ -11,6 +11,7 @@ using MismeAPI.Common.Exceptions;
 using MismeAPI.Data.Entities;
 using MismeAPI.Data.Entities.Enums;
 using MismeAPI.Data.UoW;
+using MismeAPI.Service;
 using MismeAPI.Service.Utils;
 using System;
 using System.Collections.Generic;
@@ -28,18 +29,19 @@ namespace MismeAPI.Services.Impls
     public class AccountService : IAccountService
     {
         private readonly IConfiguration _configuration;
-
         private readonly IUnitOfWork _uow;
-
         private readonly IDetection _detection;
         private readonly IFileService _fileService;
+        private readonly ISubscriptionService _subscriptionService;
 
-        public AccountService(IConfiguration configuration, IUnitOfWork uow, IDetection detection, IFileService fileService)
+        public AccountService(IConfiguration configuration, IUnitOfWork uow, IDetection detection,
+            IFileService fileService, ISubscriptionService subscriptionService)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _uow = uow ?? throw new ArgumentNullException(nameof(uow));
             _detection = detection ?? throw new ArgumentNullException(nameof(detection));
             _fileService = fileService ?? throw new ArgumentNullException(nameof(fileService));
+            _subscriptionService = subscriptionService ?? throw new ArgumentNullException(nameof(subscriptionService));
         }
 
         public async Task<(User user, string accessToken, string refreshToken, double kcal, double IMC, DateTime? firstHealtMeasured)> LoginAsync(LoginRequest loginRequest)
@@ -726,7 +728,10 @@ namespace MismeAPI.Services.Impls
             user.ActivatedAt = DateTime.UtcNow;
 
             await _uow.UserRepository.UpdateAsync(user, user.Id);
+            await _subscriptionService.GetOrInitPlaniSubscriptionAsync(user, false);
+
             await _uow.CommitAsync();
+
             return user;
         }
 
@@ -763,7 +768,12 @@ namespace MismeAPI.Services.Impls
 
         public async Task<(User user, double kcal, double IMC, DateTime? firstHealtMeasured)> GetUserProfileUseAsync(int loggedUser)
         {
-            var user = await _uow.UserRepository.GetAsync(loggedUser);
+            var user = await _uow.UserRepository.GetAll()
+                .Include(u => u.Subscriptions)
+                    .ThenInclude(s => s.Subscription)
+                .Where(u => u.Id == loggedUser)
+                .FirstOrDefaultAsync();
+
             var kcal = GetKCal(user.Id);
             var imc = GetIMC(user.Id);
             var first = GetFirstHealthMeasured(user.Id);

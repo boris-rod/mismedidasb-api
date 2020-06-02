@@ -20,6 +20,7 @@ namespace MismeAPI.Data.Entities
             RewardAcumulates = new HashSet<RewardAcumulate>();
             Referrals = new HashSet<UserReferral>();
             UserSchedules = new HashSet<UserSchedule>();
+            Subscriptions = new HashSet<UserSubscription>();
         }
 
         public int Id { get; set; }
@@ -62,5 +63,6 @@ namespace MismeAPI.Data.Entities
         public virtual ICollection<RewardAcumulate> RewardAcumulates { get; set; }
         public virtual ICollection<UserReferral> Referrals { get; set; }
         public virtual ICollection<UserSchedule> UserSchedules { get; set; }
+        public virtual ICollection<UserSubscription> Subscriptions { get; set; }
     }
 }
