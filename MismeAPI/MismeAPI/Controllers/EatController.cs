@@ -200,17 +200,8 @@ namespace MismeAPI.Controllers
         public async Task<IActionResult> AddEats([FromBody]CreateBulkEatRequest eat)
         {
             var loggedUser = User.GetUserIdFromToken();
-            var editingPlan = await _eatService.AlreadyHavePlanByDateAsync(loggedUser, eat.DateInUtc);
 
             await _eatService.CreateBulkEatAsync(loggedUser, eat);
-
-            /*Reward section*/
-            if (!editingPlan)
-            {
-                var rewardCategory = eat.IsBalanced ? RewardCategoryEnum.EAT_BALANCED_CREATED : RewardCategoryEnum.EAT_CREATED;
-                await _rewardHelper.HandleRewardAsync(rewardCategory, loggedUser, true, eat, null);
-            }
-            /*#end reward section*/
 
             return Ok();
         }

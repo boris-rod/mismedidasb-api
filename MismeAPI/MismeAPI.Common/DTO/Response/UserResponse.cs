@@ -1,4 +1,6 @@
-﻿using System;
+﻿using MismeAPI.Common.DTO.Response.Subscription;
+using System;
+using System.Collections.Generic;
 
 namespace MismeAPI.Common.DTO.Response
 {

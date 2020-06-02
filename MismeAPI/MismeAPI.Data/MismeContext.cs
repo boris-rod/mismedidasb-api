@@ -40,11 +40,26 @@ namespace MismeAPI.Data
         public DbSet<CutPoint> CutPoint { get; set; }
         public DbSet<UserReferral> UserReferral { get; set; }
         public DbSet<EatCompoundDish> EatCompoundDishes { get; set; }
+        public DbSet<Schedule> Schedule { get; set; }
+        public DbSet<EatSchedule> EatSchedule { get; set; }
+        public DbSet<UserSchedule> UserSchedule { get; set; }
+        public DbSet<SoloAnswer> SoloAnswer { get; set; }
+        public DbSet<SoloQuestion> SoloQuestion { get; set; }
+        public DbSet<UserSoloAnswer> UserSoloAnswer { get; set; }
+        public DbSet<Subscription> Subscription { get; set; }
+        public DbSet<UserSubscription> UserSubscription { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<User>().HasOne(p => p.Invitation).WithOne(b => b.Invited).OnDelete(DeleteBehavior.SetNull);
             modelBuilder.Entity<User>().HasMany(p => p.Referrals).WithOne(b => b.User).OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Eat>().HasOne(p => p.EatSchedule).WithOne(b => b.Eat).OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<Schedule>().HasMany(p => p.EatSchedules).WithOne(b => b.Schedule).OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<User>().HasMany(p => p.UserSchedules).WithOne(b => b.User).OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<Schedule>().HasMany(p => p.UserSchedules).WithOne(b => b.Schedule).OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<SoloAnswer>().HasMany(p => p.UserSoloAnswers).WithOne(b => b.SoloAnswer).OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

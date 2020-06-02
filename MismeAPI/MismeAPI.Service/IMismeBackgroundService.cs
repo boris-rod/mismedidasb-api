@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using Hangfire;
+using System.Threading.Tasks;
 
 namespace MismeAPI.Service
 {
@@ -8,6 +9,8 @@ namespace MismeAPI.Service
 
         Task SendFireBaseNotificationsAsync();
 
+        [DisableConcurrentExecution(timeoutInSeconds: 10 * 60)]
+        [AutomaticRetry(Attempts = 0, LogEvents = false, OnAttemptsExceeded = AttemptsExceededAction.Delete)]
         Task SendFireBaseNotificationsRemindersAsync();
 
         Task RemoveDisabledAccountsAsync();

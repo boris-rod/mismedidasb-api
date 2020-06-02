@@ -44,6 +44,14 @@ namespace MismeAPI.Data.UoW
             CutPointRepository = CutPointRepository ?? new GenericRepository<CutPoint>(_context);
             UserReferralRepository = UserReferralRepository ?? new GenericRepository<UserReferral>(_context);
             EatCompoundDishRepository = EatCompoundDishRepository ?? new GenericRepository<EatCompoundDish>(_context);
+            ScheduleRepository = ScheduleRepository ?? new GenericRepository<Schedule>(_context);
+            EatScheduleRepository = EatScheduleRepository ?? new GenericRepository<EatSchedule>(_context);
+            UserScheduleRepository = UserScheduleRepository ?? new GenericRepository<UserSchedule>(_context);
+            SoloQuestionRepository = SoloQuestionRepository ?? new GenericRepository<SoloQuestion>(_context);
+            SoloAnswerRepository = SoloAnswerRepository ?? new GenericRepository<SoloAnswer>(_context);
+            UserSoloAnswerRepository = UserSoloAnswerRepository ?? new GenericRepository<UserSoloAnswer>(_context);
+            SubscriptionRepository = SubscriptionRepository ?? new GenericRepository<Subscription>(_context);
+            UserSubscriptionRepository = UserSubscriptionRepository ?? new GenericRepository<UserSubscription>(_context);
         }
 
         public IGenericRepository<User> UserRepository { get; set; }
@@ -77,6 +85,14 @@ namespace MismeAPI.Data.UoW
         public IGenericRepository<CutPoint> CutPointRepository { get; set; }
         public IGenericRepository<UserReferral> UserReferralRepository { get; set; }
         public IGenericRepository<EatCompoundDish> EatCompoundDishRepository { get; set; }
+        public IGenericRepository<Schedule> ScheduleRepository { get; set; }
+        public IGenericRepository<EatSchedule> EatScheduleRepository { get; set; }
+        public IGenericRepository<UserSchedule> UserScheduleRepository { get; set; }
+        public IGenericRepository<SoloQuestion> SoloQuestionRepository { get; set; }
+        public IGenericRepository<SoloAnswer> SoloAnswerRepository { get; set; }
+        public IGenericRepository<UserSoloAnswer> UserSoloAnswerRepository { get; set; }
+        public IGenericRepository<Subscription> SubscriptionRepository { get; set; }
+        public IGenericRepository<UserSubscription> UserSubscriptionRepository { get; set; }
 
         public async Task<int> CommitAsync()
         {
