@@ -117,7 +117,7 @@ namespace MismeAPI.Controllers
         [ProducesResponseType(typeof(CompoundDishResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
-        public async Task<IActionResult> UpdateCompoundDish(int id, [FromBody] UpdateCompoundDishRequest dish)
+        public async Task<IActionResult> UpdateCompoundDish(int id, UpdateCompoundDishRequest dish)
         {
             var loggedUser = User.GetUserIdFromToken();
             var result = await _compoundDishService.UpdateCompoundDishAsync(loggedUser, id, dish);
