@@ -11,6 +11,7 @@ namespace MismeAPI.Data.Entities
         {
             EatSchedules = new HashSet<EatSchedule>();
             UserSchedules = new HashSet<UserSchedule>();
+            UserSubscriptionSchedules = new HashSet<UserSubscriptionSchedule>();
         }
 
         public int Id { get; set; }
@@ -18,5 +19,6 @@ namespace MismeAPI.Data.Entities
         public bool IsProcessed { get; set; }
         public virtual ICollection<EatSchedule> EatSchedules { get; set; }
         public virtual ICollection<UserSchedule> UserSchedules { get; set; }
+        public virtual ICollection<UserSubscriptionSchedule> UserSubscriptionSchedules { get; set; }
     }
 }

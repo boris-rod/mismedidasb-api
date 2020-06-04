@@ -46,6 +46,28 @@ namespace MismeAPI.Service.Impls
             return schedule;
         }
 
+        public async Task<Schedule> ScheduleDisableSubscriptionAsync(UserSubscription userSubscription,
+            bool commitChanges = false)
+        {
+            var excecutionTime = userSubscription.ValidAt;
+            var timeOffset = excecutionTime.ToDateTimeOffset(TimeZoneInfo.Utc);
+
+            var jobId = BackgroundJob.Schedule<ISubscriptionService>(x => x.DisableUserSubscriptionAsync(userSubscription.Id), timeOffset);
+
+            var schedule = new Schedule
+            {
+                JobId = jobId,
+                IsProcessed = false
+            };
+
+            await _uow.ScheduleRepository.AddAsync(schedule);
+
+            if (commitChanges)
+                await _uow.CommitAsync();
+
+            return schedule;
+        }
+
         public async Task RemoveJobIfExistIfExistAsync(string jobId, bool commitChanges = false)
         {
             BackgroundJob.Delete(jobId);

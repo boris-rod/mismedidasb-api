@@ -12,6 +12,8 @@ namespace MismeAPI.Service
     {
         Task<Schedule> ScheduleEatReminderNotificationAsync(Eat eat, DateTime utcDeliverTime, bool commitChanges = false);
 
+        Task<Schedule> ScheduleDisableSubscriptionAsync(UserSubscription userSubscription, bool commitChanges = false);
+
         Task RemoveJobIfExistIfExistAsync(string jobId, bool commitChanges = false);
 
         Task UserRecurringJobsSchedulerAsync(int userId, User user = null);

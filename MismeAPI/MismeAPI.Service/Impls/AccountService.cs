@@ -740,7 +740,7 @@ namespace MismeAPI.Services.Impls
             user.ActivatedAt = DateTime.UtcNow;
 
             await _uow.UserRepository.UpdateAsync(user, user.Id);
-            await _subscriptionService.GetOrInitPlaniSubscriptionAsync(user, false);
+            await _subscriptionService.GetOrInitPlaniSubscriptionAsync(user);
 
             await _uow.CommitAsync();
 
