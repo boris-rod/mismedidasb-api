@@ -18,9 +18,11 @@ namespace MismeAPI.Service
 
         Task DeleteSubscriptionAsync(int id);
 
-        Task<UserSubscription> GetOrInitPlaniSubscriptionAsync(User user, bool commit);
+        Task<UserSubscription> GetOrInitPlaniSubscriptionAsync(User user);
 
         Task<UserSubscription> BuySubscriptionAsync(int loggedUser, int subscriptionId);
+
+        Task DisableUserSubscriptionAsync(int userSubscriptionID);
 
         Task SeedSubscriptionAsync();
     }

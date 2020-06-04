@@ -47,6 +47,8 @@ namespace MismeAPI.Data.UoW
         IGenericRepository<Subscription> SubscriptionRepository { get; set; }
         IGenericRepository<UserSubscription> UserSubscriptionRepository { get; set; }
 
+        IGenericRepository<UserSubscriptionSchedule> UserSubscriptionScheduleRepository { get; set; }
+
         Task<int> CommitAsync();
     }
 }

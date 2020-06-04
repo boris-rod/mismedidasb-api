@@ -48,6 +48,7 @@ namespace MismeAPI.Data
         public DbSet<UserSoloAnswer> UserSoloAnswer { get; set; }
         public DbSet<Subscription> Subscription { get; set; }
         public DbSet<UserSubscription> UserSubscription { get; set; }
+        public DbSet<UserSubscriptionSchedule> UserSubscriptionSchedule { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

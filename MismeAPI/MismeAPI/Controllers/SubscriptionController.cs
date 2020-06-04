@@ -174,7 +174,7 @@ namespace APITaxi.API.Controllers
         {
             var user = await _userService.GetUserAsync(userId);
 
-            var userSubscription = await _subscriptionService.GetOrInitPlaniSubscriptionAsync(user, true);
+            var userSubscription = await _subscriptionService.GetOrInitPlaniSubscriptionAsync(user);
             user.Subscriptions.Add(userSubscription);
 
             var mapped = _mapper.Map<UserWithSubscriptionResponse>(user);
