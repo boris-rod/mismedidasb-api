@@ -10,6 +10,7 @@ namespace MismeAPI.Data.Entities
         public CompoundDish()
         {
             DishCompoundDishes = new HashSet<DishCompoundDish>();
+            EatCompoundDishes = new HashSet<EatCompoundDish>();
         }
 
         public int Id { get; set; }
@@ -22,7 +23,10 @@ namespace MismeAPI.Data.Entities
         public DateTime ModifiedAt { get; set; }
         public bool IsAdminReviewed { get; set; }
         public bool IsAdminConverted { get; set; }
+        public bool IsDeleted { get; set; }
+        public DateTime? DeletedAt { get; set; }
 
         public virtual ICollection<DishCompoundDish> DishCompoundDishes { get; set; }
+        public virtual ICollection<EatCompoundDish> EatCompoundDishes { get; set; }
     }
 }

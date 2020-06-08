@@ -84,6 +84,15 @@ namespace MismeAPI.Service.Impls
             return subscription;
         }
 
+        public async Task<Subscription> GetSubscriptionByNameAsync(SubscriptionEnum subscriptionType)
+        {
+            var subscription = await _uow.SubscriptionRepository.FindAsync(s => s.Product == subscriptionType);
+            if (subscription == null)
+                throw new NotFoundException(ExceptionConstants.NOT_FOUND, "Subscription");
+
+            return subscription;
+        }
+
         public async Task<Subscription> GetSubscriptionByProductAsync(SubscriptionEnum product)
         {
             var subscription = await _uow.SubscriptionRepository.FindAsync(s => s.Product == product);
@@ -140,6 +149,38 @@ namespace MismeAPI.Service.Impls
             await _uow.CommitAsync();
         }
 
+        public async Task<UserSubscription> AssignSubscriptionAsync(int userId, SubscriptionEnum subscriptionType)
+        {
+            var user = await _userService.GetUserAsync(userId);
+            var subscription = await GetSubscriptionByNameAsync(subscriptionType);
+            var userSubscription = user.Subscriptions.FirstOrDefault(us => us.Subscription.Product == subscription.Product);
+
+            if (!subscription.IsActive || subscription.Product != SubscriptionEnum.VIRTUAL_ASESSOR)
+            {
+                throw new InvalidDataException(ExceptionConstants.INVALID_DATA, "subscription.");
+            }
+
+            if (userSubscription == null)
+            {
+                userSubscription = await GetOrInitPlaniSubscriptionAsync(user);
+            }
+            else
+            {
+                userSubscription = InitOrIncreaseUserSubscriptionObject(user.Id, subscription.Id, userSubscription);
+                await _uow.UserSubscriptionRepository.UpdateAsync(userSubscription, userSubscription.Id);
+            }
+
+            var schedule = await ScheduleJobAsync(userSubscription);
+            userSubscription.UserSubscriptionSchedule = new UserSubscriptionSchedule
+            {
+                Schedule = schedule
+            };
+
+            await _uow.CommitAsync();
+
+            return userSubscription;
+        }
+
         public async Task<UserSubscription> GetOrInitPlaniSubscriptionAsync(User user)
         {
             if (user == null)
@@ -154,8 +195,6 @@ namespace MismeAPI.Service.Impls
                 return existSubscription;
 
             var subscription = await GetSubscriptionByProductAsync(SubscriptionEnum.VIRTUAL_ASESSOR);
-            var validFor = TimeSpan.FromDays(30);
-            var now = DateTime.UtcNow;
 
             var userSubscription = InitOrIncreaseUserSubscriptionObject(user.Id, subscription.Id);
 

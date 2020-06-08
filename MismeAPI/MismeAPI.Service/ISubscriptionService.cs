@@ -3,6 +3,7 @@ using MismeAPI.Services.Utils;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using MismeAPI.Common.DTO.Request.Subscription;
+using MismeAPI.Data.Entities.Enums;
 
 namespace MismeAPI.Service
 {
@@ -11,6 +12,8 @@ namespace MismeAPI.Service
         Task<PaginatedList<Subscription>> GetSubscriptionsAsync(int pag, int perPag, string sortOrder, bool? isActive, string search);
 
         Task<Subscription> GetSubscriptionAsync(int id);
+
+        Task<Subscription> GetSubscriptionByNameAsync(SubscriptionEnum subscriptionType);
 
         Task<Subscription> CreateSubscriptionAsync(CreateSubscriptionRequest request);
 
@@ -23,6 +26,8 @@ namespace MismeAPI.Service
         Task<UserSubscription> BuySubscriptionAsync(int loggedUser, int subscriptionId);
 
         Task DisableUserSubscriptionAsync(int userSubscriptionID);
+
+        Task<UserSubscription> AssignSubscriptionAsync(int userId, SubscriptionEnum subscriptionType);
 
         Task SeedSubscriptionAsync();
     }
