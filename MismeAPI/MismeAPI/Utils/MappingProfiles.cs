@@ -141,7 +141,9 @@ namespace MismeAPI.Utils
                 .ForMember(d => d.PriorityId, opts => opts.MapFrom(source => (int)source.Priority))
                .ForMember(d => d.Priority, opts => opts.MapFrom(source => source.Priority.ToString()));
 
-            CreateMap<RewardHistory, RewardResponse>();
+            CreateMap<RewardHistory, RewardResponse>()
+                .ForMember(d => d.CategoryId, opts => opts.MapFrom(source => (int)source.RewardCategory.Category))
+                .ForMember(d => d.Category, opts => opts.MapFrom(source => source.RewardCategory.Category.ToString()));
             CreateMap<UserStatistics, UserStatisticsResponse>()
                 .ForMember(d => d.PersonalRanking, opts => opts.MapFrom(source => _userStatisticsService.GetUserRankingAsync(source.UserId).Result));
 
