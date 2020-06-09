@@ -241,7 +241,8 @@ namespace MismeAPI.Service.Impls
 
         public async Task<CompoundDish> UpdateCompoundDishAsync(int ownerId, int id, UpdateCompoundDishRequest dish)
         {
-            var compoundDish = await _uow.CompoundDishRepository.GetAll().Where(c => c.Id == id)
+            var compoundDish = await _uow.CompoundDishRepository.GetAll().Where(c => c.Id == id && !c.IsDeleted)
+                .Include(c => c.CreatedBy)
                 .Include(c => c.DishCompoundDishes)
                 .Include(c => c.EatCompoundDishes)
                 .FirstOrDefaultAsync();
@@ -251,7 +252,7 @@ namespace MismeAPI.Service.Impls
                 throw new NotFoundException(ExceptionConstants.NOT_FOUND, "Dish");
             }
 
-            var existName = await _uow.CompoundDishRepository.FindByAsync(c => c.UserId == ownerId && c.Id != id && c.Name == dish.Name);
+            var existName = await _uow.CompoundDishRepository.FindByAsync(c => c.UserId == ownerId && c.Id != id && c.Name == dish.Name && !c.IsDeleted);
             if (existName.Count > 0)
             {
                 throw new InvalidDataException(ExceptionConstants.INVALID_DATA, "Dish name");
@@ -267,7 +268,9 @@ namespace MismeAPI.Service.Impls
                 compoundDish.DeletedAt = DateTime.UtcNow;
                 compoundDish.IsDeleted = true;
                 await _uow.CompoundDishRepository.UpdateAsync(compoundDish, compoundDish.Id);
+                await _uow.CommitAsync();
 
+                // After create the new one then update with new values
                 await AuxUpdateCompountDishAsync(cd, dish);
                 await _uow.CommitAsync();
 
@@ -303,7 +306,7 @@ namespace MismeAPI.Service.Impls
                 {
                     cDish.DishCompoundDishes.Add(new DishCompoundDish
                     {
-                        Dish = item.Dish,
+                        DishId = item.DishId,
                         DishQty = item.DishQty
                     });
                 }
