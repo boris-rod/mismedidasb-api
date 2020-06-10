@@ -135,32 +135,7 @@ namespace MismeAPI.Service.Impls
                 throw new InvalidDataException(ExceptionConstants.INVALID_DATA, "Dish name");
             }
 
-            var cDish = new CompoundDish();
-            cDish.Name = dish.Name;
-            cDish.UserId = ownerId;
-            cDish.ModifiedAt = DateTime.UtcNow;
-            cDish.CreatedAt = DateTime.UtcNow;
-
-            if (dish.Image != null)
-            {
-                string guid = Guid.NewGuid().ToString();
-                await _fileService.UploadFileAsync(dish.Image, guid);
-                cDish.Image = guid;
-                cDish.ImageMimeType = dish.Image.ContentType;
-            }
-
-            foreach (var item in dish.Dishes)
-            {
-                var dComDish = new DishCompoundDish
-                {
-                    CompoundDish = cDish,
-                    DishId = item.DishId,
-                    DishQty = item.Qty
-                };
-                await _uow.DishCompoundDishRepository.AddAsync(dComDish);
-            }
-
-            await _uow.CompoundDishRepository.AddAsync(cDish);
+            var cDish = await AuxCreateCompoundDishAsync(ownerId, dish);
             await _uow.CommitAsync();
 
             return cDish;
@@ -168,13 +143,28 @@ namespace MismeAPI.Service.Impls
 
         public async Task DeleteCompoundDishAsync(int ownerId, int compoundDishId)
         {
-            var c = await _uow.CompoundDishRepository.FindAsync(c => c.Id == compoundDishId && c.UserId == ownerId);
+            var c = await _uow.CompoundDishRepository.GetAll()
+                .Where(c => c.Id == compoundDishId && c.UserId == ownerId)
+                .Include(c => c.EatCompoundDishes)
+                .FirstOrDefaultAsync();
 
             if (c == null)
             {
                 throw new NotFoundException(ExceptionConstants.NOT_FOUND, "Compound Dish");
             }
-            _uow.CompoundDishRepository.Delete(c);
+
+            var isInUse = c.EatCompoundDishes.Count() > 0;
+            if (isInUse)
+            {
+                c.DeletedAt = DateTime.UtcNow;
+                c.IsDeleted = true;
+                await _uow.CompoundDishRepository.UpdateAsync(c, c.Id);
+            }
+            else
+            {
+                _uow.CompoundDishRepository.Delete(c);
+            }
+
             await _uow.CommitAsync();
         }
 
@@ -190,8 +180,8 @@ namespace MismeAPI.Service.Impls
                 .Include(d => d.CreatedBy)
                 .Include(d => d.DishCompoundDishes)
                   .ThenInclude(t => t.Dish)
-
-              .AsQueryable();
+                .Where(d => d.IsDeleted == false)
+                .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(search))
             {
@@ -216,10 +206,11 @@ namespace MismeAPI.Service.Impls
 
         public async Task<IEnumerable<CompoundDish>> GetUserCompoundDishesAsync(int ownerId, string search)
         {
-            var results = _uow.CompoundDishRepository.GetAll().Where(c => c.UserId == ownerId)
-              .Include(d => d.DishCompoundDishes)
-                  .ThenInclude(t => t.Dish)
-              .AsQueryable();
+            var results = _uow.CompoundDishRepository.GetAll()
+                .Where(c => c.UserId == ownerId && c.IsDeleted == false)
+                .Include(d => d.DishCompoundDishes)
+                    .ThenInclude(t => t.Dish)
+                .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(search))
             {
@@ -250,8 +241,10 @@ namespace MismeAPI.Service.Impls
 
         public async Task<CompoundDish> UpdateCompoundDishAsync(int ownerId, int id, UpdateCompoundDishRequest dish)
         {
-            var compoundDish = await _uow.CompoundDishRepository.GetAll().Where(c => c.Id == id)
+            var compoundDish = await _uow.CompoundDishRepository.GetAll().Where(c => c.Id == id && !c.IsDeleted)
+                .Include(c => c.CreatedBy)
                 .Include(c => c.DishCompoundDishes)
+                .Include(c => c.EatCompoundDishes)
                 .FirstOrDefaultAsync();
 
             if (compoundDish == null)
@@ -259,12 +252,106 @@ namespace MismeAPI.Service.Impls
                 throw new NotFoundException(ExceptionConstants.NOT_FOUND, "Dish");
             }
 
-            var existName = await _uow.CompoundDishRepository.FindByAsync(c => c.UserId == ownerId && c.Id != id && c.Name == dish.Name);
+            var existName = await _uow.CompoundDishRepository.FindByAsync(c => c.UserId == ownerId && c.Id != id && c.Name == dish.Name && !c.IsDeleted);
             if (existName.Count > 0)
             {
                 throw new InvalidDataException(ExceptionConstants.INVALID_DATA, "Dish name");
             }
 
+            var isInUse = compoundDish.EatCompoundDishes.Count() > 0;
+
+            if (isInUse)
+            {
+                // Duplicate and return the new one, mark the old one as deleted
+                var cd = await AuxCreateCompoundDishAsync(ownerId, dish, compoundDish);
+
+                compoundDish.DeletedAt = DateTime.UtcNow;
+                compoundDish.IsDeleted = true;
+                await _uow.CompoundDishRepository.UpdateAsync(compoundDish, compoundDish.Id);
+                await _uow.CommitAsync();
+
+                // After create the new one then update with new values
+                await AuxUpdateCompountDishAsync(cd, dish);
+                await _uow.CommitAsync();
+
+                return cd;
+            }
+            else
+            {
+                // It is not in use so update it as usually
+                await AuxUpdateCompountDishAsync(compoundDish, dish);
+                await _uow.CommitAsync();
+
+                return compoundDish;
+            }
+        }
+
+        private async Task<CompoundDish> AuxCreateCompoundDishAsync(int ownerId, CreateCompoundDishRequest dish, CompoundDish existingDish = null)
+        {
+            var cDish = new CompoundDish();
+
+            if (existingDish != null)
+            {
+                cDish.Name = existingDish.Name;
+                cDish.UserId = existingDish.UserId;
+                cDish.CreatedBy = existingDish.CreatedBy;
+                cDish.IsAdminConverted = false;
+                cDish.IsAdminReviewed = false;
+
+                cDish.IsDeleted = false;
+                cDish.ModifiedAt = DateTime.UtcNow;
+                cDish.CreatedAt = DateTime.UtcNow;
+
+                foreach (var item in existingDish.DishCompoundDishes)
+                {
+                    cDish.DishCompoundDishes.Add(new DishCompoundDish
+                    {
+                        DishId = item.DishId,
+                        DishQty = item.DishQty
+                    });
+                }
+
+                if (existingDish.Image != null)
+                {
+                    string guid = Guid.NewGuid().ToString();
+                    await _fileService.CopyFileAsync(existingDish.Image, guid);
+                    cDish.Image = guid;
+                    cDish.ImageMimeType = existingDish.ImageMimeType;
+                }
+            }
+            else
+            {
+                cDish.Name = dish.Name;
+                cDish.UserId = ownerId;
+                cDish.ModifiedAt = DateTime.UtcNow;
+                cDish.CreatedAt = DateTime.UtcNow;
+
+                if (dish.Image != null)
+                {
+                    string guid = Guid.NewGuid().ToString();
+                    await _fileService.UploadFileAsync(dish.Image, guid);
+                    cDish.Image = guid;
+                    cDish.ImageMimeType = dish.Image.ContentType;
+                }
+
+                foreach (var item in dish.Dishes)
+                {
+                    var dComDish = new DishCompoundDish
+                    {
+                        CompoundDish = cDish,
+                        DishId = item.DishId,
+                        DishQty = item.Qty
+                    };
+                    await _uow.DishCompoundDishRepository.AddAsync(dComDish);
+                }
+            }
+
+            await _uow.CompoundDishRepository.AddAsync(cDish);
+            return cDish;
+        }
+
+        private async Task AuxUpdateCompountDishAsync(CompoundDish compoundDish, UpdateCompoundDishRequest dish)
+        {
             compoundDish.Name = dish.Name;
             compoundDish.ModifiedAt = DateTime.UtcNow;
             if (dish.Image != null)
@@ -287,7 +374,7 @@ namespace MismeAPI.Service.Impls
             {
                 var dComDish = new DishCompoundDish
                 {
-                    CompoundDishId = id,
+                    CompoundDishId = compoundDish.Id,
                     DishId = item.DishId,
                     DishQty = item.Qty
                 };
@@ -295,9 +382,6 @@ namespace MismeAPI.Service.Impls
             }
 
             _uow.CompoundDishRepository.Update(compoundDish);
-            await _uow.CommitAsync();
-
-            return compoundDish;
         }
     }
 }

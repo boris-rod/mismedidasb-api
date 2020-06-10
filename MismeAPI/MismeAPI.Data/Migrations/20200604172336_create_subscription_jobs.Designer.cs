@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MismeAPI.Data;
 
 namespace MismeAPI.Data.Migrations
 {
     [DbContext(typeof(MismeContext))]
-    partial class MismeContextModelSnapshot : ModelSnapshot
+    [Migration("20200604172336_create_subscription_jobs")]
+    partial class create_subscription_jobs
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -63,9 +65,6 @@ namespace MismeAPI.Data.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("datetime(6)");
-
                     b.Property<string>("Image")
                         .HasColumnType("longtext CHARACTER SET utf8mb4");
 
@@ -76,9 +75,6 @@ namespace MismeAPI.Data.Migrations
                         .HasColumnType("tinyint(1)");
 
                     b.Property<bool>("IsAdminReviewed")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<bool>("IsDeleted")
                         .HasColumnType("tinyint(1)");
 
                     b.Property<DateTime>("ModifiedAt")
@@ -1401,7 +1397,7 @@ namespace MismeAPI.Data.Migrations
             modelBuilder.Entity("MismeAPI.Data.Entities.EatCompoundDish", b =>
                 {
                     b.HasOne("MismeAPI.Data.Entities.CompoundDish", "CompoundDish")
-                        .WithMany("EatCompoundDishes")
+                        .WithMany()
                         .HasForeignKey("CompoundDishId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();

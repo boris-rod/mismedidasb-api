@@ -164,18 +164,18 @@ namespace APITaxi.API.Controllers
         /// Assign subscription to an user
         /// </summary>
         /// <param name="userId">User who wich the admin will add a subscription</param>
+        /// <param name="subscription">Subscription to assign to this user</param>
         /// <returns>User with subscription object</returns>
         [HttpPost]
         [Route("/assign-subscription")]
         [Authorize(Roles = "ADMIN")]
         [ProducesResponseType(typeof(UserWithSubscriptionResponse), (int)HttpStatusCode.Created)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
-        public async Task<IActionResult> AssignSubscription(int userId)
+        public async Task<IActionResult> AssignSubscription(int userId, SubscriptionEnum subscription)
         {
             var user = await _userService.GetUserAsync(userId);
 
-            var userSubscription = await _subscriptionService.GetOrInitPlaniSubscriptionAsync(user, true);
-            user.Subscriptions.Add(userSubscription);
+            await _subscriptionService.AssignSubscriptionAsync(userId, subscription);
 
             var mapped = _mapper.Map<UserWithSubscriptionResponse>(user);
 
