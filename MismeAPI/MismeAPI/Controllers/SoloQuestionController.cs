@@ -46,9 +46,9 @@ namespace MismeAPI.Controllers
 
             var mapped = _mapper.Map<UserSoloAnswerResponse>(userAnswer);
 
-            await _rewardHelper.HandleRewardAsync(RewardCategoryEnum.SOLO_QUESTION_ANSWERED, loggedUser, true, mapped, null);
+            var rewardResponse = await _rewardHelper.HandleRewardAsync(RewardCategoryEnum.SOLO_QUESTION_ANSWERED, loggedUser, true, mapped, null);
 
-            return Ok(new ApiOkResponse(null));
+            return Ok(new ApiOkRewardResponse(null, rewardResponse));
         }
     }
 }

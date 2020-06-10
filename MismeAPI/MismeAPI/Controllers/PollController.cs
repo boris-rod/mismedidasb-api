@@ -6,6 +6,7 @@ using MismeAPI.Common.DTO.Request;
 using MismeAPI.Common.DTO.Request.Poll;
 using MismeAPI.Common.DTO.Request.Tip;
 using MismeAPI.Common.DTO.Response;
+using MismeAPI.Common.DTO.Response.Reward;
 using MismeAPI.Data.Entities.Enums;
 using MismeAPI.Service;
 using MismeAPI.Utils;
@@ -180,17 +181,18 @@ namespace MismeAPI.Controllers
             var message = await _pollService.SetPollResultByQuestionsAsync(loggedUser, result, language);
 
             /*Reward section*/
+            RewardResponse mapped = null;
             if (!alreadyAnswered)
             {
                 var answeredPolls = _pollService.GetAnsweredPolls(result);
                 foreach (var pollId in answeredPolls)
                 {
-                    await _rewardHelper.HandleRewardAsync(RewardCategoryEnum.POLL_ANSWERED, loggedUser, true, message, pollId);
+                    mapped = await _rewardHelper.HandleRewardAsync(RewardCategoryEnum.POLL_ANSWERED, loggedUser, true, message, pollId);
                 }
             }
             /*#end reward section*/
 
-            return Ok(new ApiOkResponse(message));
+            return Ok(new ApiOkRewardResponse(message, mapped));
         }
 
         /// <summary>
