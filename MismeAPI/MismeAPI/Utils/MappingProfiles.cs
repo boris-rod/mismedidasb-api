@@ -11,6 +11,7 @@ using MismeAPI.Common.DTO.Response.Reward;
 using MismeAPI.Common.DTO.Response.Settings;
 using MismeAPI.Common.DTO.Response.SoloQuestion;
 using MismeAPI.Common.DTO.Response.Subscription;
+using MismeAPI.Common.DTO.Response.User;
 using MismeAPI.Common.DTO.Response.UserStatistics;
 using MismeAPI.Data.Entities;
 using MismeAPI.Service;
@@ -48,6 +49,8 @@ namespace MismeAPI.Utils
                         .ForMember(d => d.StatusId, opts => opts.MapFrom(source => (int)source.Status))
                         .ForMember(d => d.Status, opts => opts.MapFrom(source => source.Status.ToString()))
                         .ForMember(d => d.Avatar, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Avatar) ? "" : _amazonS3Service.GetPresignUrl(source.Avatar)));
+
+            CreateMap<User, UserAdminResponse>();
 
             CreateMap<Poll, PollResponse>()
                 //.ForMember(d => d.Tips, opts => opts.MapFrom((src, dest, destMember, context) => GetPollTips(src, context.Items["lang"].ToString())))
