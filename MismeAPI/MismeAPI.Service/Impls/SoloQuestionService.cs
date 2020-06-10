@@ -32,8 +32,7 @@ namespace MismeAPI.Service.Impls
             _config = config ?? throw new ArgumentNullException(nameof(config));
         }
 
-        public async Task<PaginatedList<SoloQuestion>> GetQuestionsAsync(
-            int pag, int perPag, string sortOrder, string search)
+        public async Task<PaginatedList<SoloQuestion>> GetQuestionsAsync(int pag, int perPag, string sortOrder, string search)
         {
             var result = _uow.SoloQuestionRepository.GetAll().AsQueryable();
 
@@ -80,51 +79,25 @@ namespace MismeAPI.Service.Impls
             return await PaginatedList<SoloQuestion>.CreateAsync(result, pag, perPag);
         }
 
-        //TODO
-        public async Task<PaginatedList<SoloQuestion>> GetUserQuestionAnswerAsync(
-            int pag, int perPag, string sortOrder, string search)
+        public async Task<PaginatedList<SoloQuestion>> GetUserQuestionsForTodayAsync(int userId, int pag, int perPag)
         {
-            var result = _uow.SoloQuestionRepository.GetAll().AsQueryable();
+            var today = DateTime.UtcNow;
+            var yesterday = today.AddDays(-1).Date;
 
-            if (!string.IsNullOrWhiteSpace(search))
-            {
-                result = result.Where(i => i.Title.ToLower().Contains(search.ToLower()) || i.TitleEN.ToString().Contains(search) || i.TitleIT.ToString().Contains(search));
-            }
+            var result = _uow.SoloQuestionRepository.GetAll().Include(sq => sq.SoloAnswers).AsQueryable();
 
-            // define sort order
-            if (!string.IsNullOrWhiteSpace(sortOrder))
-            {
-                // sort order section
-                switch (sortOrder)
-                {
-                    case "title_desc":
-                        result = result.OrderByDescending(i => i.Title);
-                        break;
+            var userAnswers = await _uow.UserSoloAnswerRepository.GetAll()
+                .Where(u => u.Id == userId && u.CreatedAt.Date == yesterday)
+                .ToListAsync();
 
-                    case "title_asc":
-                        result = result.OrderBy(i => i.Title);
-                        break;
+            var plannedExcercicesYesterday = userAnswers.Any(ua => ua.AnswerCode == "SQ-3-SA-1");
 
-                    case "titleEN_desc":
-                        result = result.OrderByDescending(i => i.TitleEN);
-                        break;
+            if (!plannedExcercicesYesterday)
+                result = result.Where(sq => sq.Code != "SQ-4");
 
-                    case "titleEN_asc":
-                        result = result.OrderBy(i => i.TitleEN);
-                        break;
-
-                    case "titleIT_desc":
-                        result = result.OrderByDescending(i => i.TitleIT);
-                        break;
-
-                    case "titleIT_asc":
-                        result = result.OrderBy(i => i.TitleIT);
-                        break;
-
-                    default:
-                        break;
-                }
-            }
+            var userEat = await _uow.EatRepository.FindAsync(e => e.UserId == userId && e.CreatedAt.Date == today.Date);
+            if (userEat == null)
+                result = result.Where(sq => sq.Code != "SQ-1");
 
             return await PaginatedList<SoloQuestion>.CreateAsync(result, pag, perPag);
         }
@@ -219,7 +192,7 @@ namespace MismeAPI.Service.Impls
 
             var answer = soloQuestion.SoloAnswers.Where(sa => sa.Code == answerRequest.AnswerCode).FirstOrDefault();
 
-            if (soloQuestion == null)
+            if (answer == null)
                 throw new NotFoundException(ExceptionConstants.NOT_FOUND, "Answer");
 
             var userAnswer = new UserSoloAnswer
@@ -233,6 +206,9 @@ namespace MismeAPI.Service.Impls
                 AnswerCode = answer.Code,
                 CreatedAt = DateTime.UtcNow
             };
+
+            // TODO validate that no answer has been registered today for each question before
+            // accept this one!
 
             await _uow.UserSoloAnswerRepository.AddAsync(userAnswer);
             await _uow.CommitAsync();
@@ -326,6 +302,50 @@ namespace MismeAPI.Service.Impls
                 }
             };
 
+            var question4 = new CreateSoloQuestionRequest
+            {
+                Code = "SQ-4",
+                Title = "¿Has realizado los ejercicios habías planificado para hoy?",
+                TitleEN = "Did you make the excersices planned for today?",
+                TitleIT = "",
+                AllowCustomAnswer = true,
+                SoloAnswers = new List<CreateSoloAnswerRequest>
+                {
+                    new CreateSoloAnswerRequest
+                    {
+                        Code="SQ-4-SA-1",
+                        Title="Si",
+                        TitleEN="Yes",
+                        TitleIT="",
+                        Points = 10
+                    },
+                    new CreateSoloAnswerRequest
+                    {
+                        Code="SQ-4-SA-2",
+                        Title="Mas del previsto",
+                        TitleEN="More than planned",
+                        TitleIT="",
+                        Points = 5
+                    },
+                    new CreateSoloAnswerRequest
+                    {
+                        Code="SQ-4-SA-3",
+                        Title="Menos del planificado",
+                        TitleEN="Less than planned",
+                        TitleIT="",
+                        Points = 5
+                    },
+                    new CreateSoloAnswerRequest
+                    {
+                        Code="SQ-4-SA-4",
+                        Title="No",
+                        TitleEN="No",
+                        TitleIT="",
+                        Points = 5
+                    }
+                }
+            };
+
             var soloQuestion1 = await _uow.SoloQuestionRepository.FindAsync(c => c.Code == question1.Code);
             if (soloQuestion1 == null)
                 await CreateAsync(question1);
@@ -337,6 +357,10 @@ namespace MismeAPI.Service.Impls
             var soloQuestion3 = await _uow.SoloQuestionRepository.FindAsync(c => c.Code == question3.Code);
             if (soloQuestion3 == null)
                 await CreateAsync(question3);
+
+            var soloQuestion4 = await _uow.SoloQuestionRepository.FindAsync(c => c.Code == question4.Code);
+            if (soloQuestion4 == null)
+                await CreateAsync(question4);
         }
     }
 }

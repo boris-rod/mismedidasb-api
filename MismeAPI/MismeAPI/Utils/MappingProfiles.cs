@@ -207,8 +207,13 @@ namespace MismeAPI.Utils
                 .ForMember(d => d.Zinc, opts => opts.MapFrom(source => source.DishCompoundDishes.Count > 0 ? source.DishCompoundDishes.Sum(d => d.Dish.Zinc * d.DishQty) : 0));
 
             CreateMap<CutPoint, CutPointResponse>();
+
             CreateMap<UserReferral, UserReferralResponse>();
+
             CreateMap<UserSoloAnswer, UserSoloAnswerResponse>();
+            CreateMap<SoloQuestion, SoloQuestionResponse>();
+            CreateMap<SoloAnswer, SoloAnswerResponse>();
+
             CreateMap<Subscription, SubscriptionResponse>();
             CreateMap<UserSubscription, UserSubscriptionResponse>()
                 .ForMember(d => d.ProductId, opts => opts.MapFrom(source => source.Subscription != null ? (int)source.Subscription.Product : -1))

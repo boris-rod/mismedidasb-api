@@ -9,6 +9,7 @@ using MismeAPI.Common.DTO.Response.SoloQuestion;
 using MismeAPI.Data.Entities.Enums;
 using MismeAPI.Service;
 using MismeAPI.Utils;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -29,6 +30,31 @@ namespace MismeAPI.Controllers
             _soloQuestionService = soloQuestionService ?? throw new ArgumentNullException(nameof(soloQuestionService));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _rewardHelper = rewardHelper ?? throw new ArgumentNullException(nameof(rewardHelper));
+        }
+
+        /// <summary>
+        /// Get current user available questions and possible answers for today. Require authentication
+        /// </summary>
+        /// <param name="page">The page to be displayed. 1 by default.</param>
+        /// <param name="perPage">The number of questions to be displayed per page. 10 by default.</param>
+        /// <returns>Active cut points</returns>
+        [HttpGet]
+        [ProducesResponseType(typeof(IEnumerable<SoloQuestionResponse>), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> Index(int? page, int? perPage)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+
+            var pag = page ?? 1;
+            var perPag = perPage ?? 10;
+
+            var result = await _soloQuestionService.GetUserQuestionsForTodayAsync(loggedUser, pag, perPag);
+
+            HttpContext.Response.Headers.Add("PagingData", JsonConvert.SerializeObject(result.GetPaginationData));
+            HttpContext.Response.Headers["Access-Control-Expose-Headers"] = "PagingData";
+            HttpContext.Response.Headers["Access-Control-Allow-Headers"] = "PagingData";
+            var mapped = _mapper.Map<IEnumerable<SoloQuestionResponse>>(result);
+
+            return Ok(new ApiOkResponse(mapped));
         }
 
         /// <summary>

@@ -10,6 +10,8 @@ namespace MismeAPI.Service
     {
         Task<PaginatedList<SoloQuestion>> GetQuestionsAsync(int pag, int perPag, string sortOrder, string search);
 
+        Task<PaginatedList<SoloQuestion>> GetUserQuestionsForTodayAsync(int userId, int pag, int perPag);
+
         Task<SoloQuestion> GetAsync(int id);
 
         Task<SoloQuestion> CreateAsync(CreateSoloQuestionRequest request);
