@@ -296,6 +296,28 @@ namespace MismeAPI.Service.Impls
                 .FindAsync(c => c.Product == SubscriptionEnum.VIRTUAL_ASESSOR);
             if (subscription1 == null)
                 await CreateSubscriptionAsync(subscriptionReques1);
+
+            var admin = await _uow.UserRepository.GetAll()
+                .Include(u => u.Subscriptions)
+                    .ThenInclude(s => s.Subscription)
+                .Where(u => u.Email == "admin@mismedidas.com")
+                .FirstOrDefaultAsync();
+            var adminHasPlani = admin.Subscriptions.Any(s => s.Subscription.Product == SubscriptionEnum.VIRTUAL_ASESSOR);
+
+            if (!adminHasPlani)
+            {
+                // Init subscription to all users in the platform just once
+                //TODO: Remove this...
+                var users = await _uow.UserRepository.GetAll()
+                    .Include(u => u.Subscriptions)
+                        .ThenInclude(s => s.Subscription)
+                    .ToListAsync();
+
+                foreach (var user in users)
+                {
+                    await GetOrInitPlaniSubscriptionAsync(user);
+                }
+            }
         }
 
         private UserSubscription InitOrIncreaseUserSubscriptionObject(int userId, int subscriptionId, UserSubscription userSubscription = null)
