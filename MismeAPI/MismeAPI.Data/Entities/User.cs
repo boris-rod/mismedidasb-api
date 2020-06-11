@@ -21,6 +21,7 @@ namespace MismeAPI.Data.Entities
             Referrals = new HashSet<UserReferral>();
             UserSchedules = new HashSet<UserSchedule>();
             Subscriptions = new HashSet<UserSubscription>();
+            UserSoloAnswers = new HashSet<UserSoloAnswer>();
         }
 
         public int Id { get; set; }
@@ -64,5 +65,6 @@ namespace MismeAPI.Data.Entities
         public virtual ICollection<UserReferral> Referrals { get; set; }
         public virtual ICollection<UserSchedule> UserSchedules { get; set; }
         public virtual ICollection<UserSubscription> Subscriptions { get; set; }
+        public virtual ICollection<UserSoloAnswer> UserSoloAnswers { get; set; }
     }
 }

@@ -449,6 +449,102 @@ namespace MismeAPI.Service.Impls
             return pd;
         }
 
+        public async Task<(int age, int weight, int height, int sex, DateTime? HealthMeasuresLastUpdate, DateTime? ValueMeasuresLastUpdate, DateTime? WellnessMeasuresLastUpdate, DateTime? LastPlanedEat)> GetUserPollsInfoAsync(int userId)
+        {
+            var age = 0;
+            var weight = 0;
+            var height = 0;
+            var sex = 0;
+            DateTime? healthMeasuresLastUpdate = null;
+            DateTime? valueMeasuresLastUpdate = null;
+            DateTime? wellnessMeasuresLastUpdate = null;
+            DateTime? lastPlanedEat = null;
+
+            var concepts = await _uow.ConceptRepository.GetAllAsync();
+            var concept = concepts.FirstOrDefault(c => c.Codename == CodeNamesConstants.HEALTH_MEASURES);
+
+            if (concept != null)
+            {
+                var polls = _uow.PollRepository.GetAll().Where(p => p.ConceptId == concept.Id)
+                    .Include(p => p.Questions)
+                    .OrderBy(p => p.Order)
+                    .ToList();
+
+                // poll 1- personal data
+                var questions = polls.ElementAt(0).Questions.OrderBy(q => q.Order);
+
+                var count = 0;
+                foreach (var q in questions)
+                {
+                    var ua = _uow.UserAnswerRepository.GetAll().Where(u => u.UserId == userId && u.Answer.QuestionId == q.Id)
+                        .Include(u => u.Answer)
+                            .ThenInclude(a => a.Question)
+                        .OrderByDescending(ua => ua.CreatedAt)
+                        .FirstOrDefault();
+
+                    if (ua != null && ua.Answer != null)
+                    {
+                        //age
+                        if (count == 0)
+                        {
+                            age = ua.Answer.Weight;
+                        }
+                        //weight
+                        else if (count == 1)
+                        {
+                            weight = ua.Answer.Weight;
+                        }
+                        //height
+                        else if (count == 2)
+                        {
+                            height = ua.Answer.Weight;
+                        }
+                        //sex
+                        else
+                        {
+                            sex = ua.Answer.Weight;
+                        }
+                    }
+
+                    count += 1;
+                }
+
+                healthMeasuresLastUpdate = await GetLastConceptUpdateAsync(concept.Id, userId);
+            }
+
+            concept = concepts.FirstOrDefault(c => c.Codename == CodeNamesConstants.VALUE_MEASURES);
+            if (concept != null)
+            {
+                valueMeasuresLastUpdate = await GetLastConceptUpdateAsync(concept.Id, userId);
+            }
+
+            concept = concepts.FirstOrDefault(c => c.Codename == CodeNamesConstants.WELLNESS_MEASURES);
+            if (concept != null)
+            {
+                wellnessMeasuresLastUpdate = await GetLastConceptUpdateAsync(concept.Id, userId);
+            }
+
+            var userEat = await _uow.EatRepository.GetAll()
+                .Where(e => e.UserId == userId)
+               .OrderByDescending(e => e.ModifiedAt)
+               .FirstOrDefaultAsync();
+
+            if (userEat != null)
+                lastPlanedEat = userEat.ModifiedAt;
+
+            return (age, weight, height, sex, healthMeasuresLastUpdate, valueMeasuresLastUpdate, wellnessMeasuresLastUpdate, lastPlanedEat);
+        }
+
+        private async Task<DateTime?> GetLastConceptUpdateAsync(int conceptId, int userId)
+        {
+            var userConcept = await _uow.UserConceptRepository.GetAll()
+                    .Where(c => c.Id == conceptId && c.UserId == userId)
+                    .OrderByDescending(c => c.CompletedAt)
+                    .FirstOrDefaultAsync();
+
+            return userConcept?.CompletedAt;
+        }
+
         private List<string> GetHealthMeasureMessage(int conceptId, int userId, string language)
         {
             var result = new List<string>();

@@ -50,7 +50,7 @@ namespace MismeAPI.Utils
         /// <param name="notificationType">How will be the user notified</param>
         /// <param name="devices">Firebase notification targets</param>
         /// <returns>void - notify client that a reward was created via websocket</returns>
-        public async Task HandleRewardAsync(RewardCategoryEnum category, int targetUser, bool isPlus, object entity1, object entity2,
+        public async Task<RewardResponse> HandleRewardAsync(RewardCategoryEnum category, int targetUser, bool isPlus, object entity1, object entity2,
             NotificationTypeEnum notificationType = NotificationTypeEnum.SIGNAL_R, IEnumerable<Device> devices = null)
         {
             var userStatics = await _userStatisticsService.GetOrCreateUserStatisticsByUserAsync(targetUser);
@@ -72,10 +72,11 @@ namespace MismeAPI.Utils
             };
 
             var dbReward = await _rewardService.CreateRewardAsync(reward);
+            RewardResponse mapped = null;
             // assign only if the reward was created after validations
             if (dbReward != null)
             {
-                var mapped = _mapper.Map<RewardResponse>(dbReward);
+                mapped = _mapper.Map<RewardResponse>(dbReward);
 
                 switch (notificationType)
                 {
@@ -107,6 +108,11 @@ namespace MismeAPI.Utils
                             body = GetFirebaseMessageForCreateEatReward(mapped, lang, category);
                         }
 
+                        if (category == RewardCategoryEnum.CUT_POINT_REACHED)
+                        {
+                            body = GetFirebaseMessageForCutPointReachedReward(mapped, lang);
+                        }
+
                         if (devices != null)
                             await _notificationService.SendFirebaseNotificationAsync(title, body, devices);
                         break;
@@ -117,6 +123,8 @@ namespace MismeAPI.Utils
 
                 await HandleCutPointRewardsAsync(cutPoints, targetUser);
             }
+
+            return mapped;
         }
 
         private async Task HandleCutPointRewardsAsync(IEnumerable<CutPoint> cutPoints, int targetUser)
@@ -128,7 +136,8 @@ namespace MismeAPI.Utils
 
                 if (cutPoint.Points <= currentPoints)
                 {
-                    await HandleRewardAsync(RewardCategoryEnum.CUT_POINT_REACHED, targetUser, true, cutPoint, null);
+                    var user = await _userService.GetUserDevicesAsync(targetUser);
+                    await HandleRewardAsync(RewardCategoryEnum.CUT_POINT_REACHED, targetUser, true, cutPoint, null, NotificationTypeEnum.FIREBASE, user.Devices);
                 }
             }
         }
@@ -189,6 +198,16 @@ namespace MismeAPI.Utils
             {
                 "EN" => "Congratulations. Dr.PlaniFive have approved your dish and it will be visible to other users now." + ". You receipt " + rewardResponse.Points + " points.",
                 _ => "Enhorabuena! El Dr.PlaniFive ha aprobado su alimento y estara visible para otros usuarios en la base de datos general." + ". Ha ganado usted " + rewardResponse.Points + " puntos.",
+            };
+            return message;
+        }
+
+        private string GetFirebaseMessageForCutPointReachedReward(RewardResponse rewardResponse, string lang)
+        {
+            string message = lang switch
+            {
+                "EN" => "Congratulations. You reached a cut point (objective)." + ". You receipt " + rewardResponse.Points + " points.",
+                _ => "Enhorabuena! Usted ha alcanzado un punto de corte (Objetivo)." + ". Ha ganado usted " + rewardResponse.Points + " puntos.",
             };
             return message;
         }

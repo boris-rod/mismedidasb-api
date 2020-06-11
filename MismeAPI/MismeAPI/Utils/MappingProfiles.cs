@@ -11,6 +11,7 @@ using MismeAPI.Common.DTO.Response.Reward;
 using MismeAPI.Common.DTO.Response.Settings;
 using MismeAPI.Common.DTO.Response.SoloQuestion;
 using MismeAPI.Common.DTO.Response.Subscription;
+using MismeAPI.Common.DTO.Response.User;
 using MismeAPI.Common.DTO.Response.UserStatistics;
 using MismeAPI.Data.Entities;
 using MismeAPI.Service;
@@ -48,6 +49,8 @@ namespace MismeAPI.Utils
                         .ForMember(d => d.StatusId, opts => opts.MapFrom(source => (int)source.Status))
                         .ForMember(d => d.Status, opts => opts.MapFrom(source => source.Status.ToString()))
                         .ForMember(d => d.Avatar, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Avatar) ? "" : _amazonS3Service.GetPresignUrl(source.Avatar)));
+
+            CreateMap<User, UserAdminResponse>();
 
             CreateMap<Poll, PollResponse>()
                 //.ForMember(d => d.Tips, opts => opts.MapFrom((src, dest, destMember, context) => GetPollTips(src, context.Items["lang"].ToString())))
@@ -204,8 +207,13 @@ namespace MismeAPI.Utils
                 .ForMember(d => d.Zinc, opts => opts.MapFrom(source => source.DishCompoundDishes.Count > 0 ? source.DishCompoundDishes.Sum(d => d.Dish.Zinc * d.DishQty) : 0));
 
             CreateMap<CutPoint, CutPointResponse>();
+
             CreateMap<UserReferral, UserReferralResponse>();
+
             CreateMap<UserSoloAnswer, UserSoloAnswerResponse>();
+            CreateMap<SoloQuestion, SoloQuestionResponse>();
+            CreateMap<SoloAnswer, SoloAnswerResponse>();
+
             CreateMap<Subscription, SubscriptionResponse>();
             CreateMap<UserSubscription, UserSubscriptionResponse>()
                 .ForMember(d => d.ProductId, opts => opts.MapFrom(source => source.Subscription != null ? (int)source.Subscription.Product : -1))

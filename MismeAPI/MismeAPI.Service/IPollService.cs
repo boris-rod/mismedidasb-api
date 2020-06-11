@@ -2,6 +2,7 @@
 using MismeAPI.Common.DTO.Request.Poll;
 using MismeAPI.Common.DTO.Request.Tip;
 using MismeAPI.Data.Entities;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -48,5 +49,7 @@ namespace MismeAPI.Service
         Task<bool> HasAnsweredConceptBeforeAsync(int loggedUser, ListOfPollResultsRequest result);
 
         IEnumerable<int> GetAnsweredPolls(ListOfPollResultsRequest result);
+
+        Task<(int age, int weight, int height, int sex, DateTime? HealthMeasuresLastUpdate, DateTime? ValueMeasuresLastUpdate, DateTime? WellnessMeasuresLastUpdate, DateTime? LastPlanedEat)> GetUserPollsInfoAsync(int userId);
     }
 }

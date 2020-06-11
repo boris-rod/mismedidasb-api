@@ -160,8 +160,9 @@ namespace MismeAPI.Controllers
             var loggedUser = User.GetUserIdFromToken();
             await _compoundDishService.ConvertUserDishAsync(loggedUser, dish);
 
+            var user = await _userService.GetUserDevicesAsync(loggedUser);
             /*Reward section*/
-            await _rewardHelper.HandleRewardAsync(RewardCategoryEnum.DISH_BUILT, dish.UserId, true, dish, null);
+            await _rewardHelper.HandleRewardAsync(RewardCategoryEnum.DISH_BUILT, dish.UserId, true, dish, null, NotificationTypeEnum.FIREBASE, user.Devices);
             /*#end reward section*/
 
             return Created("", null);
