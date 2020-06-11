@@ -308,7 +308,7 @@ namespace MismeAPI.Service.Impls
                 Title = "¿Has realizado los ejercicios habías planificado para hoy?",
                 TitleEN = "Did you make the excersices planned for today?",
                 TitleIT = "",
-                AllowCustomAnswer = true,
+                AllowCustomAnswer = false,
                 SoloAnswers = new List<CreateSoloAnswerRequest>
                 {
                     new CreateSoloAnswerRequest
