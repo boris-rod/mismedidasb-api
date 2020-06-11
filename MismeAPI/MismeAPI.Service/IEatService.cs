@@ -9,7 +9,7 @@ namespace MismeAPI.Service
 {
     public interface IEatService
     {
-        Task<PaginatedList<Eat>> GetPaggeableAllUserEatsAsync(int userId, int pag, int perPag, int eatTyp);
+        Task<PaginatedList<Eat>> GetPaggeableAllUserEatsAsync(int userId, int pag, int perPag, int eatTyp, string sortOrder = "");
 
         Task<List<Eat>> GetAllUserEatsByDateAsync(int userId, DateTime date, DateTime endDate, int eatTyp);
 

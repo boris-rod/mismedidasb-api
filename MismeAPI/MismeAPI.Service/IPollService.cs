@@ -50,6 +50,8 @@ namespace MismeAPI.Service
 
         IEnumerable<int> GetAnsweredPolls(ListOfPollResultsRequest result);
 
+        Task<IEnumerable<Question>> GetLatestPollAnswerByUser(string conceptCode, int userId);
+
         Task<(int age, int weight, int height, int sex, DateTime? HealthMeasuresLastUpdate, DateTime? ValueMeasuresLastUpdate, DateTime? WellnessMeasuresLastUpdate, DateTime? LastPlanedEat)> GetUserPollsInfoAsync(int userId);
     }
 }

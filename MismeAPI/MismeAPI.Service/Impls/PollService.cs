@@ -535,6 +535,45 @@ namespace MismeAPI.Service.Impls
             return (age, weight, height, sex, healthMeasuresLastUpdate, valueMeasuresLastUpdate, wellnessMeasuresLastUpdate, lastPlanedEat);
         }
 
+        public async Task<IEnumerable<Question>> GetLatestPollAnswerByUser(string conceptCode, int userId)
+        {
+            if (conceptCode != CodeNamesConstants.VALUE_MEASURES && conceptCode != CodeNamesConstants.WELLNESS_MEASURES)
+            {
+                throw new InvalidDataException(ExceptionConstants.INVALID_DATA, "Concept name ");
+            }
+
+            var concept = await _uow.ConceptRepository.FindAsync(c => c.Codename == conceptCode);
+            if (concept == null)
+            {
+                throw new NotFoundException(ExceptionConstants.NOT_FOUND, "Concept ");
+            }
+
+            var poll = _uow.PollRepository.GetAll().Where(p => p.ConceptId == concept.Id)
+              .Include(p => p.Questions)
+              .OrderBy(p => p.Order)
+              .FirstOrDefault();
+
+            var result = new List<Question>();
+            if (poll != null)
+            {
+                var questions = poll.Questions.OrderBy(q => q.Order);
+                foreach (var q in questions)
+                {
+                    q.Answers = new List<Answer>();
+
+                    var ua = _uow.UserAnswerRepository.GetAll().Where(u => u.UserId == userId && u.Answer.QuestionId == q.Id)
+                           .Include(u => u.Answer)
+                           .OrderByDescending(ua => ua.CreatedAt)
+                           .FirstOrDefault();
+
+                    q.Answers.Add(ua.Answer);
+                    result.Add(q);
+                }
+            }
+
+            return result;
+        }
+
         private async Task<DateTime?> GetLastConceptUpdateAsync(int conceptId, int userId)
         {
             var userConcept = await _uow.UserConceptRepository.GetAll()

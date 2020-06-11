@@ -60,5 +60,21 @@ namespace MismeAPI.Controllers.Admin
 
             return Ok(new ApiOkResponse(user));
         }
+
+        /// <summary>
+        /// Get user latest answer of a poll (value or wellness only). Require authentication. Admin
+        /// access requires
+        /// </summary>
+        /// <returns>Active cut points</returns>
+        [HttpGet("{id}/question-answers")]
+        [ProducesResponseType(typeof(IEnumerable<QuestionResponse>), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> Index(int id, string conceptName)
+        {
+            var result = await _pollService.GetLatestPollAnswerByUser(conceptName, id);
+
+            var mapped = _mapper.Map<IEnumerable<QuestionResponse>>(result);
+
+            return Ok(new ApiOkResponse(mapped));
+        }
     }
 }
