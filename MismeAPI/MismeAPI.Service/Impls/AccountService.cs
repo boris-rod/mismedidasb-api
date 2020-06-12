@@ -859,5 +859,54 @@ namespace MismeAPI.Services.Impls
             _uow.UserRepository.Update(user);
             await _uow.CommitAsync();
         }
+
+        public async Task<(bool IsValid, ICollection<string> Suggestions)> ValidateUsernameAsync(string username, string email, string fullName, int userId = -1)
+        {
+            var isValid = false;
+            var suggestions = new List<string>();
+
+            var emailName = email.Split("@")[0];
+            emailName = emailName.Replace(".", "");
+            fullName = fullName.Replace(" ", "");
+            fullName = fullName.ToLower();
+
+            if (string.IsNullOrEmpty(fullName))
+            {
+                fullName = emailName.Substring(0, 4);
+            }
+
+            //Store the first possible name.
+            var possibleUsername = string.Format("{0}{1}", fullName, emailName.Substring(0, 1));
+
+            //Don't hit the database N times, instead get all the possible names in one shot.
+            var existingUsers = await _uow.UserRepository.FindAllAsync(u => u.Username.StartsWith(possibleUsername));
+            var existUsername = await _uow.UserRepository.FindAsync(u => u.Username == username && u.Id != userId);
+            isValid = existUsername == null;
+
+            //Find the first possible open username.
+            if (existingUsers.Count == 0)
+            {
+                //Create the user since the username is open.
+                suggestions.Add(possibleUsername);
+            }
+            else
+            {
+                //Iterate through all the possible usernames and create it when a spot is open.
+                for (var i = 1; i < existingUsers.Count; i++)
+                {
+                    possibleUsername = string.Format("{0}{1}", fullName, emailName.Substring(0, i));
+                    if (existingUsers.FirstOrDefault(u => u.Username == possibleUsername) == null)
+                    {
+                        //Create the user since the user name is open.
+                        suggestions.Add(possibleUsername);
+                    }
+
+                    if (suggestions.Count > 3)
+                        break;
+                }
+            }
+
+            return (isValid, suggestions);
+        }
     }
 }

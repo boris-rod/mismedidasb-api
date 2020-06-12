@@ -156,6 +156,34 @@ namespace MismeAPI.Controllers
         }
 
         /// <summary>
+        /// Get all user eats. Only an admin can do this operation. Requires authentication.
+        /// </summary>
+        /// <param name="userId">User's id.</param>
+        /// <param name="eatType">
+        /// Eat by type: 0- Breakfast, 1- Snack1, 2- Lunch, 3- Snack2, 4- Dinner.
+        /// </param>
+        /// <param name="sortOrder">Sort eats</param>
+        /// <param name="page">The page to be displayed. 1 by default.</param>
+        /// <param name="perPage">The number of eats to be displayed per page. 10 by default.</param>
+        [HttpGet("admin-user-eats")]
+        [Authorize(Roles = "ADMIN")]
+        [ProducesResponseType(typeof(IEnumerable<EatResponse>), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetAllEatsByUser(int userId, int? page, int? perPage, int? eatType, string sortOrder)
+        {
+            var eatTyp = eatType ?? -1;
+            var pag = page ?? 1;
+            var perPag = perPage ?? 10;
+
+            var result = await _eatService.GetPaggeableAllUserEatsAsync(userId, pag, perPag, eatTyp, sortOrder);
+            HttpContext.Response.Headers.Add("PagingData", JsonConvert.SerializeObject(result.GetPaginationData));
+            HttpContext.Response.Headers["Access-Control-Expose-Headers"] = "PagingData";
+            HttpContext.Response.Headers["Access-Control-Allow-Headers"] = "PagingData";
+
+            var mapped = _mapper.Map<IEnumerable<EatResponse>>(result);
+            return Ok(new ApiOkResponse(mapped));
+        }
+
+        /// <summary>
         /// Add an eat. Requires authentication.
         /// </summary>
         /// <param name="eat">Eat request object.</param>

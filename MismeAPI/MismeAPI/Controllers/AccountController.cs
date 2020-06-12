@@ -8,6 +8,7 @@ using MismeAPI.BasicResponses;
 using MismeAPI.Common.DTO.Request;
 using MismeAPI.Common.DTO.Response;
 using MismeAPI.Common.DTO.Response.Settings;
+using MismeAPI.Common.DTO.Response.User;
 using MismeAPI.Data.Entities.Enums;
 using MismeAPI.Service;
 using MismeAPI.Service.Hubs;
@@ -433,6 +434,31 @@ namespace MismeAPI.Controllers
             var loggedUser = User.GetUserIdFromToken();
             await _accountService.UpdateProfileAsync(loggedUser, userProfileRequest);
             return Ok();
+        }
+
+        /// <summary>
+        /// Validate if username exist but also returns a list of username's suggestions.
+        /// </summary>
+        /// <param name="username">Username to validate</param>
+        /// <param name="email">User Email used to elaborate suggestions</param>
+        /// <param name="fullName">User FullName used to elaborate sugestions</param>
+        /// <param name="userId">
+        /// User id who is updating the username. Set null if the user does not exist yet.
+        /// </param>
+        [HttpGet("username-validation")]
+        [ProducesResponseType(typeof(IEnumerable<UsernameValidationResponse>), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> UsernameValidation(string username, string email, string fullName, int? userId)
+        {
+            var userIdValue = userId.HasValue ? userId.Value : -1;
+
+            var result = await _accountService.ValidateUsernameAsync(username, email, fullName, userIdValue);
+            var mapped = new UsernameValidationResponse
+            {
+                IsValid = result.IsValid,
+                Suggestions = result.Suggestions
+            };
+
+            return Ok(new ApiOkResponse(mapped));
         }
     }
 }

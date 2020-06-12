@@ -123,9 +123,9 @@ namespace MismeAPI.Service.Impls
             return await results.ToListAsync();
         }
 
-        public async Task<PaginatedList<Eat>> GetPaggeableAllUserEatsAsync(int userId, int pag, int perPag, int eatTyp)
+        public async Task<PaginatedList<Eat>> GetPaggeableAllUserEatsAsync(int userId, int pag, int perPag, int eatTyp, string sortOrder = "")
         {
-            var results = _uow.EatRepository.GetAll().Where(e => e.UserId == userId)
+            var result = _uow.EatRepository.GetAll().Where(e => e.UserId == userId)
                 .Include(e => e.User)
                 .Include(e => e.EatDishes)
                     .ThenInclude(ed => ed.Dish)
@@ -142,9 +142,29 @@ namespace MismeAPI.Service.Impls
             //filter by type if not -1(null equivalent)
             if (eatTyp != -1)
             {
-                results = results.Where(e => e.EatType == (EatTypeEnum)eatTyp);
+                result = result.Where(e => e.EatType == (EatTypeEnum)eatTyp);
             }
-            return await PaginatedList<Eat>.CreateAsync(results, pag, perPag);
+
+            // define sort order
+            if (!string.IsNullOrWhiteSpace(sortOrder))
+            {
+                // sort order section
+                switch (sortOrder)
+                {
+                    case "createdAt_desc":
+                        result = result.OrderByDescending(i => i.CreatedAt).ThenBy(e => e.EatType);
+                        break;
+
+                    case "createdAt_asc":
+                        result = result.OrderBy(i => i.CreatedAt).ThenBy(e => e.EatType);
+                        break;
+
+                    default:
+                        break;
+                }
+            }
+
+            return await PaginatedList<Eat>.CreateAsync(result, pag, perPag);
         }
 
         public async Task<Eat> UpdateEatAsync(int loggedUser, UpdateEatRequest eat)
