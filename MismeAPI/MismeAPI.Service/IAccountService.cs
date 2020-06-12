@@ -51,5 +51,7 @@ namespace MismeAPI.Services
         Task DisableAccountAsync(int loggedUser, bool softDeletion);
 
         Task UpdateProfileAsync(int loggedUser, UpdateUserProfileRequest userProfileRequest);
+
+        Task<(bool IsValid, ICollection<string> Suggestions)> ValidateUsernameAsync(string username, string email, string fullName, int userId = -1);
     }
 }
