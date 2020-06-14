@@ -94,7 +94,7 @@ namespace MismeAPI.Utils
                 .ForMember(d => d.TipPositionString, opts => opts.MapFrom(source => source.TipPosition.ToString()));
 
             CreateMap<Dish, DishResponse>()
-                 .ForMember(d => d.Name, opts => opts.MapFrom((src, dest, destMember, context) => GetDishName(src, context.Items["lang"].ToString())))
+                 .ForMember(d => d.Name, opts => opts.MapFrom((src, dest, destMember, context) => GetDishName(src, GetLanguageInMapProp(context.Items))))
                 .ForMember(d => d.Tags, opts => opts.MapFrom(source => source.DishTags))
                 .ForMember(d => d.Image, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Image) ? "" : _amazonS3Service.GetPresignUrl(source.Image)));
 
@@ -410,6 +410,20 @@ namespace MismeAPI.Utils
                 {
                     return "ES";
                 }
+            }
+        }
+
+        private string GetLanguageInMapProp(IDictionary<string, object> items)
+        {
+            try
+            {
+                var lang = items["lang"]; 
+                return lang.ToString();
+            }
+            catch (Exception ex)
+            {
+                ex.Data.Add("CustomErrorInfo", ex.Message);
+                throw;
             }
         }
     }

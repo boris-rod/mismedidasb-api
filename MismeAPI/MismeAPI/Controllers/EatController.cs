@@ -128,7 +128,7 @@ namespace MismeAPI.Controllers
         /// <summary>
         /// Get all user eats. Only an admin can do this operation. Requires authentication.
         /// </summary>
-        /// <param name="userId">Specific date to filter. Must be in UTC format.</param>
+        /// <param name="userId">Specific user id to filter.</param>
         /// <param name="date">Specific date to filter. Must be in UTC format.</param>
         /// <param name="eatType">
         /// Eat by type: 0- Breakfast, 1- Snack1, 2- Lunch, 3- Snack2, 4- Dinner.
@@ -141,6 +141,7 @@ namespace MismeAPI.Controllers
         public async Task<IActionResult> GetAllEatsByDate(int userId, DateTime? date, int? page, int? perPage, int? eatType)
         {
             var adminId = User.GetUserIdFromToken();
+            var language = await _userService.GetUserLanguageFromUserIdAsync(adminId);
 
             var eatTyp = eatType ?? -1;
             var pag = page ?? 1;
@@ -151,7 +152,10 @@ namespace MismeAPI.Controllers
             HttpContext.Response.Headers["Access-Control-Expose-Headers"] = "PagingData";
             HttpContext.Response.Headers["Access-Control-Allow-Headers"] = "PagingData";
 
-            var mapped = _mapper.Map<IEnumerable<EatResponse>>(result);
+            var mapped = _mapper.Map<IEnumerable<EatResponse>>(result, opt =>
+            {
+                opt.Items["lang"] = language;
+            });
             return Ok(new ApiOkResponse(mapped));
         }
 
@@ -170,6 +174,8 @@ namespace MismeAPI.Controllers
         [ProducesResponseType(typeof(IEnumerable<EatResponse>), (int)HttpStatusCode.OK)]
         public async Task<IActionResult> GetAllEatsByUser(int userId, int? page, int? perPage, int? eatType, string sortOrder)
         {
+            var loggedUser = User.GetUserIdFromToken();
+            var language = await _userService.GetUserLanguageFromUserIdAsync(loggedUser);
             var eatTyp = eatType ?? -1;
             var pag = page ?? 1;
             var perPag = perPage ?? 10;
@@ -179,7 +185,11 @@ namespace MismeAPI.Controllers
             HttpContext.Response.Headers["Access-Control-Expose-Headers"] = "PagingData";
             HttpContext.Response.Headers["Access-Control-Allow-Headers"] = "PagingData";
 
-            var mapped = _mapper.Map<IEnumerable<EatResponse>>(result);
+            var mapped = _mapper.Map<IEnumerable<EatResponse>>(result, opt =>
+            {
+                opt.Items["lang"] = language;
+            });
+
             return Ok(new ApiOkResponse(mapped));
         }
 
@@ -195,8 +205,15 @@ namespace MismeAPI.Controllers
         {
             /*This endpoint is not in use anymore - you should disable it*/
             var loggedUser = User.GetUserIdFromToken();
+            var language = await _userService.GetUserLanguageFromUserIdAsync(loggedUser);
+
             var result = await _eatService.CreateEatAsync(loggedUser, eat);
-            var mapped = _mapper.Map<EatResponse>(result);
+
+            var mapped = _mapper.Map<EatResponse>(result, opt =>
+            {
+                opt.Items["lang"] = language;
+            });
+
             return Created("", new ApiOkResponse(mapped));
         }
 
@@ -212,8 +229,14 @@ namespace MismeAPI.Controllers
         public async Task<IActionResult> UpdateDish([FromBody]UpdateEatRequest eat)
         {
             var loggedUser = User.GetUserIdFromToken();
+            var language = await _userService.GetUserLanguageFromUserIdAsync(loggedUser);
+
             var result = await _eatService.UpdateEatAsync(loggedUser, eat);
-            var mapped = _mapper.Map<EatResponse>(result);
+
+            var mapped = _mapper.Map<EatResponse>(result, opt =>
+            {
+                opt.Items["lang"] = language;
+            });
             return Created("", new ApiOkResponse(mapped));
         }
 
