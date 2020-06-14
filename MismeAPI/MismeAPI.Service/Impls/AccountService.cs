@@ -384,12 +384,12 @@ namespace MismeAPI.Services.Impls
                 //|| !CheckStringWithUppercaseLetters(suRequest.Password)
                 )
             {
-                throw new MismeAPI.Common.Exceptions.InvalidDataException("password.");
+                throw new InvalidDataException("password.");
             }
 
             if (suRequest.Password != suRequest.ConfirmationPassword)
             {
-                throw new MismeAPI.Common.Exceptions.InvalidDataException("password.");
+                throw new InvalidDataException("password.");
             }
 
             var passwordHash = GetSha256Hash(suRequest.Password);
@@ -434,7 +434,16 @@ namespace MismeAPI.Services.Impls
             var exist = await _uow.UserRepository.FindByAsync(u => u.Username == username);
             if (exist.Count > 0)
             {
-                username = username + "_" + Suid.NewLettersOnlySuid();
+                var validationObject = await ValidateUsernameAsync(username, email, "");
+
+                if (validationObject.Suggestions.Count() == 0)
+                {
+                    username = username + "_" + Suid.NewLettersOnlySuid();
+                }
+                else
+                {
+                    username = validationObject.Suggestions.FirstOrDefault();
+                }
             }
             return username;
         }

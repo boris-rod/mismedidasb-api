@@ -55,8 +55,12 @@ namespace MismeAPI.Middlewares
             }
             catch (Exception ex)
             {
+                var msg = "";
+                if (ex.Data.Contains("CustomErrorInfo"))
+                    msg = ex.Data["CustomErrorInfo"].ToString() + "\n";
+
                 context.Response.StatusCode = 500;
-                Message = ex.Message;
+                Message = msg + ex.Message;
             }
 
             if (!context.Response.HasStarted && context.Response.StatusCode != 204)

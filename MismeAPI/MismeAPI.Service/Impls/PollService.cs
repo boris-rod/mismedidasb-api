@@ -566,7 +566,9 @@ namespace MismeAPI.Service.Impls
                            .OrderByDescending(ua => ua.CreatedAt)
                            .FirstOrDefault();
 
-                    q.Answers.Add(ua.Answer);
+                    if (ua != null)
+                        q.Answers.Add(ua.Answer);
+
                     result.Add(q);
                 }
             }

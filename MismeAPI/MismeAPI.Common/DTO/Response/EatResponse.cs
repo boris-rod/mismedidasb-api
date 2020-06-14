@@ -6,8 +6,8 @@ namespace MismeAPI.Common.DTO.Response
     public class EatResponse
     {
         public int Id { get; set; }
-        public List<EatDishResponse> EatDishResponse { get; set; }
-        public List<EatCompoundDishResponse> EatCompoundDishResponse { get; set; }
+        public ICollection<EatDishResponse> EatDishResponse { get; set; }
+        public ICollection<EatCompoundDishResponse> EatCompoundDishResponse { get; set; }
         public int EatTypeId { get; set; }
         public string EatType { get; set; }
         public DateTime CreatedAt { get; set; }
