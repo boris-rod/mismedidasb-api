@@ -92,12 +92,12 @@ namespace MismeAPI.Service.Impls
 
             var plannedExcercicesYesterday = userAnswers.Any(ua => ua.AnswerCode == "SQ-3-SA-1");
 
-            if (!plannedExcercicesYesterday)
-                result = result.Where(sq => sq.Code != "SQ-4");
+            //if (!plannedExcercicesYesterday)
+            //    result = result.Where(sq => sq.Code != "SQ-4");
 
-            var userEat = await _uow.EatRepository.FindAsync(e => e.UserId == userId && e.CreatedAt.Date == today.Date);
-            if (userEat == null)
-                result = result.Where(sq => sq.Code != "SQ-1");
+            //var userEat = await _uow.EatRepository.FindAsync(e => e.UserId == userId && e.CreatedAt.Date == today.Date);
+            //if (userEat == null)
+            //    result = result.Where(sq => sq.Code != "SQ-1");
 
             return await PaginatedList<SoloQuestion>.CreateAsync(result, pag, perPag);
         }

@@ -861,7 +861,13 @@ namespace MismeAPI.Services.Impls
             {
                 throw new NotFoundException(ExceptionConstants.NOT_FOUND, "User");
             }
-            //TODO: Validate Unique Username
+
+            var existUsername = await _uow.UserRepository.FindAsync(u => u.Username == userProfileRequest.Username && u.Id != loggedUser);
+            if (existUsername != null)
+            {
+                throw new AlreadyExistsException("Username is already in use.");
+            }
+
             user.Username = userProfileRequest.Username;
             user.FullName = userProfileRequest.FullName;
             user.Phone = userProfileRequest.Phone;
