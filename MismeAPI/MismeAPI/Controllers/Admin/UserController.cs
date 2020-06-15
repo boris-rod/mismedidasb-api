@@ -70,9 +70,17 @@ namespace MismeAPI.Controllers.Admin
         [ProducesResponseType(typeof(IEnumerable<QuestionResponse>), (int)HttpStatusCode.OK)]
         public async Task<IActionResult> Index(int id, string conceptName)
         {
+            var loggedUser = User.GetUserIdFromToken();
+            var language = await _userService.GetUserLanguageFromUserIdAsync(loggedUser);
+            var dict = await _pollService.GetLastAnsweredDictAsync(loggedUser);
+
             var result = await _pollService.GetLatestPollAnswerByUser(conceptName, id);
 
-            var mapped = _mapper.Map<IEnumerable<QuestionResponse>>(result);
+            var mapped = _mapper.Map<IEnumerable<QuestionResponse>>(result, opt =>
+            {
+                opt.Items["lang"] = language;
+                opt.Items["dict"] = dict;
+            });
 
             return Ok(new ApiOkResponse(mapped));
         }
