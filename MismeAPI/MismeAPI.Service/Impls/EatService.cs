@@ -160,6 +160,7 @@ namespace MismeAPI.Service.Impls
                         break;
 
                     default:
+                        result = result.OrderByDescending(i => i.CreatedAt).ThenBy(e => e.EatType);
                         break;
                 }
             }
