@@ -62,8 +62,8 @@ namespace MismeAPI.Utils
             CreateMap<Poll, PollAdminResponse>();
 
             CreateMap<Question, QuestionResponse>()
-                 .ForMember(d => d.LastAnswer, opts => opts.MapFrom((src, dest, destMember, context) => GetLastAnswer(src, (Dictionary<int, int>)context.Items["dict"])))
-                 .ForMember(d => d.Title, opts => opts.MapFrom((src, dest, destMember, context) => GetQuestionTitle(src, context.Items["lang"].ToString())))
+                 .ForMember(d => d.LastAnswer, opts => opts.MapFrom((src, dest, destMember, context) => GetLastAnswer(src, context.Items)))
+                 .ForMember(d => d.Title, opts => opts.MapFrom((src, dest, destMember, context) => GetQuestionTitle(src, GetLanguageInMapProp(context.Items))))
                  .ForMember(d => d.Answers, opts => opts.MapFrom(source => source.Answers.OrderBy(q => q.Order)));
 
             CreateMap<Question, QuestionAdminResponse>()
@@ -221,11 +221,19 @@ namespace MismeAPI.Utils
                 .ForMember(d => d.Name, opts => opts.MapFrom(source => source.Subscription != null ? source.Subscription.Name : ""));
         }
 
-        private int GetLastAnswer(Question src, Dictionary<int, int> dictionary)
+        private int GetLastAnswer(Question src, IDictionary<string, object> items = null)
         {
-            var value = 0;
-            dictionary.TryGetValue(src.Id, out value);
-            return value;
+            try
+            {
+                var dictionary = (Dictionary<int, int>)items["dict"];
+                var value = 0;
+                dictionary.TryGetValue(src.Id, out value);
+                return value;
+            }
+            catch (Exception)
+            {
+                return -1;
+            }
         }
 
         private string GetGeneralContent(GeneralContent src, string lang)
@@ -417,13 +425,12 @@ namespace MismeAPI.Utils
         {
             try
             {
-                var lang = items["lang"]; 
+                var lang = items["lang"];
                 return lang.ToString();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                ex.Data.Add("CustomErrorInfo", ex.Message);
-                throw;
+                return "ES";
             }
         }
     }
