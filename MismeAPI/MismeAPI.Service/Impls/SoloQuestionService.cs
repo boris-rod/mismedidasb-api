@@ -84,7 +84,21 @@ namespace MismeAPI.Service.Impls
             var today = DateTime.UtcNow;
             var yesterday = today.AddDays(-1).Date;
 
-            var result = _uow.SoloQuestionRepository.GetAll().Include(sq => sq.SoloAnswers).AsQueryable();
+            var result = _uow.SoloQuestionRepository.GetAll()
+                .Include(x => x.SoloAnswers)
+                .Select(x => new SoloQuestion
+                {
+                    Id = x.Id,
+                    Code = x.Code,
+                    AllowCustomAnswer = x.AllowCustomAnswer,
+                    CreatedAt = x.CreatedAt,
+                    ModifiedAt = x.ModifiedAt,
+                    Title = x.Title,
+                    TitleEN = x.TitleEN,
+                    TitleIT = x.TitleIT,
+                    SoloAnswers = x.SoloAnswers.OrderBy(y => y.Code).ToList()
+                })
+                .AsQueryable();
 
             var userAnswers = await _uow.UserSoloAnswerRepository.GetAll()
                 .Where(u => u.Id == userId && u.CreatedAt.Date == yesterday)
