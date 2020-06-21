@@ -559,7 +559,7 @@ namespace MismeAPI.Service.Impls
                 var questions = poll.Questions.OrderBy(q => q.Order);
                 foreach (var q in questions)
                 {
-                    q.Answers = new List<Answer>();
+                    var answers = new List<Answer>();
 
                     var ua = _uow.UserAnswerRepository.GetAll().Where(u => u.UserId == userId && u.Answer.QuestionId == q.Id)
                            .Include(u => u.Answer)
@@ -567,7 +567,9 @@ namespace MismeAPI.Service.Impls
                            .FirstOrDefault();
 
                     if (ua != null)
-                        q.Answers.Add(ua.Answer);
+                        answers.Add(ua.Answer);
+
+                    q.Answers = answers;
 
                     result.Add(q);
                 }
