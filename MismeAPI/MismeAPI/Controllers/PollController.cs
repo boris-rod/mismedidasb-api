@@ -176,6 +176,7 @@ namespace MismeAPI.Controllers
             var loggedUser = User.GetUserIdFromToken();
             var language = await _userService.GetUserLanguageFromUserIdAsync(loggedUser);
 
+            // Only 10 points per concept
             var alreadyAnswered = await _pollService.HasAnsweredConceptBeforeAsync(loggedUser, result);
 
             var message = await _pollService.SetPollResultByQuestionsAsync(loggedUser, result, language);
@@ -185,10 +186,9 @@ namespace MismeAPI.Controllers
             if (!alreadyAnswered)
             {
                 var answeredPolls = _pollService.GetAnsweredPolls(result);
-                foreach (var pollId in answeredPolls)
-                {
-                    mapped = await _rewardHelper.HandleRewardAsync(RewardCategoryEnum.POLL_ANSWERED, loggedUser, true, message, pollId);
-                }
+
+                var pollId = answeredPolls.FirstOrDefault();
+                mapped = await _rewardHelper.HandleRewardAsync(RewardCategoryEnum.POLL_ANSWERED, loggedUser, true, message, pollId);
             }
             /*#end reward section*/
 
