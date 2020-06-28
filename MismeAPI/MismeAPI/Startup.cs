@@ -2,12 +2,9 @@ using AutoMapper;
 using Hangfire;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using MismeAPI.Data.Entities;
-using MismeAPI.Data.Entities.Enums;
 using MismeAPI.Data.Repository;
 using MismeAPI.Data.UoW;
 using MismeAPI.Filters;
@@ -21,9 +18,6 @@ using MismeAPI.Utils;
 using Newtonsoft.Json;
 using Serilog;
 using System;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MismeAPI
 {
@@ -114,7 +108,7 @@ namespace MismeAPI
             var backgroundJobProcessor = services.GetRequiredService<IBackgroundJobProcessor>();
             recurringJobs.AddOrUpdate<IMismeBackgroundService>("ExpiredTokens", (e) => e.CleanExpiredTokensAsync(), "0 3 * * *");
             recurringJobs.AddOrUpdate<IMismeBackgroundService>("DisabledAccount", (e) => e.RemoveDisabledAccountsAsync(), "0 3 * * *");
-            recurringJobs.AddOrUpdate<IMismeBackgroundService>("Notifications", (e) => e.SendFireBaseNotificationsRemindersAsync(), "0 18 * * *");
+            //recurringJobs.AddOrUpdate<IMismeBackgroundService>("Notifications", (e) => e.SendFireBaseNotificationsRemindersAsync(), "0 18 * * *");
             recurringJobs.AddOrUpdate<IBackgroundJobProcessor>("HandleUserStreaks", (e) => e.HandleUserStreaksAsync(), "0 22 * * *");
 
             if (env.IsDevelopment())

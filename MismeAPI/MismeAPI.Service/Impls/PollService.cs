@@ -581,7 +581,7 @@ namespace MismeAPI.Service.Impls
         private async Task<DateTime?> GetLastConceptUpdateAsync(int conceptId, int userId)
         {
             var userConcept = await _uow.UserConceptRepository.GetAll()
-                    .Where(c => c.Id == conceptId && c.UserId == userId)
+                    .Where(c => c.ConceptId == conceptId && c.UserId == userId)
                     .OrderByDescending(c => c.CompletedAt)
                     .FirstOrDefaultAsync();
 
