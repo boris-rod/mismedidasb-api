@@ -63,6 +63,16 @@ namespace MismeAPI.Services.Impls
             return url;
         }
 
+        public string GetPublicUrl(string key)
+        {
+            var bucketName = _config["AWS:BucketName"];
+            var awsUri = ".s3.amazonaws.com/";
+
+            var url = "https://" + bucketName + awsUri + key;
+
+            return url;
+        }
+
         public async Task<PutObjectResponse> PutObjectAsync(string key, MemoryStream content)
         {
             //try

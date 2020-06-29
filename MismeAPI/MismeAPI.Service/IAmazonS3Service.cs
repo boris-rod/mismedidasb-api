@@ -11,6 +11,8 @@ namespace MismeAPI.Services
 
         string GetPresignUrl(string key);
 
+        string GetPublicUrl(string key);
+
         Task<PutObjectResponse> PutObjectAsync(string key, MemoryStream content);
 
         Task<DeleteObjectResponse> DeleteObjectAsync(string key);
