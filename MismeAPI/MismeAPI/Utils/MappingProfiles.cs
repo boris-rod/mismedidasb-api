@@ -42,13 +42,13 @@ namespace MismeAPI.Utils
                 .ForMember(d => d.Language, opts => opts.MapFrom(source => GetLanguage(source.UserSettings)))
                         .ForMember(d => d.StatusId, opts => opts.MapFrom(source => (int)source.Status))
                         .ForMember(d => d.Status, opts => opts.MapFrom(source => source.Status.ToString()))
-                        .ForMember(d => d.Avatar, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Avatar) ? "" : _amazonS3Service.GetPresignUrl(source.Avatar)));
+                        .ForMember(d => d.Avatar, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Avatar) ? "" : _amazonS3Service.GetPublicUrl(source.Avatar)));
 
             CreateMap<User, UserWithSubscriptionResponse>()
                 .ForMember(d => d.Language, opts => opts.MapFrom(source => GetLanguage(source.UserSettings)))
                         .ForMember(d => d.StatusId, opts => opts.MapFrom(source => (int)source.Status))
                         .ForMember(d => d.Status, opts => opts.MapFrom(source => source.Status.ToString()))
-                        .ForMember(d => d.Avatar, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Avatar) ? "" : _amazonS3Service.GetPresignUrl(source.Avatar)));
+                        .ForMember(d => d.Avatar, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Avatar) ? "" : _amazonS3Service.GetPublicUrl(source.Avatar)));
 
             CreateMap<User, UserAdminResponse>();
 
@@ -78,10 +78,10 @@ namespace MismeAPI.Utils
                 .ForMember(d => d.Title, opts => opts.MapFrom((src, dest, destMember, context) => GetConceptTitle(src, context.Items["lang"].ToString())))
                 .ForMember(d => d.Instructions, opts => opts.MapFrom((src, dest, destMember, context) => GetConceptInstructions(src, context.Items["lang"].ToString())))
                 .ForMember(d => d.Description, opts => opts.MapFrom((src, dest, destMember, context) => GetConceptDescription(src, context.Items["lang"].ToString())))
-                .ForMember(d => d.Image, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Image) ? "" : _amazonS3Service.GetPresignUrl(source.Image)));
+                .ForMember(d => d.Image, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Image) ? "" : _amazonS3Service.GetPublicUrl(source.Image)));
 
             CreateMap<Concept, ConceptAdminResponse>()
-                .ForMember(d => d.Image, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Image) ? "" : _amazonS3Service.GetPresignUrl(source.Image)));
+                .ForMember(d => d.Image, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Image) ? "" : _amazonS3Service.GetPublicUrl(source.Image)));
 
             CreateMap<Tag, TagResponse>();
             CreateMap<Tip, TipResponse>()
@@ -96,10 +96,10 @@ namespace MismeAPI.Utils
             CreateMap<Dish, DishResponse>()
                  .ForMember(d => d.Name, opts => opts.MapFrom((src, dest, destMember, context) => GetDishName(src, GetLanguageInMapProp(context.Items))))
                 .ForMember(d => d.Tags, opts => opts.MapFrom(source => source.DishTags))
-                .ForMember(d => d.Image, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Image) ? "" : _amazonS3Service.GetPresignUrl(source.Image)));
+                .ForMember(d => d.Image, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Image) ? "" : _amazonS3Service.GetPublicUrl(source.Image)));
 
             CreateMap<Dish, DishAdminResponse>();
-            //.ForMember(d => d.Image, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Image) ? "" : _amazonS3Service.GetPresignUrl(source.Image)));
+            //.ForMember(d => d.Image, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Image) ? "" : _amazonS3Service.GetPublicUrl(source.Image)));
             CreateMap<Reminder, ReminderAdminResponse>();
             CreateMap<Result, ResultAdminResponse>();
 
@@ -154,7 +154,7 @@ namespace MismeAPI.Utils
               .ForMember(d => d.Qty, opts => opts.MapFrom(source => source.DishQty))
               .ForMember(d => d.Dish, opts => opts.MapFrom(source => source.Dish));
             CreateMap<CompoundDish, CompoundDishResponse>()
-                .ForMember(d => d.Image, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Image) ? "" : _amazonS3Service.GetPresignUrl(source.Image)))
+                .ForMember(d => d.Image, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Image) ? "" : _amazonS3Service.GetPublicUrl(source.Image)))
                 .ForMember(d => d.DishCompoundDishResponse, opts => opts.MapFrom(source => source.DishCompoundDishes))
                 .ForMember(d => d.Calcium, opts => opts.MapFrom(source => source.DishCompoundDishes.Count > 0 ? source.DishCompoundDishes.Sum(d => d.Dish.Calcium * d.DishQty) : 0))
                 .ForMember(d => d.Calories, opts => opts.MapFrom(source => source.DishCompoundDishes.Count > 0 ? source.DishCompoundDishes.Sum(d => d.Dish.Calories * d.DishQty) : 0))
@@ -182,7 +182,7 @@ namespace MismeAPI.Utils
                 .ForMember(d => d.Username, opts => opts.MapFrom(source => source.CreatedBy.Username))
                 .ForMember(d => d.Fullname, opts => opts.MapFrom(source => source.CreatedBy.FullName))
                 .ForMember(d => d.Email, opts => opts.MapFrom(source => source.CreatedBy.Email))
-                .ForMember(d => d.Image, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Image) ? "" : _amazonS3Service.GetPresignUrl(source.Image)))
+                .ForMember(d => d.Image, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Image) ? "" : _amazonS3Service.GetPublicUrl(source.Image)))
                 .ForMember(d => d.DishCompoundDishResponse, opts => opts.MapFrom(source => source.DishCompoundDishes))
                 .ForMember(d => d.Calcium, opts => opts.MapFrom(source => source.DishCompoundDishes.Count > 0 ? source.DishCompoundDishes.Sum(d => d.Dish.Calcium * d.DishQty) : 0))
                 .ForMember(d => d.Calories, opts => opts.MapFrom(source => source.DishCompoundDishes.Count > 0 ? source.DishCompoundDishes.Sum(d => d.Dish.Calories * d.DishQty) : 0))
