@@ -5,6 +5,7 @@ using MismeAPI.Common.Exceptions;
 using MismeAPI.Data.Entities;
 using MismeAPI.Data.Entities.Enums;
 using MismeAPI.Data.UoW;
+using MismeAPI.Services;
 using MismeAPI.Services.Utils;
 using System;
 using System.Collections.Generic;
@@ -18,12 +19,14 @@ namespace MismeAPI.Service.Impls
         private readonly IUnitOfWork _uow;
         private readonly IScheduleService _scheduleService;
         private readonly IUserService _userService;
+        private readonly IAccountService _accountService;
 
-        public EatService(IUnitOfWork uow, IScheduleService scheduleService, IUserService userService)
+        public EatService(IUnitOfWork uow, IScheduleService scheduleService, IUserService userService, IAccountService accountService)
         {
             _uow = uow ?? throw new ArgumentNullException(nameof(uow));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _scheduleService = scheduleService ?? throw new ArgumentNullException(nameof(scheduleService));
+            _accountService = accountService ?? throw new ArgumentNullException(nameof(accountService));
         }
 
         public async Task<Eat> CreateEatAsync(int loggedUser, CreateEatRequest eat)
@@ -245,6 +248,8 @@ namespace MismeAPI.Service.Impls
             ////this days not eat yet
             //if (userEats.Count == 0)
             //{
+            var kcal = await _accountService.GetKCalAsync(loggedUser);
+            var imc = await _accountService.GetIMCAsync(loggedUser);
             foreach (var item in eat.Eats)
             {
                 var e = new Eat();
@@ -254,6 +259,8 @@ namespace MismeAPI.Service.Impls
                 e.UserId = loggedUser;
                 e.IsBalanced = eat.IsBalanced;
                 e.EatUtcAt = item.EatUtcAt;
+                e.KCalAtThatMoment = kcal;
+                e.ImcAtThatMoment = imc;
 
                 if (IsValidDateForPlan(eat.DateInUtc, eat.DateTimeInUserLocalTime))
                 {

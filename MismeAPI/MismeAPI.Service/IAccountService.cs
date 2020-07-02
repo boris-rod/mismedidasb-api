@@ -53,5 +53,9 @@ namespace MismeAPI.Services
         Task UpdateProfileAsync(int loggedUser, UpdateUserProfileRequest userProfileRequest);
 
         Task<(bool IsValid, ICollection<string> Suggestions)> ValidateUsernameAsync(string username, string email, string fullName, int userId = -1);
+
+        Task<double> GetKCalAsync(int userId);
+
+        Task<double> GetIMCAsync(int userId);
     }
 }

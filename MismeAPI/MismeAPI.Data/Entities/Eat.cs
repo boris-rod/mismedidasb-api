@@ -43,5 +43,8 @@ namespace MismeAPI.Data.Entities
 
         public virtual ICollection<EatDish> EatDishes { get; set; }
         public virtual ICollection<EatCompoundDish> EatCompoundDishes { get; set; }
+
+        public double KCalAtThatMoment { get; set; }
+        public double ImcAtThatMoment { get; set; }
     }
 }

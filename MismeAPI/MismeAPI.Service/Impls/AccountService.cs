@@ -251,11 +251,11 @@ namespace MismeAPI.Services.Impls
             return (0.0, 0.0, null);
         }
 
-        private double GetKCal(int userId)
+        public async Task<double> GetKCalAsync(int userId)
         {
             try
             {
-                var concept = _uow.ConceptRepository.GetAll().Where(c => c.Codename == CodeNamesConstants.HEALTH_MEASURES).FirstOrDefault();
+                var concept = await _uow.ConceptRepository.GetAll().Where(c => c.Codename == CodeNamesConstants.HEALTH_MEASURES).FirstOrDefaultAsync();
 
                 if (concept != null)
                 {
@@ -413,11 +413,11 @@ namespace MismeAPI.Services.Impls
             return null;
         }
 
-        private double GetIMC(int userId)
+        public async Task<double> GetIMCAsync(int userId)
         {
             try
             {
-                var concept = _uow.ConceptRepository.GetAll().Where(c => c.Codename == CodeNamesConstants.HEALTH_MEASURES).FirstOrDefault();
+                var concept = await _uow.ConceptRepository.GetAll().Where(c => c.Codename == CodeNamesConstants.HEALTH_MEASURES).FirstOrDefaultAsync();
 
                 if (concept != null)
                 {
@@ -942,8 +942,8 @@ namespace MismeAPI.Services.Impls
                 .Where(u => u.Id == loggedUser)
                 .FirstOrDefaultAsync();
 
-            var kcal = GetKCal(user.Id);
-            var imc = GetIMC(user.Id);
+            var kcal = await GetKCalAsync(user.Id);
+            var imc = await GetIMCAsync(user.Id);
             var first = GetFirstHealthMeasured(user.Id);
             return (user, kcal, imc, first);
         }
