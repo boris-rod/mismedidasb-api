@@ -1,21 +1,16 @@
-﻿using CorePush.Google;
-using FirebaseAdmin.Messaging;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using MismeAPI.Common;
 using MismeAPI.Common.DTO.Request;
-using MismeAPI.Common.DTO.Request.CutPoints;
 using MismeAPI.Common.DTO.Request.SoloAnswer;
 using MismeAPI.Common.DTO.Request.SoloQuestion;
-using MismeAPI.Common.DTO.Response;
 using MismeAPI.Common.Exceptions;
 using MismeAPI.Data.Entities;
-using MismeAPI.Data.Entities.Enums;
+using MismeAPI.Data.Entities.NonDatabase;
 using MismeAPI.Data.UoW;
 using MismeAPI.Services.Utils;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -228,6 +223,92 @@ namespace MismeAPI.Service.Impls
             await _uow.CommitAsync();
 
             return userAnswer;
+        }
+
+        public async Task<ExtendedUserStatistics> GetuserSumaryAsync(int userId, int lastNDays)
+        {
+            var today = DateTime.UtcNow;
+            var startDate = today.AddDays(lastNDays * -1);
+            var user = await _uow.UserRepository.GetAsync(userId);
+            var fitEatPlanBestStreak = 0;
+
+            var result = new ExtendedUserStatistics();
+
+            if (user == null)
+                throw new NotFoundException(ExceptionConstants.NOT_FOUND, "User");
+
+            // hardcoded questions and answers codes.
+            var fitEatAnswers = await _uow.UserSoloAnswerRepository
+                .FindAllAsync(u => u.CreatedAt >= startDate && u.CreatedAt <= today && u.QuestionCode == "SQ-1" && u.AnswerCode == "SQ-1-SA-1");
+
+            var currentStreak = 0;
+            for (int i = 0; i <= lastNDays; i++)
+            {
+                var date = startDate.AddDays(i);
+
+                var existFitPlan = fitEatAnswers.Any(u => u.CreatedAt.Date == date.Date);
+                if (existFitPlan)
+                {
+                    currentStreak++;
+
+                    if (currentStreak > fitEatPlanBestStreak)
+                        fitEatPlanBestStreak = currentStreak;
+                }
+                else
+                {
+                    currentStreak = 0;
+                }
+            }
+
+            result.TotalDaysPlannedSport = await _uow.UserSoloAnswerRepository.GetAll()
+                .CountAsync(u => u.CreatedAt >= startDate && u.CreatedAt <= today && u.AnswerCode == "SQ-3-SA-1");
+            result.TotalDaysComplySportPlan = await _uow.UserSoloAnswerRepository.GetAll()
+                .CountAsync(u => u.CreatedAt >= startDate && u.CreatedAt <= today && u.AnswerCode == "SQ-4-SA-1");
+
+            var wellnessAnswers = await _uow.UserSoloAnswerRepository
+                .FindAllAsync(u => u.CreatedAt >= startDate && u.CreatedAt <= today && u.QuestionCode == "SQ-2" && u.AnswerCode == "SQ-2-SA-1");
+
+            var dict = new Dictionary<int, int>();
+            foreach (var answer in wellnessAnswers)
+            {
+                int value;
+                var answerValue = int.TryParse(answer.AnswerValue, out value);
+
+                if (answerValue)
+                {
+                    var key = dict.ContainsKey(value);
+                    if (key)
+                    {
+                        int count = 0;
+                        dict.TryGetValue(value, out count);
+                        count++;
+                        dict[value] = count;
+                    }
+                    else
+                    {
+                        dict.Add(value, 1);
+                    }
+                }
+            }
+
+            var wellnessCount = 0;
+            var wellness = 0;
+            if (dict.Count() > 0)
+            {
+                wellness = dict.Aggregate((l, r) => l.Value > r.Value ? l : r).Key;
+
+                var key1 = dict.ContainsKey(wellness);
+                if (key1)
+                {
+                    dict.TryGetValue(wellness, out wellnessCount);
+                }
+            }
+
+            result.BestComplyEatStreak = fitEatPlanBestStreak;
+            result.MostFrequentEmotion = wellness;
+            result.MostFrequentEmotionCount = wellnessCount;
+
+            return result;
         }
 
         public async Task SeedSoloQuestionsAsync()

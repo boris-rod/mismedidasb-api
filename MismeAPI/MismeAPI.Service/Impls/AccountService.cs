@@ -942,9 +942,11 @@ namespace MismeAPI.Services.Impls
                 .Where(u => u.Id == loggedUser)
                 .FirstOrDefaultAsync();
 
-            var kcal = await GetKCalAsync(user.Id);
-            var imc = await GetIMCAsync(user.Id);
-            var first = GetFirstHealthMeasured(user.Id);
+            var info = await GetKCalIMCFirstHeltMeasureAsync(user.Id);
+
+            var kcal = info.kcal;
+            var imc = info.imc;
+            var first = info.firstHealthMeasure;
             return (user, kcal, imc, first);
         }
 
@@ -1026,6 +1028,16 @@ namespace MismeAPI.Services.Impls
         {
             var isValid = false;
             var suggestions = new List<string>();
+
+            if (string.IsNullOrEmpty(email))
+            {
+                throw new InvalidDataException(ExceptionConstants.INVALID_DATA, "Email");
+            }
+
+            if (string.IsNullOrEmpty(username))
+            {
+                throw new InvalidDataException(ExceptionConstants.INVALID_DATA, "Username");
+            }
 
             var emailName = email.Split("@")[0];
             emailName = emailName.Replace(".", "");
