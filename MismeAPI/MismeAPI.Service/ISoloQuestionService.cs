@@ -1,6 +1,7 @@
 ﻿using MismeAPI.Common.DTO.Request;
 using MismeAPI.Common.DTO.Request.SoloQuestion;
 using MismeAPI.Data.Entities;
+using MismeAPI.Data.Entities.NonDatabase;
 using MismeAPI.Services.Utils;
 using System.Threading.Tasks;
 
@@ -23,5 +24,7 @@ namespace MismeAPI.Service
         Task SeedSoloQuestionsAsync();
 
         Task<UserSoloAnswer> SetUserAnswerAsync(int loggedUser, CreateUserSoloAnswerRequest answerRequest);
+
+        Task<ExtendedUserStatistics> GetuserSumaryAsync(int userId, int lastNDays);
     }
 }

@@ -3,10 +3,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MismeAPI.BasicResponses;
 using MismeAPI.Common.DTO.Request;
-using MismeAPI.Common.DTO.Request.Answer;
-using MismeAPI.Common.DTO.Response;
 using MismeAPI.Common.DTO.Response.SoloQuestion;
 using MismeAPI.Data.Entities.Enums;
+using MismeAPI.Data.Entities.NonDatabase;
 using MismeAPI.Service;
 using MismeAPI.Utils;
 using Newtonsoft.Json;
@@ -75,6 +74,26 @@ namespace MismeAPI.Controllers
             var rewardResponse = await _rewardHelper.HandleRewardAsync(RewardCategoryEnum.SOLO_QUESTION_ANSWERED, loggedUser, true, mapped, null);
 
             return Ok(new ApiOkRewardResponse(null, rewardResponse));
+        }
+
+        /// <summary>
+        /// Get answer summary-statistics by user id. Requires authentication
+        /// </summary>
+        /// <param name="userId">User id</param>
+        /// <param name="lastNDays">
+        /// Get the last N days of summary. If no value is provided returns the last 7 days
+        /// </param>
+        [HttpGet("{userId}/extended")]
+        [ProducesResponseType(typeof(ExtendedUserStatistics), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
+        public async Task<IActionResult> GetExtendedUsersStatisticsByUserId([FromRoute]int userId, int lastNDays)
+        {
+            if (lastNDays == 0)
+                lastNDays = 7;
+
+            var result = await _soloQuestionService.GetuserSumaryAsync(userId, lastNDays);
+
+            return Ok(new ApiOkResponse(result));
         }
     }
 }

@@ -59,7 +59,7 @@ namespace MismeAPI.Controllers
         /// Get users statistics by user id. Requires authentication
         /// </summary>
         [HttpGet("by-user-id")]
-        [ProducesResponseType(typeof(IEnumerable<UserStatisticsResponse>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(UserStatisticsResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
         public async Task<IActionResult> GetUsersStatisticsByUserId(int userId)
         {
