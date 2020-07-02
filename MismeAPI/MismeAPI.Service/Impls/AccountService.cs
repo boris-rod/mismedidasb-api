@@ -251,11 +251,11 @@ namespace MismeAPI.Services.Impls
             return (0.0, 0.0, null);
         }
 
-        private double GetKCal(int userId)
+        public async Task<double> GetKCalAsync(int userId)
         {
             try
             {
-                var concept = _uow.ConceptRepository.GetAll().Where(c => c.Codename == CodeNamesConstants.HEALTH_MEASURES).FirstOrDefault();
+                var concept = await _uow.ConceptRepository.GetAll().Where(c => c.Codename == CodeNamesConstants.HEALTH_MEASURES).FirstOrDefaultAsync();
 
                 if (concept != null)
                 {
@@ -413,11 +413,11 @@ namespace MismeAPI.Services.Impls
             return null;
         }
 
-        private double GetIMC(int userId)
+        public async Task<double> GetIMCAsync(int userId)
         {
             try
             {
-                var concept = _uow.ConceptRepository.GetAll().Where(c => c.Codename == CodeNamesConstants.HEALTH_MEASURES).FirstOrDefault();
+                var concept = await _uow.ConceptRepository.GetAll().Where(c => c.Codename == CodeNamesConstants.HEALTH_MEASURES).FirstOrDefaultAsync();
 
                 if (concept != null)
                 {

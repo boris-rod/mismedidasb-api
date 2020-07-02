@@ -1,17 +1,10 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
 using MismeAPI.BasicResponses;
-using MismeAPI.Common.DTO;
 using MismeAPI.Common.DTO.Request;
-using MismeAPI.Common.DTO.Request.Reward;
 using MismeAPI.Common.DTO.Response;
-using MismeAPI.Common.DTO.Response.Reward;
-using MismeAPI.Data.Entities.Enums;
-using MismeAPI.Data.Entities.NonDatabase;
 using MismeAPI.Service;
-using MismeAPI.Service.Hubs;
 using MismeAPI.Utils;
 using Newtonsoft.Json;
 using System;
@@ -94,33 +87,23 @@ namespace MismeAPI.Controllers
                 opt.Items["lang"] = language;
             });
 
-            var dict = new Dictionary<DateTime, FoodValues>();
-            foreach (var item in mapped)
-            {
-                //var val = dict.Keys.FirstOrDefault(k => k.Date == item.CreatedAt.Date);
-                FoodValues value;
+            //var dict = new Dictionary<DateTime, FoodValues>();
+            //foreach (var item in mapped)
+            //{
+            //    var val = dict.Keys.FirstOrDefault(k => k.Date == item.CreatedAt.Date);
+            //    FoodValues value;
 
-                var key = dict.ContainsKey(item.CreatedAt.Date);
+            // var key = dict.ContainsKey(item.CreatedAt.Date);
 
-                if (key == true)
-                {
-                    dict.TryGetValue(item.CreatedAt.Date, out value);
-                    item.IMC = value.IMC;
-                    item.KCal = value.KCal;
-                }
-                else
-                {
-                    var res = await _eatService.GetKCalImcAsync(userId, item.CreatedAt);
-                    dict.Add(item.CreatedAt.Date, new FoodValues
-                    {
-                        IMC = res.imc,
-                        KCal = res.kcal
-                    });
+            // if (key == true) { dict.TryGetValue(item.CreatedAt.Date, out value); item.IMC =
+            // value.IMC; item.KCal = value.KCal; } else { var res = await
+            // _eatService.GetKCalImcAsync(userId, item.CreatedAt); dict.Add(item.CreatedAt.Date,
+            // new FoodValues { IMC = res.imc, KCal = res.kcal });
 
-                    item.IMC = res.imc;
-                    item.KCal = res.kcal;
-                }
-            }
+            //        item.IMC = res.imc;
+            //        item.KCal = res.kcal;
+            //    }
+            //}
 
             return Ok(new ApiOkResponse(mapped));
         }
@@ -201,7 +184,7 @@ namespace MismeAPI.Controllers
         [Authorize]
         [ProducesResponseType(typeof(EatResponse), (int)HttpStatusCode.Created)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
-        public async Task<IActionResult> AddDish([FromBody]CreateEatRequest eat)
+        public async Task<IActionResult> AddDish([FromBody] CreateEatRequest eat)
         {
             /*This endpoint is not in use anymore - you should disable it*/
             var loggedUser = User.GetUserIdFromToken();
@@ -226,7 +209,7 @@ namespace MismeAPI.Controllers
         [ProducesResponseType(typeof(EatResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(EatResponse), (int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> UpdateDish([FromBody]UpdateEatRequest eat)
+        public async Task<IActionResult> UpdateDish([FromBody] UpdateEatRequest eat)
         {
             var loggedUser = User.GetUserIdFromToken();
             var language = await _userService.GetUserLanguageFromUserIdAsync(loggedUser);
@@ -248,7 +231,7 @@ namespace MismeAPI.Controllers
         [Authorize]
         [ProducesResponseType(typeof(EatResponse), (int)HttpStatusCode.Created)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
-        public async Task<IActionResult> AddEats([FromBody]CreateBulkEatRequest eat)
+        public async Task<IActionResult> AddEats([FromBody] CreateBulkEatRequest eat)
         {
             var loggedUser = User.GetUserIdFromToken();
 
