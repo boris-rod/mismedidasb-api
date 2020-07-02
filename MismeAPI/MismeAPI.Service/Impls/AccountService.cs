@@ -942,9 +942,11 @@ namespace MismeAPI.Services.Impls
                 .Where(u => u.Id == loggedUser)
                 .FirstOrDefaultAsync();
 
-            var kcal = GetKCal(user.Id);
-            var imc = GetIMC(user.Id);
-            var first = GetFirstHealthMeasured(user.Id);
+            var info = await GetKCalIMCFirstHeltMeasureAsync(user.Id);
+
+            var kcal = info.kcal;
+            var imc = info.imc;
+            var first = info.firstHealthMeasure;
             return (user, kcal, imc, first);
         }
 
