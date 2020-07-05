@@ -196,8 +196,8 @@ namespace MismeAPI.Utils
         {
             string message = lang switch
             {
-                "EN" => "Congratulations. Dr.PlaniFive have approved your dish and it will be visible to other users now." + ". You receipt " + rewardResponse.Points + " points.",
-                _ => "Enhorabuena! El Dr.PlaniFive ha aprobado su alimento y estara visible para otros usuarios en la base de datos general." + ". Ha ganado usted " + rewardResponse.Points + " puntos.",
+                "EN" => "Congratulations. Dr.PlaniFive have approved your dish and it will be visible to other users now." + " You receipt " + rewardResponse.Points + " points.",
+                _ => "Enhorabuena! El Dr.PlaniFive ha aprobado tu alimento y estara visible para otros usuarios en la base de datos general." + " Has ganado " + rewardResponse.Points + " puntos.",
             };
             return message;
         }
@@ -206,8 +206,8 @@ namespace MismeAPI.Utils
         {
             string message = lang switch
             {
-                "EN" => "Congratulations. You reached a cut point (objective)." + ". You receipt " + rewardResponse.Points + " points.",
-                _ => "Enhorabuena! Usted ha alcanzado un punto de corte (Objetivo)." + ". Ha ganado usted " + rewardResponse.Points + " puntos.",
+                "EN" => "Congratulations. You reached a cut point (objective)." + " You receipt " + rewardResponse.Points + " points.",
+                _ => "Enhorabuena! Has alcanzado un punto de corte (Objetivo)." + " Has ganado " + rewardResponse.Points + " puntos.",
             };
             return message;
         }
@@ -216,8 +216,8 @@ namespace MismeAPI.Utils
         {
             string message = lang switch
             {
-                "EN" => "Congratulations. A user invited by you has just joined PlaniFive." + ". You receipt " + rewardResponse.Points + " points.",
-                _ => "Enhorabuena! Un usuario invitado por usted se ha unido a PlaniFive." + ". Ha ganado usted " + rewardResponse.Points + " puntos.",
+                "EN" => "Congratulations. A user invited by you has just joined PlaniFive." + " You receipt " + rewardResponse.Points + " points.",
+                _ => "Enhorabuena! Uno de tus usuarios invitados se ha unido a PlaniFive." + " Has ganado " + rewardResponse.Points + " puntos.",
             };
             return message;
         }
@@ -230,8 +230,8 @@ namespace MismeAPI.Utils
 
             string message = lang switch
             {
-                "EN" => "Congratulations. You have been rewarded for creating a " + eat + "plan today." + ". You receipt " + rewardResponse.Points + " points.",
-                _ => "Enhorabuena! Has sido premiado por crear un plan " + eat + "hoy." + ". Ha ganado usted " + rewardResponse.Points + " puntos.",
+                "EN" => "Congratulations. You have been rewarded for creating a " + eat + "plan today." + " You receipt " + rewardResponse.Points + " points.",
+                _ => "Enhorabuena! Has sido premiado por crear un plan " + eat + "hoy." + " Has ganado " + rewardResponse.Points + " puntos.",
             };
             return message;
         }
