@@ -292,20 +292,28 @@ namespace MismeAPI.Service.Impls
             }
 
             var wellnessCount = 0;
-            var wellness = 0;
+            var mostFrequentEmotions = new List<int>();
+
             if (dict.Count() > 0)
             {
-                wellness = dict.Aggregate((l, r) => l.Value > r.Value ? l : r).Key;
+                var wellness = dict.Aggregate((l, r) => l.Value > r.Value ? l : r).Key;
+                mostFrequentEmotions.Add(wellness);
 
                 var key1 = dict.ContainsKey(wellness);
                 if (key1)
                 {
                     dict.TryGetValue(wellness, out wellnessCount);
                 }
+
+                var wellnessList = dict.Where(d => d.Value == wellness);
+                foreach (var item in wellnessList)
+                {
+                    mostFrequentEmotions.Add(item.Key);
+                }
             }
 
             result.BestComplyEatStreak = fitEatPlanBestStreak;
-            result.MostFrequentEmotion = wellness;
+            result.MostFrequentEmotions = mostFrequentEmotions;
             result.MostFrequentEmotionCount = wellnessCount;
 
             return result;

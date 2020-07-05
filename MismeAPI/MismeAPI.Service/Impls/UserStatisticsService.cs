@@ -249,6 +249,7 @@ namespace MismeAPI.Service.Impls
             switch (streak)
             {
                 case StreakEnum.EAT:
+                    statistic.TotalNonBalancedEatsPlanned++;
                     statistic.EatCurrentStreak++;
                     if (statistic.EatMaxStreak < statistic.EatCurrentStreak)
                     {
@@ -257,6 +258,7 @@ namespace MismeAPI.Service.Impls
                     break;
 
                 case StreakEnum.BALANCED_EAT:
+                    statistic.TotalBalancedEatsPlanned++;
                     statistic.BalancedEatCurrentStreak++;
                     statistic.EatCurrentStreak++;
                     if (statistic.BalancedEatMaxStreak < statistic.BalancedEatCurrentStreak)
@@ -387,7 +389,7 @@ namespace MismeAPI.Service.Impls
                             break;
 
                         default:
-                            reason = "Has pedido la racha actual planificando tu comida";
+                            reason = "Has perdido la racha actual planificando tu comida";
                             break;
                     }
                     break;
@@ -400,7 +402,7 @@ namespace MismeAPI.Service.Impls
                             break;
 
                         default:
-                            reason = "Has pedido la racha actual planificando tu comida balanceada";
+                            reason = "Has perdido la racha actual planificando tu comida balanceada";
                             break;
                     }
 

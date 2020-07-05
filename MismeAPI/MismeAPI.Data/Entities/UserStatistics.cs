@@ -15,6 +15,8 @@ namespace MismeAPI.Data.Entities
         public int EatMaxStreak { get; set; }
         public int BalancedEatCurrentStreak { get; set; }
         public int BalancedEatMaxStreak { get; set; }
+        public int TotalNonBalancedEatsPlanned { get; set; }
+        public int TotalBalancedEatsPlanned { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime ModifiedAt { get; set; }
     }
