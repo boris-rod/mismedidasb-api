@@ -103,7 +103,7 @@ namespace MismeAPI.Service.Impls
 
         public async Task<List<Eat>> GetAllUserEatsByDateAsync(int userId, DateTime date, DateTime endDate, int eatTyp)
         {
-            var results = _uow.EatRepository.GetAll().Where(e => e.UserId == userId && (e.CreatedAt.Date >= date.Date || e.CreatedAt.Date <= endDate.Date))
+            var results = _uow.EatRepository.GetAll().Where(e => e.UserId == userId && (e.CreatedAt.Date >= date.Date && e.CreatedAt.Date <= endDate.Date))
                .Include(e => e.User)
                .Include(e => e.EatDishes)
                    .ThenInclude(ed => ed.Dish)
