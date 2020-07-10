@@ -98,6 +98,10 @@ namespace MismeAPI.Services.Impls
             t.ClientVersion = clientInfo.Match?.Version;
 
             await _uow.UserTokenRepository.AddAsync(t);
+
+            user.TimeZone = loginRequest.UserTimeZone;
+            await _uow.UserRepository.UpdateAsync(user, user.Id);
+
             await _uow.CommitAsync();
 
             var info = await GetKCalIMCFirstHeltMeasureAsync(user.Id);
