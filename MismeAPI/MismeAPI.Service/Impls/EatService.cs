@@ -140,6 +140,7 @@ namespace MismeAPI.Service.Impls
                           .ThenInclude(dt => dt.Dish)
                             .ThenInclude(dt => dt.DishTags)
                                 .ThenInclude(dt => dt.Tag)
+                .OrderByDescending(e => e.CreatedAt).ThenBy(e => e.EatType)
                 .AsQueryable();
 
             //filter by type if not -1(null equivalent)
@@ -163,7 +164,6 @@ namespace MismeAPI.Service.Impls
                         break;
 
                     default:
-                        result = result.OrderByDescending(i => i.CreatedAt).ThenBy(e => e.EatType);
                         break;
                 }
             }
