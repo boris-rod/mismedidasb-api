@@ -53,6 +53,9 @@ namespace MismeAPI.Data.Entities
         public int VerificationCode { get; set; }
         public bool TermsAndConditionsAccepted { get; set; }
         public string TimeZone { get; set; }
+        public double CurrentImc { get; set; }
+        public double CurrentKcal { get; set; }
+        public DateTime? FirtsHealthMeasured { get; set; }
         public UserStatistics UserStatistics { get; set; }
         public UserReferral Invitation { get; set; }
         public virtual ICollection<UserToken> UserTokens { get; set; }

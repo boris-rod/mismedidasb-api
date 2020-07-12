@@ -100,15 +100,32 @@ namespace MismeAPI.Services.Impls
             await _uow.UserTokenRepository.AddAsync(t);
 
             user.TimeZone = loginRequest.UserTimeZone;
+
+            var kcal = 0.0;
+            var imc = 0.0;
+            DateTime? first = null;
+
+            if (user.CurrentImc <= 0 || user.CurrentKcal <= 0 || user.FirtsHealthMeasured.HasValue == false)
+            {
+                var info = await GetKCalIMCFirstHeltMeasureAsync(user.Id);
+                kcal = info.kcal;
+                imc = info.imc;
+                first = info.firstHealthMeasure;
+                // patch for current users, not needed for new users or old users at second time
+                user.CurrentImc = imc;
+                user.CurrentKcal = kcal;
+                user.FirtsHealthMeasured = first;
+            }
+            else
+            {
+                kcal = user.CurrentKcal;
+                imc = user.CurrentImc;
+                first = user.FirtsHealthMeasured;
+            }
+
             await _uow.UserRepository.UpdateAsync(user, user.Id);
 
             await _uow.CommitAsync();
-
-            var info = await GetKCalIMCFirstHeltMeasureAsync(user.Id);
-
-            var kcal = info.kcal;
-            var imc = info.imc;
-            var first = info.firstHealthMeasure;
 
             return (user, token, refreshToken, kcal, imc, first);
         }
@@ -946,11 +963,30 @@ namespace MismeAPI.Services.Impls
                 .Where(u => u.Id == loggedUser)
                 .FirstOrDefaultAsync();
 
-            var info = await GetKCalIMCFirstHeltMeasureAsync(user.Id);
+            var kcal = 0.0;
+            var imc = 0.0;
+            DateTime? first = null;
 
-            var kcal = info.kcal;
-            var imc = info.imc;
-            var first = info.firstHealthMeasure;
+            if (user.CurrentImc <= 0 || user.CurrentKcal <= 0 || user.FirtsHealthMeasured.HasValue == false)
+            {
+                var info = await GetKCalIMCFirstHeltMeasureAsync(user.Id);
+                kcal = info.kcal;
+                imc = info.imc;
+                first = info.firstHealthMeasure;
+                // patch for current users, not needed for new users or old users at second time
+                user.CurrentImc = imc;
+                user.CurrentKcal = kcal;
+                user.FirtsHealthMeasured = first;
+                await _uow.UserRepository.UpdateAsync(user, loggedUser);
+                await _uow.CommitAsync();
+            }
+            else
+            {
+                kcal = user.CurrentKcal;
+                imc = user.CurrentImc;
+                first = user.FirtsHealthMeasured;
+            }
+
             return (user, kcal, imc, first);
         }
 
