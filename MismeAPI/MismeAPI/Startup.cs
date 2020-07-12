@@ -28,7 +28,8 @@ namespace MismeAPI
             Configuration = configuration;
             Log.Logger = new LoggerConfiguration()
                          .MinimumLevel.Information()
-                         .WriteTo.File("logs/mismeapi-.log", rollingInterval: RollingInterval.Day)
+                         //.WriteTo.File(AppDomain.CurrentDomain.BaseDirectory + "\\logs\\mismeapi-.log", rollingInterval: RollingInterval.Day)
+                         .WriteTo.File("./logs/mismeapi-.log", rollingInterval: RollingInterval.Day)
                          .CreateLogger();
         }
 
