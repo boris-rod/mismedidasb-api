@@ -100,6 +100,7 @@ namespace MismeAPI.Services.Impls
             await _uow.UserTokenRepository.AddAsync(t);
 
             user.TimeZone = loginRequest.UserTimeZone;
+            user.TimeZoneOffset = loginRequest.UserTimeZoneOffset;
             await _uow.UserRepository.UpdateAsync(user, user.Id);
 
             await _uow.CommitAsync();

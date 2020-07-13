@@ -5,23 +5,19 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using MismeAPI.BasicResponses;
-using MismeAPI.Common.DTO.Request;
 using MismeAPI.Common.DTO.Request.Subscription;
 using MismeAPI.Common.DTO.Response;
-using MismeAPI.Common.DTO.Response.Settings;
 using MismeAPI.Common.DTO.Response.Subscription;
 using MismeAPI.Data.Entities.Enums;
 using MismeAPI.Service;
 using MismeAPI.Service.Hubs;
+using MismeAPI.Service.Utils;
 using MismeAPI.Services;
 using MismeAPI.Utils;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Net;
-using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace APITaxi.API.Controllers

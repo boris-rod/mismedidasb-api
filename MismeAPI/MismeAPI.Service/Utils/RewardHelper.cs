@@ -1,19 +1,17 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.SignalR;
+﻿using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using MismeAPI.Common.DTO.Request.Reward;
 using MismeAPI.Common.DTO.Response.Reward;
 using MismeAPI.Data.Entities;
 using MismeAPI.Data.Entities.Enums;
 using MismeAPI.Data.Entities.NonDatabase;
-using MismeAPI.Service;
 using MismeAPI.Service.Hubs;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace MismeAPI.Utils
+namespace MismeAPI.Service.Utils
 {
     public class RewardHelper : IRewardHelper
     {
@@ -21,15 +19,13 @@ namespace MismeAPI.Utils
         private readonly IUserStatisticsService _userStatisticsService;
         private readonly ICutPointService _cutPointService;
         private IHubContext<UserHub> _hub;
-        private readonly IMapper _mapper;
         private readonly IUserService _userService;
         private readonly IConfiguration _config;
         private readonly INotificationService _notificationService;
 
-        public RewardHelper(IMapper mapper, IRewardService rewardService, IHubContext<UserHub> hub, IUserStatisticsService userStatisticsService,
+        public RewardHelper(IRewardService rewardService, IHubContext<UserHub> hub, IUserStatisticsService userStatisticsService,
             ICutPointService cutPointService, IUserService userService, IConfiguration config, INotificationService notificationService)
         {
-            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _rewardService = rewardService ?? throw new ArgumentNullException(nameof(rewardService));
             _hub = hub ?? throw new ArgumentNullException(nameof(hub));
             _userStatisticsService = userStatisticsService ?? throw new ArgumentNullException(nameof(userStatisticsService));
@@ -76,7 +72,18 @@ namespace MismeAPI.Utils
             // assign only if the reward was created after validations
             if (dbReward != null)
             {
-                mapped = _mapper.Map<RewardResponse>(dbReward);
+                mapped = new RewardResponse
+                {
+                    Id = dbReward.Id,
+                    CategoryId = (int)dbReward.RewardCategory.Category,
+                    Category = dbReward.RewardCategory.Category.ToString(),
+                    IsPlus = dbReward.IsPlus,
+                    Points = dbReward.Points,
+                    RewardPoints = dbReward.RewardPoints,
+                    RewardCategoryId = dbReward.RewardCategoryId,
+                    UserId = dbReward.UserId,
+                    CreatedAt = dbReward.CreatedAt
+                };
 
                 switch (notificationType)
                 {

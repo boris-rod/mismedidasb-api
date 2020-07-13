@@ -53,6 +53,7 @@ namespace MismeAPI.Data.Entities
         public int VerificationCode { get; set; }
         public bool TermsAndConditionsAccepted { get; set; }
         public string TimeZone { get; set; }
+        public int TimeZoneOffset { get; set; }
         public UserStatistics UserStatistics { get; set; }
         public UserReferral Invitation { get; set; }
         public virtual ICollection<UserToken> UserTokens { get; set; }

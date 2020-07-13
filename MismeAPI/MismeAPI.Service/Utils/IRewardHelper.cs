@@ -4,7 +4,7 @@ using MismeAPI.Data.Entities.Enums;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace MismeAPI.Utils
+namespace MismeAPI.Service.Utils
 {
     public interface IRewardHelper
     {

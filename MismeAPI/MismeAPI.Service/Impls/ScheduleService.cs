@@ -1,4 +1,5 @@
-﻿using Hangfire;
+﻿using Amazon.Runtime.Internal.Util;
+using Hangfire;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using MismeAPI.Common;
@@ -81,6 +82,7 @@ namespace MismeAPI.Service.Impls
                 await _uow.CommitAsync();
         }
 
+        // Not used anymore
         public async Task UserRecurringJobsSchedulerAsync(int userId, User user = null)
         {
             if (user == null)
@@ -92,56 +94,89 @@ namespace MismeAPI.Service.Impls
             if (user == null)
                 return;
 
-            /*JobConstants.DRINK_WATER_RECURRING_JOB*/
-            var userScheduleForDrinkWater = user.UserSchedules.Where(us => us.JobConstant == JobConstants.DRINK_WATER_RECURRING_JOB).FirstOrDefault();
-            var existJobForDrinkWater = userScheduleForDrinkWater?.Schedule;
-            var userWantDrinkWaterNotification = await _userService.GetUserOptInNotificationAsync(userId, SettingsConstants.DRINK_WATER_REMINDER);
+            var userScheduleForHandleStreaks = user.UserSchedules.Where(us => us.JobConstant == JobConstants.HANDLE_STREAKS_RECURRING_JOB).FirstOrDefault();
+            var existJobForDrinkWater = userScheduleForHandleStreaks?.Schedule;
 
-            if (userScheduleForDrinkWater != null && existJobForDrinkWater != null)
+            if (userScheduleForHandleStreaks != null && existJobForDrinkWater != null)
             {
-                if (userWantDrinkWaterNotification && userScheduleForDrinkWater.UserTimeZone != user.TimeZone) //!=
+                if (userScheduleForHandleStreaks.UserTimeZone != user.TimeZone) //!=
                 {
-                    AddOrUpdateRecurringJob(existJobForDrinkWater.JobId, user.TimeZone, userId, JobConstants.DRINK_WATER_RECURRING_JOB);
-                    userScheduleForDrinkWater.UserTimeZone = user.TimeZone;
-                    await _uow.UserScheduleRepository.UpdateAsync(userScheduleForDrinkWater, userScheduleForDrinkWater.Id);
-                }
-                if (!userWantDrinkWaterNotification)
-                {
-                    RecurringJob.RemoveIfExists(existJobForDrinkWater.JobId);
-                    _uow.ScheduleRepository.Delete(existJobForDrinkWater);
+                    AddOrUpdateRecurringJob(existJobForDrinkWater.JobId, user.TimeZone, userId, JobConstants.HANDLE_STREAKS_RECURRING_JOB);
+                    userScheduleForHandleStreaks.UserTimeZone = user.TimeZone;
+                    await _uow.UserScheduleRepository.UpdateAsync(userScheduleForHandleStreaks, userScheduleForHandleStreaks.Id);
                 }
             }
             else
             {
-                if (userWantDrinkWaterNotification)
-                {
-                    var jobId = GenerateIdForRecurringJob(userId, "DRINK_WATER_RECURRING_JOB");
-                    AddOrUpdateRecurringJob(jobId, user.TimeZone, userId, JobConstants.DRINK_WATER_RECURRING_JOB);
+                var jobId = GenerateIdForRecurringJob(userId, "HANDLE_STREAKS_RECURRING_JOB");
+                AddOrUpdateRecurringJob(jobId, user.TimeZone, userId, JobConstants.HANDLE_STREAKS_RECURRING_JOB);
 
-                    await CreateUserScheduleAsync(userId, jobId, user.TimeZone, JobConstants.DRINK_WATER_RECURRING_JOB);
-                }
+                await CreateUserScheduleAsync(userId, jobId, user.TimeZone, JobConstants.HANDLE_STREAKS_RECURRING_JOB);
             }
+
+            /*JobConstants.DRINK_WATER_RECURRING_JOB*/
+            //var userScheduleForDrinkWater = user.UserSchedules.Where(us => us.JobConstant == JobConstants.DRINK_WATER_RECURRING_JOB).FirstOrDefault();
+            //var existJobForDrinkWater = userScheduleForDrinkWater?.Schedule;
+            //var userWantDrinkWaterNotification = await _userService.GetUserOptInNotificationAsync(userId, SettingsConstants.DRINK_WATER_REMINDER);
+
+            //if (userScheduleForDrinkWater != null && existJobForDrinkWater != null)
+            //{
+            //    if (userWantDrinkWaterNotification && userScheduleForDrinkWater.UserTimeZone != user.TimeZone) //!=
+            //    {
+            //        AddOrUpdateRecurringJob(existJobForDrinkWater.JobId, user.TimeZone, userId, JobConstants.DRINK_WATER_RECURRING_JOB);
+            //        userScheduleForDrinkWater.UserTimeZone = user.TimeZone;
+            //        await _uow.UserScheduleRepository.UpdateAsync(userScheduleForDrinkWater, userScheduleForDrinkWater.Id);
+            //    }
+            //    if (!userWantDrinkWaterNotification)
+            //    {
+            //        RecurringJob.RemoveIfExists(existJobForDrinkWater.JobId);
+            //        _uow.ScheduleRepository.Delete(existJobForDrinkWater);
+            //    }
+            //}
+            //else
+            //{
+            //    if (userWantDrinkWaterNotification)
+            //    {
+            //        var jobId = GenerateIdForRecurringJob(userId, "DRINK_WATER_RECURRING_JOB");
+            //        AddOrUpdateRecurringJob(jobId, user.TimeZone, userId, JobConstants.DRINK_WATER_RECURRING_JOB);
+
+            //        await CreateUserScheduleAsync(userId, jobId, user.TimeZone, JobConstants.DRINK_WATER_RECURRING_JOB);
+            //    }
+            //}
             /*JobConstants.DRINK_WATER_RECURRING_JOB*/
 
             await _uow.CommitAsync();
         }
 
-        private async Task<bool> ExistJobAsync(string jobId)
-        {
-            var existJob = await _uow.ScheduleRepository.FindAsync(s => s.JobId == jobId);
-            return existJob != null;
-        }
-
         private void AddOrUpdateRecurringJob(string jobId, string timeZoneId, int userId, string jobConstant)
         {
             var cronExp = "0 0 12,18 * * ?";
-            if (String.IsNullOrEmpty(timeZoneId))
+            TimeZoneInfo timeZoneInfo;
+
+            if (string.IsNullOrEmpty(timeZoneId))
                 timeZoneId = TimeZoneInfo.Local.Id;
 
-            var timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+            try
+            {
+                timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+                if (timeZoneInfo == null)
+                    timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById(TimeZoneInfo.Local.Id);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById(TimeZoneInfo.Local.Id);
+            }
 
             if (jobConstant == JobConstants.DRINK_WATER_RECURRING_JOB)
                 RecurringJob.AddOrUpdate<INotificationService>(jobId, x => x.NotifyDrinWaterReminderAsync(userId), cronExp, timeZoneInfo);
+
+            if (jobConstant == JobConstants.DRINK_WATER_RECURRING_JOB)
+            {
+                cronExp = "0 0 12 * * ?";
+
+                RecurringJob.AddOrUpdate<IMismeBackgroundService>(jobId, x => x.HandleUserStreaksAsync(userId), cronExp, timeZoneInfo);
+            }
         }
 
         private string GenerateIdForRecurringJob(int userId, string action)
@@ -168,6 +203,12 @@ namespace MismeAPI.Service.Impls
 
                 await _uow.UserScheduleRepository.AddAsync(userSchedule);
             }
+        }
+
+        private async Task<bool> ExistJobAsync(string jobId)
+        {
+            var existJob = await _uow.ScheduleRepository.FindAsync(s => s.JobId == jobId);
+            return existJob != null;
         }
     }
 }
