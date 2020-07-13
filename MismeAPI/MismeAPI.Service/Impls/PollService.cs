@@ -330,7 +330,7 @@ namespace MismeAPI.Service.Impls
 
                 if (poll.Concept.Codename == CodeNamesConstants.HEALTH_MEASURES)
                 {
-                    message = GetHealthMeasureMessage(poll.ConceptId, loggedUser, language);
+                    message = await GetHealthMeasureMessage(poll.ConceptId, loggedUser, language);
                 }
                 else if (poll.Concept.Codename == CodeNamesConstants.VALUE_MEASURES)
                 {
@@ -588,7 +588,7 @@ namespace MismeAPI.Service.Impls
             return userConcept?.CompletedAt;
         }
 
-        private List<string> GetHealthMeasureMessage(int conceptId, int userId, string language)
+        private async Task<List<string>> GetHealthMeasureMessage(int conceptId, int userId, string language)
         {
             var result = new List<string>();
             var polls = _uow.PollRepository.GetAll().Where(p => p.ConceptId == conceptId)
@@ -718,6 +718,19 @@ namespace MismeAPI.Service.Impls
                 {
                     dailyKalDouble = (TMB_PROV - 161) * 1.9;
                 }
+            }
+
+            var us = _uow.UserRepository.Get(userId);
+            if (us != null)
+            {
+                us.CurrentKcal = dailyKalDouble;
+                us.CurrentImc = IMC;
+                if (us.FirtsHealthMeasured.HasValue == false)
+                {
+                    us.FirtsHealthMeasured = DateTime.UtcNow;
+                }
+                await _uow.UserRepository.UpdateAsync(us, userId);
+                await _uow.CommitAsync();
             }
 
             var IMCString = string.Format("{0:0.00 }", IMC);
