@@ -9,6 +9,7 @@ using MismeAPI.Common.DTO.Response;
 using MismeAPI.Common.DTO.Response.Reward;
 using MismeAPI.Data.Entities.Enums;
 using MismeAPI.Service;
+using MismeAPI.Service.Utils;
 using MismeAPI.Utils;
 using System;
 using System.Collections.Generic;

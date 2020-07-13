@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using MismeAPI.Common;
 using MismeAPI.Data.Entities.Enums;
 using MismeAPI.Data.UoW;
+using MismeAPI.Service.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,13 +20,19 @@ namespace MismeAPI.Service.Impls
         private readonly IConfiguration _config;
         private readonly IUserService _userService;
         private readonly IScheduleService _scheduleService;
+        private readonly IUserStatisticsService _userStatisticsService;
+        private readonly IRewardHelper _rewardHelper;
+        private readonly List<int> STREAK_REWARDS = new List<int> { 7, 30, 60, 90, 120 };
 
-        public MismeBackgroundService(IUnitOfWork uow, IConfiguration config, IUserService userService, IScheduleService scheduleService)
+        public MismeBackgroundService(IUnitOfWork uow, IConfiguration config, IUserService userService, IScheduleService scheduleService,
+            IUserStatisticsService userStatisticsService, IRewardHelper rewardHelper)
         {
             _uow = uow ?? throw new ArgumentNullException(nameof(uow));
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _scheduleService = scheduleService ?? throw new ArgumentNullException(nameof(scheduleService));
+            _userStatisticsService = userStatisticsService ?? throw new ArgumentNullException(nameof(userStatisticsService));
+            _rewardHelper = rewardHelper ?? throw new ArgumentNullException(nameof(rewardHelper));
         }
 
         public async Task CleanExpiredTokensAsync()
@@ -164,16 +171,79 @@ namespace MismeAPI.Service.Impls
             //await RecurringJobSchedulerAsync();
         }
 
-        private async Task RecurringJobSchedulerAsync()
+        public async Task HandleUserStreaksAsync(int timeOffsetRange)
         {
-            var users = await _uow.UserRepository.GetAll()
-                .Include(u => u.UserSchedules)
-                    .ThenInclude(us => us.Schedule)
-                .ToListAsync();
+            var today = DateTime.UtcNow;
 
-            foreach (var user in users)
+            var query = _uow.UserRepository.GetAll()
+                .Include(u => u.UserStatistics)
+                .Include(u => u.Eats)
+                .Include(u => u.Devices)
+                .AsQueryable();
+
+            if (timeOffsetRange == 1)
+                query = query.Where(u => u.TimeZoneOffset >= 0);
+            else
+                query = query.Where(u => u.TimeZoneOffset < 0);
+
+            var users = await query.ToListAsync();
+
+            var userWithPlan = users.Where(u => u.Eats.Any(e => e.PlanCreatedAt.HasValue && e.PlanCreatedAt.Value.Date == today.Date));
+            var userWithoutPlan = users.Where(u => !u.Eats.Any(e => e.PlanCreatedAt.HasValue && e.PlanCreatedAt.Value.Date == today.Date));
+
+            foreach (var user in userWithPlan)
             {
-                await _scheduleService.UserRecurringJobsSchedulerAsync(user.Id, user);
+                var userStatistics = await _userStatisticsService.GetOrCreateUserStatisticsByUserAsync(user.Id);
+                var balancedCurrentStreak = userStatistics.BalancedEatCurrentStreak;
+                var eatCurrentStreak = userStatistics.EatCurrentStreak;
+
+                var isBalanced = user.Eats.Any(e => (e.IsBalancedPlan.HasValue && e.IsBalancedPlan.Value) && (e.PlanCreatedAt.HasValue && e.PlanCreatedAt.Value.Date == today.Date));
+                var streakType = isBalanced ? StreakEnum.BALANCED_EAT : StreakEnum.EAT;
+
+                userStatistics = await _userStatisticsService.IncrementCurrentStreakAsync(userStatistics, streakType);
+
+                if (eatCurrentStreak != userStatistics.EatCurrentStreak && STREAK_REWARDS.Any(s => s == userStatistics.EatCurrentStreak))
+                {
+                    /*Give reward for eat current streak*/
+                    await _rewardHelper.HandleRewardAsync(RewardCategoryEnum.EAT_CREATED_STREAK, user.Id, true,
+                        userStatistics.EatCurrentStreak, userStatistics.EatMaxStreak, NotificationTypeEnum.FIREBASE, user.Devices);
+
+                    if (balancedCurrentStreak > 0)
+                    {
+                        await _userStatisticsService.CutCurrentStreakAsync(userStatistics, StreakEnum.BALANCED_EAT, user.Devices);
+                    }
+                }
+
+                if (balancedCurrentStreak != userStatistics.BalancedEatCurrentStreak && STREAK_REWARDS.Any(s => s == userStatistics.BalancedEatCurrentStreak))
+                {
+                    /*Give reward for balanced eat current streak*/
+                    await _rewardHelper.HandleRewardAsync(RewardCategoryEnum.EAT_CREATED_STREAK, user.Id, true,
+                        userStatistics.BalancedEatCurrentStreak, userStatistics.BalancedEatMaxStreak, NotificationTypeEnum.FIREBASE, user.Devices);
+                }
+
+                /*Reward for creating an eat*/
+                var rewardCategory = isBalanced ? RewardCategoryEnum.EAT_BALANCED_CREATED : RewardCategoryEnum.EAT_CREATED;
+                await _rewardHelper.HandleRewardAsync(rewardCategory, user.Id, true, today, null, NotificationTypeEnum.FIREBASE, user.Devices);
+                /*#end*/
+            }
+
+            //Cut current streak section
+
+            foreach (var userNoPlan in userWithoutPlan)
+            {
+                var userStatistics = await _userStatisticsService.GetOrCreateUserStatisticsByUserAsync(userNoPlan.Id);
+                var balancedCurrentStreak = userStatistics.BalancedEatCurrentStreak;
+                var eatCurrentStreak = userStatistics.EatCurrentStreak;
+
+                if (balancedCurrentStreak > 0)
+                {
+                    await _userStatisticsService.CutCurrentStreakAsync(userStatistics, StreakEnum.BALANCED_EAT, userNoPlan.Devices);
+                    await _userStatisticsService.CutCurrentStreakAsync(userStatistics, StreakEnum.EAT, null);
+                }
+                else if (eatCurrentStreak > 0)
+                {
+                    await _userStatisticsService.CutCurrentStreakAsync(userStatistics, StreakEnum.EAT, userNoPlan.Devices);
+                }
             }
         }
     }

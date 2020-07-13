@@ -12,6 +12,7 @@ using MismeAPI.Middlewares;
 using MismeAPI.Service;
 using MismeAPI.Service.Hubs;
 using MismeAPI.Service.Impls;
+using MismeAPI.Service.Utils;
 using MismeAPI.Services;
 using MismeAPI.Services.Impls;
 using MismeAPI.Utils;
@@ -85,7 +86,6 @@ namespace MismeAPI
             services.AddTransient<ICutPointService, CutPointService>();
             services.AddTransient<IRewardHelper, RewardHelper>();
             services.AddTransient<IUserReferralService, UserReferralService>();
-            services.AddTransient<IBackgroundJobProcessor, BackgroundJobProcessor>();
             services.AddTransient<IScheduleService, ScheduleService>();
             services.AddTransient<INotificationService, NotificationService>();
             services.AddTransient<ISoloQuestionService, SoloQuestionService>();
@@ -106,11 +106,11 @@ namespace MismeAPI
             app.UseCors();
             app.UseHangfireDashboard();
             var mismeBackJobs = services.GetRequiredService<IMismeBackgroundService>();
-            var backgroundJobProcessor = services.GetRequiredService<IBackgroundJobProcessor>();
             recurringJobs.AddOrUpdate<IMismeBackgroundService>("ExpiredTokens", (e) => e.CleanExpiredTokensAsync(), "0 3 * * *");
             recurringJobs.AddOrUpdate<IMismeBackgroundService>("DisabledAccount", (e) => e.RemoveDisabledAccountsAsync(), "0 3 * * *");
             //recurringJobs.AddOrUpdate<IMismeBackgroundService>("Notifications", (e) => e.SendFireBaseNotificationsRemindersAsync(), "0 18 * * *");
-            recurringJobs.AddOrUpdate<IBackgroundJobProcessor>("HandleUserStreaks", (e) => e.HandleUserStreaksAsync(), "0 22 * * *");
+            recurringJobs.AddOrUpdate<IMismeBackgroundService>("HandleUserStreaksWest", (e) => e.HandleUserStreaksAsync(1), "0 10 * * *", TimeZoneInfo.Utc);
+            recurringJobs.AddOrUpdate<IMismeBackgroundService>("HandleUserStreaksEast", (e) => e.HandleUserStreaksAsync(-1), "0 23 * * *", TimeZoneInfo.Utc);
 
             if (env.IsDevelopment())
             {

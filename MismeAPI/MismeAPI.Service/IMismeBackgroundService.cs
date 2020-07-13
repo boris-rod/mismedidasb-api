@@ -14,5 +14,9 @@ namespace MismeAPI.Service
         Task SendFireBaseNotificationsRemindersAsync();
 
         Task RemoveDisabledAccountsAsync();
+
+        [DisableConcurrentExecution(timeoutInSeconds: 10 * 60)]
+        [AutomaticRetry(Attempts = 0, LogEvents = false, OnAttemptsExceeded = AttemptsExceededAction.Delete)]
+        Task HandleUserStreaksAsync(int timeOffsetRange);
     }
 }
