@@ -101,12 +101,12 @@ namespace MismeAPI.Service.Impls
 
             var plannedExcercicesYesterday = userAnswers.Any(ua => ua.AnswerCode == "SQ-3-SA-1");
 
-            //if (!plannedExcercicesYesterday)
-            //    result = result.Where(sq => sq.Code != "SQ-4");
+            if (!plannedExcercicesYesterday)
+                result = result.Where(sq => sq.Code != "SQ-4");
 
-            //var userEat = await _uow.EatRepository.FindAsync(e => e.UserId == userId && e.CreatedAt.Date == today.Date);
-            //if (userEat == null)
-            //    result = result.Where(sq => sq.Code != "SQ-1");
+            var userEat = await _uow.EatRepository.FindAsync(e => e.UserId == userId && e.CreatedAt.Date == today.Date);
+            if (userEat == null)
+                result = result.Where(sq => sq.Code != "SQ-1");
 
             return await PaginatedList<SoloQuestion>.CreateAsync(result, pag, perPag);
         }
@@ -204,6 +204,14 @@ namespace MismeAPI.Service.Impls
             if (answer == null)
                 throw new NotFoundException(ExceptionConstants.NOT_FOUND, "Answer");
 
+            var today = DateTime.UtcNow;
+            var questionAnswerToday = await _uow.UserSoloAnswerRepository.GetAll()
+                .Where(u => u.Id == loggedUser && u.CreatedAt.Date == today.Date && u.QuestionCode == answerRequest.QuestionCode)
+                .FirstOrDefaultAsync();
+
+            if (questionAnswerToday != null)
+                throw new AlreadyExistsException("Question already answered today");
+
             var userAnswer = new UserSoloAnswer
             {
                 UserId = loggedUser,
@@ -239,7 +247,7 @@ namespace MismeAPI.Service.Impls
 
             // hardcoded questions and answers codes.
             var fitEatAnswers = await _uow.UserSoloAnswerRepository
-                .FindAllAsync(u => u.CreatedAt >= startDate && u.CreatedAt <= today && u.QuestionCode == "SQ-1" && u.AnswerCode == "SQ-1-SA-1");
+                .FindAllAsync(u => u.UserId == userId && u.CreatedAt >= startDate && u.CreatedAt <= today && u.QuestionCode == "SQ-1" && u.AnswerCode == "SQ-1-SA-1");
 
             var currentStreak = 0;
             for (int i = 0; i <= lastNDays; i++)
@@ -261,12 +269,12 @@ namespace MismeAPI.Service.Impls
             }
 
             result.TotalDaysPlannedSport = await _uow.UserSoloAnswerRepository.GetAll()
-                .CountAsync(u => u.CreatedAt >= startDate && u.CreatedAt <= today && u.AnswerCode == "SQ-3-SA-1");
+                .CountAsync(u => u.UserId == userId && u.CreatedAt >= startDate && u.CreatedAt <= today && u.AnswerCode == "SQ-3-SA-1");
             result.TotalDaysComplySportPlan = await _uow.UserSoloAnswerRepository.GetAll()
-                .CountAsync(u => u.CreatedAt >= startDate && u.CreatedAt <= today && u.AnswerCode == "SQ-4-SA-1");
+                .CountAsync(u => u.UserId == userId && u.CreatedAt >= startDate && u.CreatedAt <= today && u.AnswerCode == "SQ-4-SA-1");
 
             var wellnessAnswers = await _uow.UserSoloAnswerRepository
-                .FindAllAsync(u => u.CreatedAt >= startDate && u.CreatedAt <= today && u.QuestionCode == "SQ-2" && u.AnswerCode == "SQ-2-SA-1");
+                .FindAllAsync(u => u.UserId == userId && u.CreatedAt >= startDate && u.CreatedAt <= today && u.QuestionCode == "SQ-2" && u.AnswerCode == "SQ-2-SA-1");
 
             var dict = new Dictionary<int, int>();
             foreach (var answer in wellnessAnswers)
