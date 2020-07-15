@@ -247,7 +247,7 @@ namespace MismeAPI.Service.Impls
 
             // hardcoded questions and answers codes.
             var fitEatAnswers = await _uow.UserSoloAnswerRepository
-                .FindAllAsync(u => u.CreatedAt >= startDate && u.CreatedAt <= today && u.QuestionCode == "SQ-1" && u.AnswerCode == "SQ-1-SA-1");
+                .FindAllAsync(u => u.UserId == userId && u.CreatedAt >= startDate && u.CreatedAt <= today && u.QuestionCode == "SQ-1" && u.AnswerCode == "SQ-1-SA-1");
 
             var currentStreak = 0;
             for (int i = 0; i <= lastNDays; i++)
@@ -269,12 +269,12 @@ namespace MismeAPI.Service.Impls
             }
 
             result.TotalDaysPlannedSport = await _uow.UserSoloAnswerRepository.GetAll()
-                .CountAsync(u => u.CreatedAt >= startDate && u.CreatedAt <= today && u.AnswerCode == "SQ-3-SA-1");
+                .CountAsync(u => u.UserId == userId && u.CreatedAt >= startDate && u.CreatedAt <= today && u.AnswerCode == "SQ-3-SA-1");
             result.TotalDaysComplySportPlan = await _uow.UserSoloAnswerRepository.GetAll()
-                .CountAsync(u => u.CreatedAt >= startDate && u.CreatedAt <= today && u.AnswerCode == "SQ-4-SA-1");
+                .CountAsync(u => u.UserId == userId && u.CreatedAt >= startDate && u.CreatedAt <= today && u.AnswerCode == "SQ-4-SA-1");
 
             var wellnessAnswers = await _uow.UserSoloAnswerRepository
-                .FindAllAsync(u => u.CreatedAt >= startDate && u.CreatedAt <= today && u.QuestionCode == "SQ-2" && u.AnswerCode == "SQ-2-SA-1");
+                .FindAllAsync(u => u.UserId == userId && u.CreatedAt >= startDate && u.CreatedAt <= today && u.QuestionCode == "SQ-2" && u.AnswerCode == "SQ-2-SA-1");
 
             var dict = new Dictionary<int, int>();
             foreach (var answer in wellnessAnswers)
