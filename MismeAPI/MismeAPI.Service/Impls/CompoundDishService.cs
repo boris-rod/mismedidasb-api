@@ -241,6 +241,9 @@ namespace MismeAPI.Service.Impls
 
         public async Task<CompoundDish> UpdateCompoundDishAsync(int ownerId, int id, UpdateCompoundDishRequest dish)
         {
+            if (dish.Dishes == null)
+                throw new InvalidDataException(ExceptionConstants.INVALID_DATA, "Dishes");
+
             var compoundDish = await _uow.CompoundDishRepository.GetAll().Where(c => c.Id == id && !c.IsDeleted)
                 .Include(c => c.CreatedBy)
                 .Include(c => c.DishCompoundDishes)
@@ -334,16 +337,17 @@ namespace MismeAPI.Service.Impls
                     cDish.ImageMimeType = dish.Image.ContentType;
                 }
 
-                foreach (var item in dish.Dishes)
-                {
-                    var dComDish = new DishCompoundDish
+                if (dish.Dishes != null)
+                    foreach (var item in dish.Dishes)
                     {
-                        CompoundDish = cDish,
-                        DishId = item.DishId,
-                        DishQty = item.Qty
-                    };
-                    await _uow.DishCompoundDishRepository.AddAsync(dComDish);
-                }
+                        var dComDish = new DishCompoundDish
+                        {
+                            CompoundDish = cDish,
+                            DishId = item.DishId,
+                            DishQty = item.Qty
+                        };
+                        await _uow.DishCompoundDishRepository.AddAsync(dComDish);
+                    }
             }
 
             await _uow.CompoundDishRepository.AddAsync(cDish);
@@ -356,7 +360,8 @@ namespace MismeAPI.Service.Impls
             compoundDish.ModifiedAt = DateTime.UtcNow;
             if (dish.Image != null)
             {
-                await _fileService.DeleteFileAsync(compoundDish.Image);
+                if (!string.IsNullOrEmpty(compoundDish.Image))
+                    await _fileService.DeleteFileAsync(compoundDish.Image);
 
                 string guid = Guid.NewGuid().ToString();
                 await _fileService.UploadFileAsync(dish.Image, guid);
@@ -370,16 +375,17 @@ namespace MismeAPI.Service.Impls
                 _uow.DishCompoundDishRepository.Delete(item);
             }
 
-            foreach (var item in dish.Dishes)
-            {
-                var dComDish = new DishCompoundDish
+            if (dish.Dishes != null)
+                foreach (var item in dish.Dishes)
                 {
-                    CompoundDishId = compoundDish.Id,
-                    DishId = item.DishId,
-                    DishQty = item.Qty
-                };
-                await _uow.DishCompoundDishRepository.AddAsync(dComDish);
-            }
+                    var dComDish = new DishCompoundDish
+                    {
+                        CompoundDishId = compoundDish.Id,
+                        DishId = item.DishId,
+                        DishQty = item.Qty
+                    };
+                    await _uow.DishCompoundDishRepository.AddAsync(dComDish);
+                }
 
             _uow.CompoundDishRepository.Update(compoundDish);
         }
