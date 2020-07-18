@@ -104,8 +104,8 @@ namespace MismeAPI.Service.Impls
             if (!plannedExcercicesYesterday)
                 result = result.Where(sq => sq.Code != "SQ-4");
 
-            var userEat = await _uow.EatRepository.FindAsync(e => e.UserId == userId && e.CreatedAt.Date == today.Date);
-            if (userEat == null)
+            var userEat = await _uow.EatRepository.GetAll().Where(e => e.UserId == userId && e.CreatedAt.Date == today.Date).CountAsync();
+            if (userEat == 0)
                 result = result.Where(sq => sq.Code != "SQ-1");
 
             return await PaginatedList<SoloQuestion>.CreateAsync(result, pag, perPag);
