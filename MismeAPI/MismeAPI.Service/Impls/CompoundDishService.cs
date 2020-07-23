@@ -129,7 +129,7 @@ namespace MismeAPI.Service.Impls
 
         public async Task<CompoundDish> CreateCompoundDishAsync(int ownerId, CreateCompoundDishRequest dish)
         {
-            var existName = await _uow.CompoundDishRepository.FindByAsync(c => c.UserId == ownerId && c.Name == dish.Name);
+            var existName = await _uow.CompoundDishRepository.FindByAsync(c => c.UserId == ownerId && c.Name == dish.Name && !c.IsDeleted);
             if (existName.Count > 0)
             {
                 throw new InvalidDataException(ExceptionConstants.INVALID_DATA, "Dish name");
