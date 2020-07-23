@@ -17,7 +17,6 @@ using MismeAPI.Services;
 using MismeAPI.Services.Impls;
 using MismeAPI.Utils;
 using Newtonsoft.Json;
-using Serilog;
 using System;
 
 namespace MismeAPI
@@ -27,11 +26,11 @@ namespace MismeAPI
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
-            Log.Logger = new LoggerConfiguration()
-                         .MinimumLevel.Information()
-                         //.WriteTo.File(AppDomain.CurrentDomain.BaseDirectory + "\\logs\\mismeapi-.log", rollingInterval: RollingInterval.Day)
-                         .WriteTo.File("./logs/mismeapi-.log", rollingInterval: RollingInterval.Day)
-                         .CreateLogger();
+            //Log.Logger = new LoggerConfiguration()
+            //             .MinimumLevel.Information()
+            //             //.WriteTo.File(AppDomain.CurrentDomain.BaseDirectory + "\\logs\\mismeapi-.log", rollingInterval: RollingInterval.Day)
+            //             .WriteTo.File("./logs/mismeapi-.log", rollingInterval: RollingInterval.Day)
+            //             .CreateLogger();
         }
 
         public IConfiguration Configuration { get; }
@@ -39,6 +38,8 @@ namespace MismeAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.ConfigureLogs(Configuration);
+
             services.ConfigureCors();
             services.ConfigureSignalR();
             services.ConfigureHangfire(Configuration);
@@ -50,6 +51,7 @@ namespace MismeAPI
             services.ConfigureCompression();
 
             services.ConfigureDetection();
+
             services.AddHttpContextAccessor();
             services.AddMvc(config =>
             {

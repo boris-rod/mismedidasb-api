@@ -1,4 +1,6 @@
-﻿using Hangfire;
+﻿using Amazon;
+using Amazon.CloudWatchLogs;
+using Hangfire;
 using Hangfire.MySql;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -11,6 +13,10 @@ using Microsoft.OpenApi.Models;
 using MismeAPI.Data;
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 using Pomelo.EntityFrameworkCore.MySql.Storage;
+using Serilog;
+using Serilog.Events;
+using Serilog.Formatting.Compact;
+using Serilog.Sinks.AwsCloudWatch;
 using System;
 using System.IO;
 using System.Text;
@@ -148,6 +154,44 @@ namespace MismeAPI
 
             // Add the processing server as IHostedService
             services.AddHangfireServer();
+        }
+
+        public static void ConfigureLogs(this IServiceCollection services, IConfiguration config)
+        {
+            //loggerConfiguration
+            //    .MinimumLevel.Information()
+            //    .Enrich.FromLogContext()
+            //    .WriteTo.Console();
+
+            if (!string.IsNullOrWhiteSpace(config.GetSection("AWS")["CloudWatchDev"]))
+            {
+                var options = new CloudWatchSinkOptions
+                {
+                    LogGroupName = config.GetSection("AWS")["CloudWatchDev"],
+                    CreateLogGroup = true,
+                    MinimumLogEventLevel = LogEventLevel.Information,
+                    TextFormatter = new CompactJsonFormatter(),
+                    BatchSizeLimit = 100,
+                    QueueSizeLimit = 10000,
+                    Period = TimeSpan.FromSeconds(10),
+                    LogStreamNameProvider = new DefaultLogStreamProvider(),
+                    RetryAttempts = 5
+                };
+                //var awsOptions = config.GetAWSOptions();
+
+                var accessKey = config["AWS:AccessKey"];
+                var secretKey = config["AWS:SecretKey"];
+                var cloudWatchClient = new AmazonCloudWatchLogsClient(accessKey, secretKey, RegionEndpoint.EUWest1);
+
+                //var cloudWatchClient = awsOptions.CreateServiceClient<IAmazonCloudWatchLogs>();
+
+                Log.Logger = new LoggerConfiguration()
+                             .MinimumLevel.Error()
+                             .Enrich.FromLogContext()
+                             .WriteTo.Console()
+                             .WriteTo.AmazonCloudWatch(options, cloudWatchClient)
+                             .CreateLogger();
+            }
         }
     }
 }
