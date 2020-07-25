@@ -1,6 +1,5 @@
 ﻿using CorePush.Google;
 using FirebaseAdmin.Messaging;
-using Hangfire;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using MismeAPI.Common;
@@ -18,21 +17,19 @@ namespace MismeAPI.Service.Impls
     {
         private readonly IUnitOfWork _uow;
         private readonly IConfiguration _config;
-        private readonly IUserService _userService;
-        private readonly IScheduleService _scheduleService;
         private readonly IUserStatisticsService _userStatisticsService;
         private readonly IRewardHelper _rewardHelper;
+        private readonly ISubscriptionService _subscriptionService;
         private readonly List<int> STREAK_REWARDS = new List<int> { 7, 30, 60, 90, 120 };
 
-        public MismeBackgroundService(IUnitOfWork uow, IConfiguration config, IUserService userService, IScheduleService scheduleService,
-            IUserStatisticsService userStatisticsService, IRewardHelper rewardHelper)
+        public MismeBackgroundService(IUnitOfWork uow, IConfiguration config, IUserStatisticsService userStatisticsService,
+            IRewardHelper rewardHelper, ISubscriptionService subscriptionService)
         {
             _uow = uow ?? throw new ArgumentNullException(nameof(uow));
             _config = config ?? throw new ArgumentNullException(nameof(config));
-            _userService = userService ?? throw new ArgumentNullException(nameof(userService));
-            _scheduleService = scheduleService ?? throw new ArgumentNullException(nameof(scheduleService));
             _userStatisticsService = userStatisticsService ?? throw new ArgumentNullException(nameof(userStatisticsService));
             _rewardHelper = rewardHelper ?? throw new ArgumentNullException(nameof(rewardHelper));
+            _subscriptionService = subscriptionService ?? throw new ArgumentNullException(nameof(subscriptionService));
         }
 
         public async Task CleanExpiredTokensAsync()
@@ -243,6 +240,20 @@ namespace MismeAPI.Service.Impls
                 else if (eatCurrentStreak > 0)
                 {
                     await _userStatisticsService.CutCurrentStreakAsync(userStatistics, StreakEnum.EAT, userNoPlan.Devices);
+                }
+            }
+        }
+
+        public async Task HandleSubscriptionsAsync()
+        {
+            var userSubscriptions = await _uow.UserSubscriptionRepository.GetAllAsync();
+            var today = DateTime.UtcNow;
+
+            foreach (var userSubscription in userSubscriptions)
+            {
+                if (userSubscription.ValidAt.Date < today.Date)
+                {
+                    await _subscriptionService.DisableUserSubscriptionAsync(userSubscription.Id);
                 }
             }
         }

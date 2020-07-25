@@ -5,12 +5,10 @@ using MismeAPI.Common.DTO.Request.Subscription;
 using MismeAPI.Common.Exceptions;
 using MismeAPI.Data.Entities;
 using MismeAPI.Data.Entities.Enums;
-using MismeAPI.Data.Migrations;
 using MismeAPI.Data.UoW;
 using MismeAPI.Services.Utils;
 using System;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace MismeAPI.Service.Impls
@@ -20,14 +18,14 @@ namespace MismeAPI.Service.Impls
         private readonly IUnitOfWork _uow;
         private readonly IConfiguration _config;
         private readonly IUserService _userService;
-        private readonly IScheduleService _scheduleService;
+        private readonly INotificationService _notificationService;
 
-        public SubscriptionService(IUnitOfWork uow, IConfiguration config, IUserService userService, IScheduleService scheduleService)
+        public SubscriptionService(IUnitOfWork uow, IConfiguration config, IUserService userService, INotificationService notificationService)
         {
             _uow = uow ?? throw new ArgumentNullException(nameof(uow));
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
-            _scheduleService = scheduleService ?? throw new ArgumentNullException(nameof(scheduleService));
+            _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
         }
 
         public async Task<PaginatedList<Subscription>> GetSubscriptionsAsync(int pag, int perPag, string sortOrder, bool? isActive, string search)
@@ -170,12 +168,6 @@ namespace MismeAPI.Service.Impls
                 await _uow.UserSubscriptionRepository.UpdateAsync(userSubscription, userSubscription.Id);
             }
 
-            var schedule = await ScheduleJobAsync(userSubscription);
-            userSubscription.UserSubscriptionSchedule = new UserSubscriptionSchedule
-            {
-                Schedule = schedule
-            };
-
             await _uow.CommitAsync();
 
             return userSubscription;
@@ -200,13 +192,6 @@ namespace MismeAPI.Service.Impls
 
             await _uow.UserSubscriptionRepository.AddAsync(userSubscription);
 
-            await _uow.CommitAsync();
-
-            var schedule = await ScheduleJobAsync(userSubscription);
-            userSubscription.UserSubscriptionSchedule = new UserSubscriptionSchedule
-            {
-                Schedule = schedule
-            };
             await _uow.CommitAsync();
 
             return userSubscription;
@@ -244,22 +229,14 @@ namespace MismeAPI.Service.Impls
 
             await _uow.CommitAsync();
 
-            var schedule = await ScheduleJobAsync(userSubscription);
-            userSubscription.UserSubscriptionSchedule = new UserSubscriptionSchedule
-            {
-                Schedule = schedule
-            };
-
-            await _uow.CommitAsync();
-
             return userSubscription;
         }
 
         public async Task DisableUserSubscriptionAsync(int userSubscriptionID)
         {
             var userSubscription = await _uow.UserSubscriptionRepository.GetAll()
-                .Include(us => us.UserSubscriptionSchedule)
-                    .ThenInclude(us => us.Schedule)
+                .Include(us => us.User)
+                    .ThenInclude(us => us.Devices)
                 .Where(us => us.Id == userSubscriptionID)
                 .FirstOrDefaultAsync();
 
@@ -267,19 +244,20 @@ namespace MismeAPI.Service.Impls
                 throw new NotFoundException(ExceptionConstants.NOT_FOUND, "User Subscription");
 
             var now = DateTime.UtcNow;
-            var schedule = userSubscription.UserSubscriptionSchedule?.Schedule;
 
-            if (schedule != null && !schedule.IsProcessed && userSubscription.ValidAt < now)
+            userSubscription.IsActive = false;
+            userSubscription.ModifiedAt = now;
+            await _uow.UserSubscriptionRepository.UpdateAsync(userSubscription, userSubscriptionID);
+
+            if (userSubscription.User != null && userSubscription.User.Devices != null)
             {
-                userSubscription.IsActive = false;
-                userSubscription.ModifiedAt = now;
-                await _uow.UserSubscriptionRepository.UpdateAsync(userSubscription, userSubscriptionID);
-
-                schedule.IsProcessed = true;
-                await _uow.ScheduleRepository.UpdateAsync(schedule, schedule.Id);
-
-                await _uow.CommitAsync();
+                // TODO: Internationalization on this msgs.
+                var title = "Subscription de plani terminada";
+                var body = "Su subscription de plani ha terminado, vaya y activela otra vez para disfrutar de su divertida ayuda.";
+                await _notificationService.SendFirebaseNotificationAsync(title, body, userSubscription.User.Devices);
             }
+
+            await _uow.CommitAsync();
         }
 
         public async Task SeedSubscriptionAsync()
@@ -347,23 +325,6 @@ namespace MismeAPI.Service.Impls
             }
 
             return userSubscription;
-        }
-
-        private async Task<Schedule> ScheduleJobAsync(UserSubscription userSubscription)
-        {
-            var usJob = await _uow.UserSubscriptionScheduleRepository.GetAll()
-                .Include(usr => usr.Schedule)
-                .Where(usr => usr.UserSubscriptionId == userSubscription.Id)
-                .FirstOrDefaultAsync();
-
-            if (usJob != null)
-            {
-                //create
-                await _scheduleService.RemoveJobIfExistIfExistAsync(usJob.Schedule.JobId, false);
-            }
-
-            var schedule = await _scheduleService.ScheduleDisableSubscriptionAsync(userSubscription, false);
-            return schedule;
         }
     }
 }
