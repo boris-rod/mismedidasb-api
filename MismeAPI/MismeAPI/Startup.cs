@@ -113,6 +113,7 @@ namespace MismeAPI
             //recurringJobs.AddOrUpdate<IMismeBackgroundService>("Notifications", (e) => e.SendFireBaseNotificationsRemindersAsync(), "0 18 * * *");
             recurringJobs.AddOrUpdate<IMismeBackgroundService>("HandleUserStreaksWest", (e) => e.HandleUserStreaksAsync(1), "0 10 * * *", TimeZoneInfo.Utc);
             recurringJobs.AddOrUpdate<IMismeBackgroundService>("HandleUserStreaksEast", (e) => e.HandleUserStreaksAsync(-1), "0 23 * * *", TimeZoneInfo.Utc);
+            recurringJobs.AddOrUpdate<IMismeBackgroundService>("HandleSubscriptions", (e) => e.HandleSubscriptionsAsync(), "0 12 * * *", TimeZoneInfo.Utc);
 
             if (env.IsDevelopment())
             {

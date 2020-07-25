@@ -109,7 +109,7 @@ namespace MismeAPI.Service.Impls
 
             if (existUser.UserStatistics == null)
             {
-                throw new NotFoundException(ExceptionConstants.NOT_FOUND, "User Statistics");
+                existUser.UserStatistics = await GetOrCreateUserStatisticsAsync(existUser);
             }
 
             return existUser.UserStatistics;
@@ -316,12 +316,15 @@ namespace MismeAPI.Service.Impls
             {
                 statistics = new UserStatistics
                 {
-                    User = user,
+                    UserId = user.Id,
                     Points = 0,
                     BalancedEatCurrentStreak = 0,
                     BalancedEatMaxStreak = 0,
                     EatCurrentStreak = 0,
                     EatMaxStreak = 0,
+                    TotalBalancedEatsPlanned = 0,
+                    TotalNonBalancedEatsPlanned = 0,
+                    Coins = 0,
                     CreatedAt = DateTime.UtcNow,
                     ModifiedAt = DateTime.UtcNow
                 };
