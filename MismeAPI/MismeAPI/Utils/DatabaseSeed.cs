@@ -4,7 +4,11 @@ using MismeAPI.Data.Entities;
 using MismeAPI.Data.Entities.Enums;
 using MismeAPI.Data.UoW;
 using MismeAPI.Service;
+using MismeAPI.Services;
+using OfficeOpenXml;
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -29,12 +33,12 @@ namespace MismeAPI.Utils
             //try
             //{
             //    ImportDishesAsync(_uow, serviceProvider).Wait();
+            //    //RemoveDishesAsync(serviceProvider).Wait();
             //}
             //catch (Exception ex)
             //{
             //    throw ex;
             //}
-            //RemoveDishesAsync(services).Wait();
         }
 
         private static async Task CreateAdminUserAsync(IUnitOfWork uow)
@@ -64,141 +68,273 @@ namespace MismeAPI.Utils
             }
         }
 
-        //private static async Task ImportDishesAsync(IUnitOfWork _uow, IServiceProvider serviceProvider)
-        //{
-        //    var fileService = serviceProvider.GetRequiredService<IAmazonS3Service>();
+        private static async Task ImportDishesAsync(IUnitOfWork _uow, IServiceProvider serviceProvider)
+        {
+            var fileService = serviceProvider.GetRequiredService<IAmazonS3Service>();
 
-        // var handsCodes = new Dictionary<int, string>(); handsCodes.Add(0, "D:/Projects/Mismes/BD
-        // Alimentos Saira/Alimentos 100x100/0.png"); handsCodes.Add(1, "D:/Projects/Mismes/BD
-        // Alimentos Saira/Alimentos 100x100/1.png"); handsCodes.Add(2, "D:/Projects/Mismes/BD
-        // Alimentos Saira/Alimentos 100x100/2.png"); handsCodes.Add(3, "D:/Projects/Mismes/BD
-        // Alimentos Saira/Alimentos 100x100/3.png"); handsCodes.Add(4, "D:/Projects/Mismes/BD
-        // Alimentos Saira/Alimentos 100x100/4.png"); handsCodes.Add(5, "D:/Projects/Mismes/BD
-        // Alimentos Saira/Alimentos 100x100/5.png"); handsCodes.Add(6, "D:/Projects/Mismes/BD
-        // Alimentos Saira/Alimentos 100x100/6.png"); handsCodes.Add(7, "D:/Projects/Mismes/BD
-        // Alimentos Saira/Alimentos 100x100/7.png"); handsCodes.Add(8, "D:/Projects/Mismes/BD
-        // Alimentos Saira/Alimentos 100x100/8.png"); handsCodes.Add(9, "D:/Projects/Mismes/BD
-        // Alimentos Saira/Alimentos 100x100/9.png"); handsCodes.Add(10, "D:/Projects/Mismes/BD
-        // Alimentos Saira/Alimentos 100x100/10.png"); handsCodes.Add(11, "D:/Projects/Mismes/BD
-        // Alimentos Saira/Alimentos 100x100/11.png"); handsCodes.Add(12, "D:/Projects/Mismes/BD
-        // Alimentos Saira/Alimentos 100x100/12.png"); handsCodes.Add(13, "D:/Projects/Mismes/BD
-        // Alimentos Saira/Alimentos 100x100/13.png"); handsCodes.Add(14, "D:/Projects/Mismes/BD
-        // Alimentos Saira/Alimentos 100x100/14.jpg"); handsCodes.Add(15, "D:/Projects/Mismes/BD
-        // Alimentos Saira/Alimentos 100x100/15.png"); handsCodes.Add(16, "D:/Projects/Mismes/BD
-        // Alimentos Saira/Alimentos 100x100/16.png"); handsCodes.Add(17, "D:/Projects/Mismes/BD
-        // Alimentos Saira/Alimentos 100x100/17.png"); handsCodes.Add(18, "D:/Projects/Mismes/BD
-        // Alimentos Saira/Alimentos 100x100/18.jpg");
+            var handsCodes = new Dictionary<int, string>();
+            handsCodes.Add(0, "D:/Projects/Mismes/BD Alimentos Saira/Alimentos 100x100/0.png");
+            handsCodes.Add(1, "D:/Projects/Mismes/BD Alimentos Saira/Alimentos 100x100/1.png");
+            handsCodes.Add(2, "D:/Projects/Mismes/BD Alimentos Saira/Alimentos 100x100/2.png");
+            handsCodes.Add(3, "D:/Projects/Mismes/BD Alimentos Saira/Alimentos 100x100/3.png");
+            handsCodes.Add(4, "D:/Projects/Mismes/BD Alimentos Saira/Alimentos 100x100/4.png");
+            handsCodes.Add(5, "D:/Projects/Mismes/BD Alimentos Saira/Alimentos 100x100/5.png");
+            handsCodes.Add(6, "D:/Projects/Mismes/BD Alimentos Saira/Alimentos 100x100/6.png");
+            handsCodes.Add(7, "D:/Projects/Mismes/BD Alimentos Saira/Alimentos 100x100/7.png");
+            handsCodes.Add(8, "D:/Projects/Mismes/BD Alimentos Saira/Alimentos 100x100/8.png");
+            handsCodes.Add(9, "D:/Projects/Mismes/BD Alimentos Saira/Alimentos 100x100/9.png");
+            handsCodes.Add(10, "D:/Projects/Mismes/BD Alimentos Saira/Alimentos 100x100/10.png");
+            handsCodes.Add(11, "D:/Projects/Mismes/BD Alimentos Saira/Alimentos 100x100/11.png");
+            handsCodes.Add(12, "D:/Projects/Mismes/BD Alimentos Saira/Alimentos 100x100/12.png");
+            handsCodes.Add(13, "D:/Projects/Mismes/BD Alimentos Saira/Alimentos 100x100/13.png");
+            handsCodes.Add(14, "D:/Projects/Mismes/BD Alimentos Saira/Alimentos 100x100/14.jpg");
+            handsCodes.Add(15, "D:/Projects/Mismes/BD Alimentos Saira/Alimentos 100x100/15.png");
+            handsCodes.Add(16, "D:/Projects/Mismes/BD Alimentos Saira/Alimentos 100x100/16.png");
+            handsCodes.Add(17, "D:/Projects/Mismes/BD Alimentos Saira/Alimentos 100x100/17.png");
+            handsCodes.Add(18, "D:/Projects/Mismes/BD Alimentos Saira/Alimentos 100x100/18.jpg");
 
-        // ExcelPackage.LicenseContext = LicenseContext.NonCommercial; using (var package = new
-        // ExcelPackage(new FileInfo("D:/Projects/Mismes/BD Alimentos Saira/Base Saira vista por
-        // Boris.xlsx"))) { var sheetCount = package.Workbook.Worksheets.Count; var firstSheet =
-        // package.Workbook.Worksheets["Hoja1"]; for (int i = 2; i <= 1362; i++) { var code =
-        // firstSheet.Cells[i, 1].Text.Trim(); var dishName = firstSheet.Cells[i, 2].Text.Trim();
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            using (var package = new ExcelPackage(new FileInfo("D:/Projects/Mismes/BD Alimentos Saira/Base Datos Yoandry para editar3.xlsx")))
+            {
+                var sheetCount = package.Workbook.Worksheets.Count;
+                var firstSheet = package.Workbook.Worksheets["News"];
+                for (int i = 2; i <= 100; i++)
+                {
+                    var code = firstSheet.Cells[i, 2].Text.Trim();
+                    var dishName = firstSheet.Cells[i, 3].Text.Trim();
 
-        // var handsCode = int.Parse(firstSheet.Cells[i, 3].Text.Trim());
+                    var handsCode = int.Parse(firstSheet.Cells[i, 4].Text.Trim());
 
-        // var netWeight = double.Parse(firstSheet.Cells[i, 4].Text.Trim()); var volume =
-        // double.Parse(firstSheet.Cells[i, 5].Text.Trim()); var dishClasifi = firstSheet.Cells[i,
-        // 6].Text.Trim(); var category = firstSheet.Cells[i, 7].Text.Trim(); var calories =
-        // double.Parse(firstSheet.Cells[i, 8].Text.Trim()); var proteins =
-        // double.Parse(firstSheet.Cells[i, 9].Text.Trim()); var carbohidrates =
-        // double.Parse(firstSheet.Cells[i, 10].Text.Trim()); var fiber =
-        // double.Parse(firstSheet.Cells[i, 11].Text.Trim()); var fat =
-        // double.Parse(firstSheet.Cells[i, 12].Text.Trim()); var staurated =
-        // double.Parse(firstSheet.Cells[i, 13].Text.Trim()); var monoUnsaturated =
-        // double.Parse(firstSheet.Cells[i, 14].Text.Trim()); var polyUnsaturated =
-        // double.Parse(firstSheet.Cells[i, 15].Text.Trim()); var cholesterol =
-        // double.Parse(firstSheet.Cells[i, 16].Text.Trim()); var vitaminA =
-        // double.Parse(firstSheet.Cells[i, 17].Text.Trim()); var vitaminB1Thiamin =
-        // double.Parse(firstSheet.Cells[i, 18].Text.Trim()); var vitaminB2Riboflavin =
-        // double.Parse(firstSheet.Cells[i, 19].Text.Trim()); var vitaminB3Niacin =
-        // double.Parse(firstSheet.Cells[i, 20].Text.Trim()); var vitaminB6 =
-        // double.Parse(firstSheet.Cells[i, 21].Text.Trim()); var vitaminB9Folate =
-        // double.Parse(firstSheet.Cells[i, 22].Text.Trim()); var vitaminB12 =
-        // double.Parse(firstSheet.Cells[i, 23].Text.Trim()); var vitaminC =
-        // double.Parse(firstSheet.Cells[i, 24].Text.Trim()); var vitaminD =
-        // double.Parse(firstSheet.Cells[i, 25].Text.Trim()); var vitaminE =
-        // double.Parse(firstSheet.Cells[i, 26].Text.Trim()); var vitaminK =
-        // double.Parse(firstSheet.Cells[i, 27].Text.Trim()); var calcium =
-        // double.Parse(firstSheet.Cells[i, 28].Text.Trim()); var phosporus =
-        // double.Parse(firstSheet.Cells[i, 29].Text.Trim()); var iron =
-        // double.Parse(firstSheet.Cells[i, 30].Text.Trim()); var zinc =
-        // double.Parse(firstSheet.Cells[i, 31].Text.Trim()); var potsassium =
-        // double.Parse(firstSheet.Cells[i, 32].Text.Trim()); var sodium =
-        // double.Parse(firstSheet.Cells[i, 33].Text.Trim());
+                    var netWeight = double.Parse(firstSheet.Cells[i, 5].Text.Trim());
+                    var volume = double.Parse(firstSheet.Cells[i, 6].Text.Trim());
+                    var dishClasifi = firstSheet.Cells[i, 7].Text.Trim();
+                    var category = firstSheet.Cells[i, 8].Text.Trim();
+                    var calories = double.Parse(firstSheet.Cells[i, 9].Text.Trim());
+                    var proteins = double.Parse(firstSheet.Cells[i, 10].Text.Trim());
+                    var carbohidrates = double.Parse(firstSheet.Cells[i, 11].Text.Trim());
+                    var fiber = double.Parse(firstSheet.Cells[i, 12].Text.Trim());
+                    var fat = double.Parse(firstSheet.Cells[i, 13].Text.Trim());
+                    var staurated = double.Parse(firstSheet.Cells[i, 14].Text.Trim());
+                    var monoUnsaturated = double.Parse(firstSheet.Cells[i, 15].Text.Trim());
+                    var polyUnsaturated = double.Parse(firstSheet.Cells[i, 16].Text.Trim());
+                    var cholesterol = double.Parse(firstSheet.Cells[i, 17].Text.Trim());
+                    var vitaminA = double.Parse(firstSheet.Cells[i, 18].Text.Trim());
+                    var vitaminB1Thiamin = double.Parse(firstSheet.Cells[i, 19].Text.Trim());
+                    var vitaminB2Riboflavin = double.Parse(firstSheet.Cells[i, 20].Text.Trim());
+                    var vitaminB3Niacin = double.Parse(firstSheet.Cells[i, 21].Text.Trim());
+                    var vitaminB6 = double.Parse(firstSheet.Cells[i, 22].Text.Trim());
+                    var vitaminB9Folate = double.Parse(firstSheet.Cells[i, 23].Text.Trim());
+                    var vitaminB12 = double.Parse(firstSheet.Cells[i, 24].Text.Trim());
+                    var vitaminC = double.Parse(firstSheet.Cells[i, 25].Text.Trim());
+                    var vitaminD = double.Parse(firstSheet.Cells[i, 26].Text.Trim());
+                    var vitaminE = double.Parse(firstSheet.Cells[i, 27].Text.Trim());
+                    var vitaminK = double.Parse(firstSheet.Cells[i, 28].Text.Trim());
+                    var calcium = double.Parse(firstSheet.Cells[i, 29].Text.Trim());
+                    var phosporus = double.Parse(firstSheet.Cells[i, 30].Text.Trim());
+                    var iron = double.Parse(firstSheet.Cells[i, 31].Text.Trim());
+                    var zinc = double.Parse(firstSheet.Cells[i, 32].Text.Trim());
+                    var potsassium = double.Parse(firstSheet.Cells[i, 33].Text.Trim());
+                    var sodium = double.Parse(firstSheet.Cells[i, 34].Text.Trim());
 
-        // var tagsDict = new Dictionary<string, int>(); tagsDict.Add("Bebidas", 12);
-        // tagsDict.Add("Frutas", 13); tagsDict.Add("Grasas/aderezos/salsas", 14);
-        // tagsDict.Add("Lácteos y derivados", 15); tagsDict.Add("Platos combinados", 16);
-        // tagsDict.Add("Postre/dulces/complementos", 17); tagsDict.Add("Proteína animal", 18);
-        // tagsDict.Add("Proteína vegetal", 19); tagsDict.Add("Sopas/cereales/tubérculos", 20);
-        // tagsDict.Add("Vegetales y verduras", 21);
+                    var tagsDict = new Dictionary<string, int>();
+                    tagsDict.Add("Bebidas", 12);
+                    tagsDict.Add("Frutas", 13);
+                    tagsDict.Add("Grasas/aderezos/salsas", 14);
+                    tagsDict.Add("Lácteos y derivados", 15);
+                    tagsDict.Add("Platos combinados", 16);
+                    tagsDict.Add("Postre/dulces/complementos", 17);
+                    tagsDict.Add("Proteína animal", 18);
+                    tagsDict.Add("Proteína vegetal", 19);
+                    tagsDict.Add("Sopas/cereales/tubérculos", 20);
+                    tagsDict.Add("Vegetales y verduras", 21);
 
-        // //var categoryBd = await _uow.TagRepository.GetAll().Where(t => t.Name ==
-        // category).FirstOrDefaultAsync(); //if (categoryBd == null) //{ // categoryBd = new
-        // Data.Entities.Tag(); // categoryBd.Name = category; // await
-        // _uow.TagRepository.AddAsync(categoryBd); // await _uow.CommitAsync(); //} var tags = new
-        // List<DishTag>(); var dishTag = new DishTag(); dishTag.TagId = tagsDict[category];
-        // dishTag.TaggedAt = DateTime.UtcNow; tags.Add(dishTag);
+                    var tags = new List<DishTag>();
+                    var dishTag = new DishTag();
+                    dishTag.TagId = tagsDict[category];
+                    dishTag.TaggedAt = DateTime.UtcNow; tags.Add(dishTag);
 
-        // //upload images string guid = Guid.NewGuid().ToString();
+                    //upload images
+                    string guid = Guid.NewGuid().ToString();
 
-        // using (FileStream f = new FileStream(handsCodes[handsCode], FileMode.Open,
-        // FileAccess.Read)) { MemoryStream ms = new MemoryStream(); f.CopyTo(ms); await
-        // fileService.PutObjectAsync(guid, ms); } var dish = new Dish(); dish.Image = guid;
-        // dish.Code = code; dish.Name = dishName; if (netWeight >= 0) { dish.NetWeight = netWeight;
-        // } if (volume >= 0) { dish.Volume = volume; } if (calories >= 0) { dish.Calories =
-        // calories; } if (proteins >= 0) { dish.Proteins = proteins; } if (carbohidrates >= 0) {
-        // dish.Carbohydrates = carbohidrates; } if (fiber >= 0) { dish.Fiber = fiber; } if (fat >=
-        // 0) { dish.Fat = fat; } if (staurated >= 0) { dish.SaturatedFat = staurated; } if
-        // (monoUnsaturated >= 0) { dish.MonoUnsaturatedFat = monoUnsaturated; } if (polyUnsaturated
-        // >= 0) { dish.PolyUnsaturatedFat = polyUnsaturated; } if (cholesterol >= 0) {
-        // dish.Cholesterol = cholesterol; } if (vitaminA >= 0) { dish.VitaminA = vitaminA; } if
-        // (vitaminB1Thiamin >= 0) { dish.VitaminB1Thiamin = vitaminB1Thiamin; } if
-        // (vitaminB2Riboflavin >= 0) { dish.VitaminB2Riboflavin = vitaminB2Riboflavin; } if
-        // (vitaminB3Niacin >= 0) { dish.VitaminB3Niacin = vitaminB3Niacin; }
+                    using (FileStream f = new FileStream(handsCodes[handsCode], FileMode.Open, FileAccess.Read))
+                    {
+                        MemoryStream ms = new MemoryStream();
+                        f.CopyTo(ms);
+                        await fileService.PutObjectAsync(guid, ms);
+                    }
+                    var dish = new Dish();
+                    dish.Image = guid;
+                    dish.Code = code;
+                    dish.Name = dishName;
+                    if (netWeight >= 0)
+                    {
+                        dish.NetWeight = netWeight;
+                    }
+                    if (volume >= 0)
+                    {
+                        dish.Volume = volume;
+                    }
+                    if (calories >= 0)
+                    {
+                        dish.Calories = calories;
+                    }
+                    if (proteins >= 0)
+                    {
+                        dish.Proteins = proteins;
+                    }
+                    if (carbohidrates >= 0)
+                    {
+                        dish.Carbohydrates = carbohidrates;
+                    }
+                    if (fiber >= 0)
+                    {
+                        dish.Fiber = fiber;
+                    }
+                    if (fat >= 0)
+                    {
+                        dish.Fat = fat;
+                    }
+                    if (staurated >= 0)
+                    {
+                        dish.SaturatedFat = staurated;
+                    }
+                    if (monoUnsaturated >= 0)
+                    {
+                        dish.MonoUnsaturatedFat = monoUnsaturated;
+                    }
+                    if (polyUnsaturated >= 0)
+                    {
+                        dish.PolyUnsaturatedFat = polyUnsaturated;
+                    }
+                    if (cholesterol >= 0)
+                    {
+                        dish.Cholesterol = cholesterol;
+                    }
+                    if (vitaminA >= 0)
+                    {
+                        dish.VitaminA = vitaminA;
+                    }
+                    if (vitaminB1Thiamin >= 0)
+                    {
+                        dish.VitaminB1Thiamin = vitaminB1Thiamin;
+                    }
+                    if (vitaminB2Riboflavin >= 0)
+                    {
+                        dish.VitaminB2Riboflavin = vitaminB2Riboflavin;
+                    }
+                    if (vitaminB3Niacin >= 0)
+                    {
+                        dish.VitaminB3Niacin = vitaminB3Niacin;
+                    }
 
-        // if (vitaminB6 >= 0) { dish.VitaminB6 = vitaminB6; } if (vitaminB9Folate >= 0) {
-        // dish.VitaminB9Folate = vitaminB9Folate; } if (vitaminB12 >= 0) { dish.VitaminB12 =
-        // vitaminB12; } if (vitaminC >= 0) { dish.VitaminC = vitaminC; } if (vitaminD >= 0) {
-        // dish.VitaminD = vitaminD; } if (vitaminE >= 0) { dish.VitaminE = vitaminE; } if (vitaminK
-        // >= 0) { dish.VitaminK = vitaminK; }
+                    if (vitaminB6 >= 0)
+                    {
+                        dish.VitaminB6 = vitaminB6;
+                    }
+                    if (vitaminB9Folate >= 0)
+                    {
+                        dish.VitaminB9Folate = vitaminB9Folate;
+                    }
+                    if (vitaminB12 >= 0)
+                    {
+                        dish.VitaminB12 = vitaminB12;
+                    }
+                    if (vitaminC >= 0)
+                    {
+                        dish.VitaminC = vitaminC;
+                    }
+                    if (vitaminD >= 0)
+                    {
+                        dish.VitaminD = vitaminD;
+                    }
+                    if (vitaminE >= 0)
+                    {
+                        dish.VitaminE = vitaminE;
+                    }
+                    if (vitaminK >= 0)
+                    {
+                        dish.VitaminK = vitaminK;
+                    }
 
-        // if (calcium >= 0) { dish.Calcium = calcium; } if (phosporus >= 0) { dish.Phosphorus =
-        // phosporus; } if (iron >= 0) { dish.Iron = iron; } if (zinc >= 0) { dish.Zinc = zinc; } if
-        // (potsassium >= 0) { dish.Potassium = potsassium; } if (sodium >= 0) { dish.Sodium =
-        // sodium; }
+                    if (calcium >= 0)
+                    {
+                        dish.Calcium = calcium;
+                    }
+                    if (phosporus >= 0)
+                    {
+                        dish.Phosphorus = phosporus;
+                    }
+                    if (iron >= 0)
+                    {
+                        dish.Iron = iron;
+                    }
+                    if (zinc >= 0)
+                    {
+                        dish.Zinc = zinc;
+                    }
+                    if (potsassium >= 0)
+                    {
+                        dish.Potassium = potsassium;
+                    }
+                    if (sodium >= 0)
+                    {
+                        dish.Sodium = sodium;
+                    }
 
-        // switch (dishClasifi) { case "Calórico": dish.IsCaloric = true; break;
+                    switch (dishClasifi)
+                    {
+                        case "Calórico":
+                            dish.IsCaloric = true;
+                            break;
 
-        // case "Protéico": dish.IsProteic = true; break;
+                        case "Protéico":
+                            dish.IsProteic = true;
+                            break;
 
-        // default: dish.IsFruitAndVegetables = true; break; }
+                        default:
+                            dish.IsFruitAndVegetables = true;
+                            break;
+                    }
 
-        //            dish.DishTags = tags;
-        //            dish.CreatedAt = DateTime.UtcNow;
-        //            dish.ModifiedAt = DateTime.UtcNow;
-        //            await _uow.DishRepository.AddAsync(dish);
-        //        }
-        //        await _uow.CommitAsync();
-        //    }
-        //}
+                    dish.DishTags = tags;
+                    dish.CreatedAt = DateTime.UtcNow;
+                    dish.ModifiedAt = DateTime.UtcNow;
+                    await _uow.DishRepository.AddAsync(dish);
+                }
 
-        //private async Task RemoveDishesAsync(IServiceProvider serviceProvider)
-        //{
-        //    var _uow = serviceProvider.GetRequiredService<IUnitOfWork>();
-        //    var fileServ = serviceProvider.GetRequiredService<IFileService>();
+                await _uow.CommitAsync();
+            }
+        }
 
-        // var dishes = _uow.DishRepository.GetAll(); foreach (var dish in dishes) { if
-        // (!string.IsNullOrWhiteSpace(dish.Image)) { await fileServ.DeleteFileAsync(dish.Image); }
-        // _uow.DishRepository.Delete(dish); }
+        private static async Task RemoveDishesAsync(IServiceProvider serviceProvider)
+        {
+            var _uow = serviceProvider.GetRequiredService<IUnitOfWork>();
+            var fileServ = serviceProvider.GetRequiredService<IFileService>();
 
-        //    var tags = _uow.TagRepository.GetAll();
-        //    foreach (var tag in tags)
-        //    {
-        //        _uow.TagRepository.Delete(tag);
-        //    }
-        //    await _uow.CommitAsync();
-        //}
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            using (var package = new ExcelPackage(new FileInfo("D:/Projects/Mismes/BD Alimentos Saira/Base Datos Yoandry para editar3.xlsx")))
+            {
+                var sheetCount = package.Workbook.Worksheets.Count;
+                var firstSheet = package.Workbook.Worksheets["Delete"]; //1159
+                for (int i = 1151; i <= 1159; i++)
+                {
+                    var id = int.Parse(firstSheet.Cells[i, 1].Text.Trim());
+                    var dish = await _uow.DishRepository.GetAsync(id);
+                    if (dish != null)
+                    {
+                        if (!string.IsNullOrWhiteSpace(dish.Image))
+                        {
+                            try
+                            {
+                                await fileServ.DeleteFileAsync(dish.Image);
+                            }
+                            catch (Exception) { }
+                        }
+                        _uow.DishRepository.Delete(dish);
+                    }
+                }
+                await _uow.CommitAsync();
+            }
+        }
     }
 }
