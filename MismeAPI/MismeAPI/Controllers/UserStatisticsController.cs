@@ -68,5 +68,35 @@ namespace MismeAPI.Controllers
             var mapped = _mapper.Map<UserStatisticsResponse>(result);
             return Ok(new ApiOkResponse(mapped));
         }
+
+        /// <summary>
+        /// Give a reward of coins to a list of users. Requires authentication. Only Admin access
+        /// </summary>
+        [HttpPut("give-coins-rewards")]
+        [Authorize(Roles = "ADMIN")]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> GiveCoinsReward(IEnumerable<int> userIds, int coins)
+        {
+            await _userStatisticsService.RewardCoinsToUsersAsync(userIds, coins);
+
+            return Ok();
+        }
+
+        /// <summary>
+        /// Give 2000 coins to testers. Requires authentication. Only Admin access
+        /// </summary>
+        [HttpPut("fire-testers-reward")]
+        [Authorize(Roles = "ADMIN")]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> FireTestersReward()
+        {
+            await _userStatisticsService.RewardTestersAsync();
+
+            return Ok();
+        }
     }
 }

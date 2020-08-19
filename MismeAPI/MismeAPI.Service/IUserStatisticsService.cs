@@ -15,7 +15,7 @@ namespace MismeAPI.Service
 
         Task<UserStatistics> UpdateTotalPoints(User user, int points);
 
-        Task<UserStatistics> UpdateTotalCoins(User user, int coins);
+        Task<UserStatistics> UpdateTotalCoinsAsync(User user, int coins);
 
         Task<int> AllowedPointsAsync(int userId, int points);
 
@@ -26,5 +26,9 @@ namespace MismeAPI.Service
         Task<UserStatistics> CutCurrentStreakAsync(UserStatistics statistic, StreakEnum streak, IEnumerable<Device> devices);
 
         Task<UserRankingResponse> GetUserRankingAsync(int userId);
+
+        Task RewardCoinsToUsersAsync(IEnumerable<int> userIds, int coins);
+
+        Task RewardTestersAsync();
     }
 }

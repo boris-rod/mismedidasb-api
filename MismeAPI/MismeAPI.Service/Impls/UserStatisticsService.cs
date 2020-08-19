@@ -1,4 +1,5 @@
-﻿using CorePush.Google;
+﻿using Amazon.SimpleSystemsManagement.Model;
+using CorePush.Google;
 using FirebaseAdmin.Messaging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -21,12 +22,14 @@ namespace MismeAPI.Service.Impls
         private readonly IUnitOfWork _uow;
         private readonly IUserService _userService;
         private readonly IConfiguration _config;
+        private readonly INotificationService _notificationService;
 
-        public UserStatisticsService(IUnitOfWork uow, IUserService userService, IConfiguration config)
+        public UserStatisticsService(IUnitOfWork uow, IUserService userService, IConfiguration config, INotificationService notificationService)
         {
             _uow = uow ?? throw new ArgumentNullException(nameof(uow));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _config = config ?? throw new ArgumentNullException(nameof(config));
+            _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
         }
 
         public async Task<PaginatedList<UserStatistics>> GetUserStatisticsAsync(int loggedUser, int pag, int perPag, string sortOrder)
@@ -175,7 +178,7 @@ namespace MismeAPI.Service.Impls
             return statistics;
         }
 
-        public async Task<UserStatistics> UpdateTotalCoins(User user, int coins)
+        public async Task<UserStatistics> UpdateTotalCoinsAsync(User user, int coins)
         {
             // validate target user exists
             var existUser = await _uow.UserRepository.GetAll().Where(d => d.Id == user.Id).FirstOrDefaultAsync();
@@ -304,6 +307,59 @@ namespace MismeAPI.Service.Impls
             await NotifyStreekLooseAsync(statistic.User, streak, devices);
 
             return statistic;
+        }
+
+        public async Task RewardTestersAsync()
+        {
+            var testerDate = new DateTime(2020, 8, 31);
+
+            var points = 2000;
+            var userIds = await _uow.UserRepository.GetAll()
+                .Where(u => u.CreatedAt < testerDate && u.ActivatedAt.HasValue)
+                .Select(u => u.Id)
+                .ToListAsync();
+
+            await RewardCoinsToUsersAsync(userIds, points);
+        }
+
+        public async Task RewardCoinsToUsersAsync(IEnumerable<int> userIds, int coins)
+        {
+            if (coins < 1)
+            {
+                throw new InvalidDataException("Coins");
+            }
+
+            if (userIds.Count() < 1)
+            {
+                throw new InvalidDataException("Users");
+            }
+
+            var users = await _uow.UserRepository.FindAllAsync(u => userIds.Contains(u.Id));
+
+            foreach (var user in users)
+            {
+                if (user.ActivatedAt.HasValue)
+                {
+                    await UpdateTotalCoinsAsync(user, coins);
+                    if (user.Email.Contains("pavel"))
+                        await SendTesterCoinsRewardsNotificationAsync(user, coins);
+                }
+            }
+        }
+
+        private async Task SendTesterCoinsRewardsNotificationAsync(User user, int coins)
+        {
+            var lang = await _userService.GetUserLanguageFromUserIdAsync(user.Id);
+            var title = (lang == "EN") ? "You have receipt a reward for being a tester" : "Has recibido una recompensa por ser tester";
+            string body = lang switch
+            {
+                "EN" => "Thank you for your feedback. You receipt " + coins + " coins.",
+                _ => "Gracias por tu feedback." + " Has recibido " + coins + " monedas.",
+            };
+
+            var uDevices = await _userService.GetUserDevicesAsync(user.Id);
+            if (uDevices?.Devices != null)
+                await _notificationService.SendFirebaseNotificationAsync(title, body, uDevices.Devices);
         }
 
         private async Task<UserStatistics> GetOrCreateUserStatisticsAsync(User user)
