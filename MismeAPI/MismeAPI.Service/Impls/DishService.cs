@@ -191,6 +191,40 @@ namespace MismeAPI.Service.Impls
             return dishes;
         }
 
+        private List<Dish> GetExactMatches(string search)
+        {
+            search = search.Trim();
+            var results = _uow.DishRepository.GetAll().Where(r => r.Name.ToLower().Equals(search.ToLower()))
+                .Include(d => d.DishTags)
+                    .ThenInclude(t => t.Tag)
+            .ToList();
+            return results;
+        }
+
+        private List<Dish> GetStartWithMatches(string search)
+        {
+            search = search.Trim();
+            var results = _uow.DishRepository.GetAll().Where(r => r.Name.ToLower() != search.ToLower() && r.Name.ToLower().StartsWith(search.ToLower()))
+                .Include(d => d.DishTags)
+                    .ThenInclude(t => t.Tag)
+                .OrderBy(r => r.Name)
+                .ToList();
+            return results;
+        }
+
+        private List<Dish> GetContainsMatches(string search)
+        {
+            search = search.Trim();
+            var results = _uow.DishRepository.GetAll().Where(r => r.Name.ToLower() != search.ToLower()
+                            && !r.Name.ToLower().StartsWith(search.ToLower())
+                            && r.Name.ToLower().Contains(search.ToLower()))
+                            .Include(d => d.DishTags)
+                                .ThenInclude(t => t.Tag)
+                            .OrderBy(r => r.Name)
+                            .ToList();
+            return results;
+        }
+
         public async Task<PaginatedList<Dish>> GetDishesAsync(string search, List<int> tags, int? page, int? perPage, int? harvardFilter)
         {
             var results = _uow.DishRepository.GetAll()
@@ -200,7 +234,16 @@ namespace MismeAPI.Service.Impls
 
             if (!string.IsNullOrWhiteSpace(search))
             {
-                results = results.Where(r => r.Name.ToLower().Contains(search.ToLower()));
+                var equals = GetExactMatches(search);
+
+                var startsWith = GetStartWithMatches(search);
+                var contains = GetContainsMatches(search);
+
+                results = (equals.Union(startsWith).Union(contains)).AsQueryable();
+            }
+            else
+            {
+                results = results.OrderBy(d => d.Name);
             }
             if (tags.Count > 0)
             {
