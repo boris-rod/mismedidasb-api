@@ -3,7 +3,6 @@ using MismeAPI.Common;
 using MismeAPI.Common.DTO.Request;
 using MismeAPI.Common.DTO.Request.Dish;
 using MismeAPI.Common.Exceptions;
-using MismeAPI.Data;
 using MismeAPI.Data.Entities;
 using MismeAPI.Data.Entities.Enums;
 using MismeAPI.Data.UoW;
@@ -21,13 +20,13 @@ namespace MismeAPI.Service.Impls
     {
         private readonly IUnitOfWork _uow;
         private readonly IFileService _fileService;
-        private readonly MismeContext _context;
+        //private readonly MismeContext _context;
 
-        public DishService(IUnitOfWork uow, IFileService fileService, MismeContext context)
+        public DishService(IUnitOfWork uow, IFileService fileService/*, MismeContext context*/)
         {
             _uow = uow ?? throw new ArgumentNullException(nameof(uow));
             _fileService = fileService ?? throw new ArgumentNullException(nameof(fileService));
-            _context = context ?? throw new ArgumentNullException(nameof(context));
+            //_context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
         public async Task ChangeDishTranslationAsync(int loggedUser, DishTranslationRequest dishTranslationRequest, int id)
@@ -63,7 +62,7 @@ namespace MismeAPI.Service.Impls
             _uow.DishRepository.Update(dish);
             await _uow.CommitAsync();
             //expire cache
-            QueryCacheManager.ExpireTag(CacheEntries.ALL_DISHES);
+            //QueryCacheManager.ExpireTag(CacheEntries.ALL_DISHES);
         }
 
         public async Task<Dish> CreateDishAsync(int loggedUser, CreateDishRequest dish)
@@ -138,7 +137,7 @@ namespace MismeAPI.Service.Impls
             await _uow.CommitAsync();
 
             //expire cache
-            QueryCacheManager.ExpireTag(CacheEntries.ALL_DISHES);
+            //QueryCacheManager.ExpireTag(CacheEntries.ALL_DISHES);
 
             return dbDish;
         }
@@ -165,7 +164,7 @@ namespace MismeAPI.Service.Impls
             await _uow.CommitAsync();
 
             //expire cache
-            QueryCacheManager.ExpireTag(CacheEntries.ALL_DISHES);
+            //QueryCacheManager.ExpireTag(CacheEntries.ALL_DISHES);
         }
 
         public async Task<Dish> GetDishByIdAsync(int id)
@@ -194,10 +193,10 @@ namespace MismeAPI.Service.Impls
 
         public async Task<PaginatedList<Dish>> GetDishesAsync(string search, List<int> tags, int? page, int? perPage, int? harvardFilter)
         {
-            var results = await _context.Dishes
+            var results = _uow.DishRepository.GetAll()
                 .Include(d => d.DishTags)
-                    .ThenInclude(t => t.Tag)
-                .FromCacheAsync(CacheEntries.ALL_DISHES);
+                    .ThenInclude(t => t.Tag).AsQueryable();
+            //.FromCacheAsync(CacheEntries.ALL_DISHES);
 
             if (!string.IsNullOrWhiteSpace(search))
             {
@@ -205,10 +204,12 @@ namespace MismeAPI.Service.Impls
             }
             if (tags.Count > 0)
             {
+                var total = new List<Dish>().AsQueryable();
                 foreach (var t in tags)
                 {
-                    results = results.Where(d => d.DishTags.Any(d => d.TagId == t));
+                    total = total.Union(results.Where(d => d.DishTags.Any(d => d.TagId == t)));
                 }
+                results = total;
             }
             if (harvardFilter.HasValue)
             {
@@ -330,7 +331,7 @@ namespace MismeAPI.Service.Impls
             await _uow.CommitAsync();
 
             //expire cache
-            QueryCacheManager.ExpireTag(CacheEntries.ALL_DISHES);
+            //QueryCacheManager.ExpireTag(CacheEntries.ALL_DISHES);
             return dishh;
         }
     }
