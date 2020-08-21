@@ -232,6 +232,48 @@ namespace MismeAPI.Service.Impls
             return await PaginatedList<Dish>.CreateAsync(results.AsQueryable(), page ?? 1, page.HasValue == false ? results.Count() : perPage ?? 10);
         }
 
+        public async Task<PaginatedList<Dish>> GetFavoriteDishesAsync(int loggedUser, string search, List<int> tags, int? page, int? perPage, int? harvardFilter)
+        {
+            var results = _uow.DishRepository.GetAll()
+                .Where(d => d.FavoriteDishes.Any(fd => fd.UserId == loggedUser))
+                .Include(d => d.DishTags)
+                    .ThenInclude(t => t.Tag)
+                .Include(d => d.FavoriteDishes)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                results = results.Where(r => r.Name.ToLower().Contains(search.ToLower()));
+            }
+            if (tags.Count > 0)
+            {
+                foreach (var t in tags)
+                {
+                    results = results.Where(d => d.DishTags.Any(d => d.TagId == t));
+                }
+            }
+            if (harvardFilter.HasValue)
+            {
+                switch (harvardFilter.Value)
+                {
+                    // proteic
+                    case 0:
+                        results = results.Where(r => r.IsProteic == true);
+                        break;
+                    // caloric
+                    case 1:
+                        results = results.Where(r => r.IsCaloric == true);
+                        break;
+
+                    default:
+                        results = results.Where(r => r.IsFruitAndVegetables == true);
+                        break;
+                }
+            }
+
+            return await PaginatedList<Dish>.CreateAsync(results, page ?? 1, page.HasValue == false ? results.Count() : perPage ?? 10);
+        }
+
         public async Task<Dish> UpdateDishAsync(int loggedUser, UpdateDishRequest dish)
         {
             // validate admin user
@@ -332,6 +374,44 @@ namespace MismeAPI.Service.Impls
             //expire cache
             QueryCacheManager.ExpireTag(CacheEntries.ALL_DISHES);
             return dishh;
+        }
+
+        public async Task<Dish> AddFavoriteDishAsync(int loggedUser, int dishId)
+        {
+            var dish = await GetDishByIdAsync(dishId);
+
+            var exist = await _uow.FavoriteDishRepository.GetAll()
+                .Where(fd => fd.DishId == dishId && fd.UserId == loggedUser)
+                .FirstOrDefaultAsync();
+
+            if (exist != null)
+                return dish;
+
+            var favoriteDish = new FavoriteDish
+            {
+                UserId = loggedUser,
+                DishId = dishId
+            };
+
+            await _uow.FavoriteDishRepository.AddAsync(favoriteDish);
+            await _uow.CommitAsync();
+
+            return dish;
+        }
+
+        public async Task RemoveFavoriteDishAsync(int loggedUser, int dishId)
+        {
+            await GetDishByIdAsync(dishId);
+
+            var exist = await _uow.FavoriteDishRepository.GetAll()
+                .Where(fd => fd.DishId == dishId && fd.UserId == loggedUser)
+                .FirstOrDefaultAsync();
+
+            if (exist != null)
+            {
+                _uow.FavoriteDishRepository.Delete(exist);
+                await _uow.CommitAsync();
+            }
         }
     }
 }

@@ -22,5 +22,11 @@ namespace MismeAPI.Service
         Task ChangeDishTranslationAsync(int loggedUser, DishTranslationRequest dishTranslationRequest, int id);
 
         Task<IEnumerable<Dish>> GetDishesAdminAsync(int loggedUser);
+
+        Task<PaginatedList<Dish>> GetFavoriteDishesAsync(int loggedUser, string search, List<int> tags, int? page, int? perPage, int? harvardFilter);
+
+        Task<Dish> AddFavoriteDishAsync(int loggedUser, int dishId);
+
+        Task RemoveFavoriteDishAsync(int loggedUser, int dishId);
     }
 }

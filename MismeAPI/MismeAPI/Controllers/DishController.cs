@@ -60,6 +60,36 @@ namespace MismeAPI.Controllers
         }
 
         /// <summary>
+        /// Get all favorite dishes of the logged user. Requires authentication.
+        /// </summary>
+        /// <param name="search">Search param.</param>
+        /// <param name="tags">Tags id for filtering.</param>
+        /// <param name="page">Page to be listed. If null all the dishes will be returned.</param>
+        /// <param name="perPage">By defaul 10 but only will take effect if the page param is specified.</param>
+        /// <param name="harvardFilter">0- proteic, 1- caloric, 2- fruitVegetable.</param>
+        [HttpGet("favorites")]
+        [Authorize]
+        [ProducesResponseType(typeof(IEnumerable<DishResponse>), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetFavorites(string search, List<int> tags, int? page, int? perPage, int? harvardFilter)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            var language = await _userService.GetUserLanguageFromUserIdAsync(loggedUser);
+
+            var result = await _dishService.GetFavoriteDishesAsync(loggedUser, search, tags, page, perPage, harvardFilter);
+
+            HttpContext.Response.Headers.Add("PagingData", JsonConvert.SerializeObject(result.GetPaginationData));
+            HttpContext.Response.Headers["Access-Control-Expose-Headers"] = "PagingData";
+            HttpContext.Response.Headers["Access-Control-Allow-Headers"] = "PagingData";
+
+            var mapped = _mapper.Map<IEnumerable<DishResponse>>(result, opt =>
+            {
+                opt.Items["lang"] = language;
+            });
+
+            return Ok(new ApiOkResponse(mapped));
+        }
+
+        /// <summary>
         /// Get dish by id. Requires authentication.
         /// </summary>
         /// <param name="id">Dish id.</param>
@@ -165,6 +195,45 @@ namespace MismeAPI.Controllers
         {
             var loggedUser = User.GetUserIdFromToken();
             await _dishService.ChangeDishTranslationAsync(loggedUser, dishTranslationRequest, id);
+            return Ok();
+        }
+
+        /// <summary>
+        /// Add a dish to current user favorite dishes. Requires authentication.
+        /// </summary>
+        /// <param name="dishId">Dish to add to favorite</param>
+        [HttpPost("favorite/create")]
+        [Authorize]
+        [ProducesResponseType(typeof(DishResponse), (int)HttpStatusCode.Created)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> AddFavoriteDish(int dishId)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            var result = await _dishService.AddFavoriteDishAsync(loggedUser, dishId);
+
+            var language = await _userService.GetUserLanguageFromUserIdAsync(loggedUser);
+            var mapped = _mapper.Map<DishResponse>(result, opt =>
+            {
+                opt.Items["lang"] = language;
+            });
+            return Created("", new ApiOkResponse(mapped));
+        }
+
+        /// <summary>
+        /// Delete a dish from current user favorite dishes. Requires authentication.
+        /// </summary>
+        /// <param name="dishId">Dish to remove from favorites</param>
+        [HttpDelete("favorite/delete")]
+        [Authorize]
+        [ProducesResponseType(typeof(DishResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> DeleteFavoriteDish(int dishId)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            await _dishService.RemoveFavoriteDishAsync(loggedUser, dishId);
+
             return Ok();
         }
     }

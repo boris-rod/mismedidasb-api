@@ -49,6 +49,7 @@ namespace MismeAPI.Data
         public DbSet<Subscription> Subscription { get; set; }
         public DbSet<UserSubscription> UserSubscription { get; set; }
         public DbSet<UserSubscriptionSchedule> UserSubscriptionSchedule { get; set; }
+        public DbSet<FavoriteDish> FavoriteDish { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -61,6 +62,9 @@ namespace MismeAPI.Data
             modelBuilder.Entity<Schedule>().HasMany(p => p.UserSchedules).WithOne(b => b.Schedule).OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<SoloAnswer>().HasMany(p => p.UserSoloAnswers).WithOne(b => b.SoloAnswer).OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<User>().HasMany(p => p.FavoriteDishes).WithOne(b => b.User).OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<Dish>().HasMany(p => p.FavoriteDishes).WithOne(b => b.Dish).OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
