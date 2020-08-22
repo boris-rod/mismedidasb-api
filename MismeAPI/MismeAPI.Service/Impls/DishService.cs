@@ -170,6 +170,7 @@ namespace MismeAPI.Service.Impls
         public async Task<Dish> GetDishByIdAsync(int id)
         {
             var dish = await _uow.DishRepository.GetAll().Where(d => d.Id == id)
+                .Include(d => d.FavoriteDishes)
                 .Include(d => d.DishTags)
                     .ThenInclude(t => t.Tag)
                 .FirstOrDefaultAsync();
@@ -195,6 +196,7 @@ namespace MismeAPI.Service.Impls
         {
             search = search.Trim();
             var results = _uow.DishRepository.GetAll().Where(r => r.Name.ToLower().Equals(search.ToLower()))
+                .Include(d => d.FavoriteDishes)
                 .Include(d => d.DishTags)
                     .ThenInclude(t => t.Tag)
             .ToList();
@@ -205,6 +207,7 @@ namespace MismeAPI.Service.Impls
         {
             search = search.Trim();
             var results = _uow.DishRepository.GetAll().Where(r => r.Name.ToLower() != search.ToLower() && r.Name.ToLower().StartsWith(search.ToLower()))
+                .Include(d => d.FavoriteDishes)
                 .Include(d => d.DishTags)
                     .ThenInclude(t => t.Tag)
                 .OrderBy(r => r.Name)
@@ -218,6 +221,7 @@ namespace MismeAPI.Service.Impls
             var results = _uow.DishRepository.GetAll().Where(r => r.Name.ToLower() != search.ToLower()
                             && !r.Name.ToLower().StartsWith(search.ToLower())
                             && r.Name.ToLower().Contains(search.ToLower()))
+                            .Include(d => d.FavoriteDishes)
                             .Include(d => d.DishTags)
                                 .ThenInclude(t => t.Tag)
                             .OrderBy(r => r.Name)
@@ -228,8 +232,10 @@ namespace MismeAPI.Service.Impls
         public async Task<PaginatedList<Dish>> GetDishesAsync(string search, List<int> tags, int? page, int? perPage, int? harvardFilter)
         {
             var results = _uow.DishRepository.GetAll()
+                .Include(d => d.FavoriteDishes)
                 .Include(d => d.DishTags)
-                    .ThenInclude(t => t.Tag).AsQueryable();
+                    .ThenInclude(t => t.Tag)
+                .AsQueryable();
             //.FromCacheAsync(CacheEntries.ALL_DISHES);
 
             if (!string.IsNullOrWhiteSpace(search))
@@ -280,9 +286,9 @@ namespace MismeAPI.Service.Impls
         {
             var results = _uow.DishRepository.GetAll()
                 .Where(d => d.FavoriteDishes.Any(fd => fd.UserId == loggedUser))
+                .Include(d => d.FavoriteDishes)
                 .Include(d => d.DishTags)
                     .ThenInclude(t => t.Tag)
-                .Include(d => d.FavoriteDishes)
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(search))
@@ -328,9 +334,10 @@ namespace MismeAPI.Service.Impls
             }
 
             var dishh = await _uow.DishRepository.GetAll().Where(d => d.Id == dish.Id)
-                 .Include(d => d.DishTags)
+                .Include(d => d.FavoriteDishes)
+                .Include(d => d.DishTags)
                     .ThenInclude(t => t.Tag)
-                 .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync();
             if (dishh == null)
             {
                 throw new NotFoundException(ExceptionConstants.NOT_FOUND, "Dish");

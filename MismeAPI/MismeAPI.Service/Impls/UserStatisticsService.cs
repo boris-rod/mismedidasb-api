@@ -354,7 +354,7 @@ namespace MismeAPI.Service.Impls
             string body = lang switch
             {
                 "EN" => "Thank you for your feedback. You receipt " + coins + " coins.",
-                _ => "Gracias por tu feedback." + " Has recibido " + coins + " monedas.",
+                _ => "Gracias por tu aporte." + " Has recibido " + coins + " monedas.",
             };
 
             var uDevices = await _userService.GetUserDevicesAsync(user.Id);
