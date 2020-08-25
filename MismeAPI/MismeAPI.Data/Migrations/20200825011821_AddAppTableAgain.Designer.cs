@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MismeAPI.Data;
 
 namespace MismeAPI.Data.Migrations
 {
     [DbContext(typeof(MismeContext))]
-    partial class MismeContextModelSnapshot : ModelSnapshot
+    [Migration("20200825011821_AddAppTableAgain")]
+    partial class AddAppTableAgain
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -539,27 +541,6 @@ namespace MismeAPI.Data.Migrations
                     b.HasIndex("ScheduleId");
 
                     b.ToTable("eatschedule");
-                });
-
-            modelBuilder.Entity("MismeAPI.Data.Entities.FavoriteDish", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<int>("DishId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DishId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("favoritedish");
                 });
 
             modelBuilder.Entity("MismeAPI.Data.Entities.GeneralContent", b =>
@@ -1531,21 +1512,6 @@ namespace MismeAPI.Data.Migrations
                     b.HasOne("MismeAPI.Data.Entities.Schedule", "Schedule")
                         .WithMany("EatSchedules")
                         .HasForeignKey("ScheduleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("MismeAPI.Data.Entities.FavoriteDish", b =>
-                {
-                    b.HasOne("MismeAPI.Data.Entities.Dish", "Dish")
-                        .WithMany("FavoriteDishes")
-                        .HasForeignKey("DishId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("MismeAPI.Data.Entities.User", "User")
-                        .WithMany("FavoriteDishes")
-                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

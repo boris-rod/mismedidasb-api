@@ -57,6 +57,44 @@ namespace MismeAPI.Service.Impls
             dishh.Name = dish.Name;
             dishh.Proteins = dish.Proteins;
 
+            dishh.Cholesterol = dish.Cholesterol;
+            dishh.Calcium = dish.Calcium;
+            dishh.Phosphorus = dish.Phosphorus;
+            dishh.Iron = dish.Iron;
+            dishh.Potassium = dish.Potassium;
+            dishh.Sodium = dish.Sodium;
+            dishh.Zinc = dish.Zinc;
+            dishh.VitaminA = dish.VitaminA;
+            dishh.VitaminC = dish.VitaminC;
+            dishh.VitaminB6 = dish.VitaminB6;
+            dishh.VitaminB12 = dish.VitaminB12;
+            dishh.VitaminD = dish.VitaminD;
+            dishh.VitaminE = dish.VitaminE;
+            dishh.VitaminK = dish.VitaminK;
+
+            dishh.VitaminB1Thiamin = dish.VitaminB1Thiamin;
+            dishh.VitaminB2Riboflavin = dish.VitaminB2Riboflavin;
+            dishh.VitaminB3Niacin = dish.VitaminB3Niacin;
+            dishh.VitaminB9Folate = dish.VitaminB9Folate;
+            dishh.NetWeight = dish.NetWeight;
+            dishh.Volume = dish.Volume;
+            dishh.SaturatedFat = dish.SaturatedFat;
+            dishh.PolyUnsaturatedFat = dish.PolyUnsaturatedFat;
+            dishh.MonoUnsaturatedFat = dish.MonoUnsaturatedFat;
+
+            if (dish.Classification == 0)
+            {
+                dishh.IsProteic = true;
+            }
+            else if (dish.Classification == 1)
+            {
+                dishh.IsCaloric = true;
+            }
+            else
+            {
+                dishh.IsFruitAndVegetables = true;
+            }
+
             // avatar
 
             // take the same user image

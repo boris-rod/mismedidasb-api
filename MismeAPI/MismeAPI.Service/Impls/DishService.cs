@@ -88,6 +88,44 @@ namespace MismeAPI.Service.Impls
             dbDish.Name = dish.Name;
             dbDish.Proteins = dish.Proteins;
 
+            dbDish.Cholesterol = dish.Cholesterol;
+            dbDish.Calcium = dish.Calcium;
+            dbDish.Phosphorus = dish.Phosphorus;
+            dbDish.Iron = dish.Iron;
+            dbDish.Potassium = dish.Potassium;
+            dbDish.Sodium = dish.Sodium;
+            dbDish.Zinc = dish.Zinc;
+            dbDish.VitaminA = dish.VitaminA;
+            dbDish.VitaminC = dish.VitaminC;
+            dbDish.VitaminB6 = dish.VitaminB6;
+            dbDish.VitaminB12 = dish.VitaminB12;
+            dbDish.VitaminD = dish.VitaminD;
+            dbDish.VitaminE = dish.VitaminE;
+            dbDish.VitaminK = dish.VitaminK;
+
+            dbDish.VitaminB1Thiamin = dish.VitaminB1Thiamin;
+            dbDish.VitaminB2Riboflavin = dish.VitaminB2Riboflavin;
+            dbDish.VitaminB3Niacin = dish.VitaminB3Niacin;
+            dbDish.VitaminB9Folate = dish.VitaminB9Folate;
+            dbDish.NetWeight = dish.NetWeight;
+            dbDish.Volume = dish.Volume;
+            dbDish.SaturatedFat = dish.SaturatedFat;
+            dbDish.PolyUnsaturatedFat = dish.PolyUnsaturatedFat;
+            dbDish.MonoUnsaturatedFat = dish.MonoUnsaturatedFat;
+
+            if (dish.Classification == 0)
+            {
+                dbDish.IsProteic = true;
+            }
+            else if (dish.Classification == 1)
+            {
+                dbDish.IsCaloric = true;
+            }
+            else
+            {
+                dbDish.IsFruitAndVegetables = true;
+            }
+
             // avatar
 
             if (dish.Image != null)
@@ -356,6 +394,50 @@ namespace MismeAPI.Service.Impls
             dishh.Fiber = dish.Fiber;
             dishh.Name = dish.Name;
             dishh.Proteins = dish.Proteins;
+
+            dishh.Cholesterol = dish.Cholesterol;
+            dishh.Calcium = dish.Calcium;
+            dishh.Phosphorus = dish.Phosphorus;
+            dishh.Iron = dish.Iron;
+            dishh.Potassium = dish.Potassium;
+            dishh.Sodium = dish.Sodium;
+            dishh.Zinc = dish.Zinc;
+            dishh.VitaminA = dish.VitaminA;
+            dishh.VitaminC = dish.VitaminC;
+            dishh.VitaminB6 = dish.VitaminB6;
+            dishh.VitaminB12 = dish.VitaminB12;
+            dishh.VitaminD = dish.VitaminD;
+            dishh.VitaminE = dish.VitaminE;
+            dishh.VitaminK = dish.VitaminK;
+
+            dishh.VitaminB1Thiamin = dish.VitaminB1Thiamin;
+            dishh.VitaminB2Riboflavin = dish.VitaminB2Riboflavin;
+            dishh.VitaminB3Niacin = dish.VitaminB3Niacin;
+            dishh.VitaminB9Folate = dish.VitaminB9Folate;
+            dishh.NetWeight = dish.NetWeight;
+            dishh.Volume = dish.Volume;
+            dishh.SaturatedFat = dish.SaturatedFat;
+            dishh.PolyUnsaturatedFat = dish.PolyUnsaturatedFat;
+            dishh.MonoUnsaturatedFat = dish.MonoUnsaturatedFat;
+
+            if (dish.Classification == 0)
+            {
+                dishh.IsProteic = true;
+                dishh.IsCaloric = false;
+                dishh.IsFruitAndVegetables = false;
+            }
+            else if (dish.Classification == 1)
+            {
+                dishh.IsCaloric = true;
+                dishh.IsProteic = false;
+                dishh.IsFruitAndVegetables = false;
+            }
+            else
+            {
+                dishh.IsFruitAndVegetables = true;
+                dishh.IsProteic = false;
+                dishh.IsCaloric = false;
+            }
 
             // avatar
 

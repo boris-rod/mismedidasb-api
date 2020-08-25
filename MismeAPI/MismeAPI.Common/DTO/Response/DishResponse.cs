@@ -31,14 +31,23 @@ namespace MismeAPI.Common.DTO.Response
         public double Potassium { get; set; }
         public double Sodium { get; set; }
         public double Zinc { get; set; }
-        public double Magnesium { get; set; }
-        public double Thiamine { get; set; }
-        public double Ribofla { get; set; }
-        public double Niacin { get; set; }
-        public double FolicAcid { get; set; }
         public double VitaminA { get; set; }
         public double VitaminC { get; set; }
         public double VitaminB6 { get; set; }
         public double VitaminB12 { get; set; }
+
+        public double VitaminD { get; set; }
+        public double VitaminE { get; set; }
+        public double VitaminK { get; set; }
+
+        public double VitaminB1Thiamin { get; set; }
+        public double VitaminB2Riboflavin { get; set; }
+        public double VitaminB3Niacin { get; set; }
+        public double VitaminB9Folate { get; set; }
+        public double NetWeight { get; set; }
+        public double Volume { get; set; }
+        public double SaturatedFat { get; set; }
+        public double MonoUnsaturatedFat { get; set; }
+        public double PolyUnsaturatedFat { get; set; }
     }
 }

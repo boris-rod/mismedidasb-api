@@ -50,6 +50,7 @@ namespace MismeAPI.Data
         public DbSet<UserSubscription> UserSubscription { get; set; }
         public DbSet<UserSubscriptionSchedule> UserSubscriptionSchedule { get; set; }
         public DbSet<FavoriteDish> FavoriteDish { get; set; }
+        public DbSet<App> App { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
