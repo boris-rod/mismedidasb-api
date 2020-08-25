@@ -14,9 +14,9 @@ namespace MismeAPI.Utils
             return resource.Replace("#CODE#", code);
         }
 
-        public static string ToSendInvitationEmail(this string resource, string fullname, string downloadLink)
+        public static string ToSendInvitationEmail(this string resource, string fullname, string iOSLink, string androidLink)
         {
-            return resource.Replace("#FULLNAME#", fullname).Replace("#APKLINK#", downloadLink);
+            return resource.Replace("#FULLNAME#", fullname).Replace("#APKLINKIOS#", iOSLink).Replace("#APKLINKANDROID#", androidLink);
         }
 
         public static int GetUserIdFromToken(this ClaimsPrincipal user)

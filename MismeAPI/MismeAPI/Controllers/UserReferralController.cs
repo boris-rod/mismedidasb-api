@@ -69,7 +69,10 @@ namespace MismeAPI.Controllers
                            + Path.DirectorySeparatorChar.ToString()
                            + "SendInvitation.html";
                 var reader = new StreamReader(resource);
-                var emailBody = reader.ReadToEnd().ToSendInvitationEmail(fullName, _configuration.GetValue<string>("CustomSetting:ApkLink"));
+                var iOSLink = _configuration.GetValue<string>("CustomSetting:ApkLinkIOS");
+                var androidLink = _configuration.GetValue<string>("CustomSetting:ApkLinkAndroid");
+
+                var emailBody = reader.ReadToEnd().ToSendInvitationEmail(fullName, iOSLink, androidLink);
                 reader.Dispose();
 
                 var subject = "PlaniFive Invitation";
