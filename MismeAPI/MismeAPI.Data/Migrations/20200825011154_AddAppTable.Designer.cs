@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MismeAPI.Data;
 
 namespace MismeAPI.Data.Migrations
 {
     [DbContext(typeof(MismeContext))]
-    partial class MismeContextModelSnapshot : ModelSnapshot
+    [Migration("20200825011154_AddAppTable")]
+    partial class AddAppTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -52,23 +54,6 @@ namespace MismeAPI.Data.Migrations
                     b.HasIndex("QuestionId");
 
                     b.ToTable("answer");
-                });
-
-            modelBuilder.Entity("MismeAPI.Data.Entities.App", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsMandatory")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("Version")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("app");
                 });
 
             modelBuilder.Entity("MismeAPI.Data.Entities.CompoundDish", b =>

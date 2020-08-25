@@ -53,6 +53,7 @@ namespace MismeAPI.Data.UoW
             SubscriptionRepository = SubscriptionRepository ?? new GenericRepository<Subscription>(_context);
             UserSubscriptionRepository = UserSubscriptionRepository ?? new GenericRepository<UserSubscription>(_context);
             UserSubscriptionScheduleRepository = UserSubscriptionScheduleRepository ?? new GenericRepository<UserSubscriptionSchedule>(_context);
+            AppRepository = AppRepository ?? new GenericRepository<App>(_context);
         }
 
         public IGenericRepository<User> UserRepository { get; set; }
@@ -95,6 +96,7 @@ namespace MismeAPI.Data.UoW
         public IGenericRepository<Subscription> SubscriptionRepository { get; set; }
         public IGenericRepository<UserSubscription> UserSubscriptionRepository { get; set; }
         public IGenericRepository<UserSubscriptionSchedule> UserSubscriptionScheduleRepository { get; set; }
+        public IGenericRepository<App> AppRepository { get; set; }
 
         public async Task<int> CommitAsync()
         {
