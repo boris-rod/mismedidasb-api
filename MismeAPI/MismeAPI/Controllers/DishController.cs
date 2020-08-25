@@ -116,8 +116,9 @@ namespace MismeAPI.Controllers
         {
             var loggedUser = User.GetUserIdFromToken();
             var result = await _dishService.UpdateDishAsync(loggedUser, dish);
-            var mapped = _mapper.Map<DishResponse>(result);
-            return Ok(new ApiOkResponse(mapped));
+            //var mapped = _mapper.Map<DishResponse>(result);
+            //return Ok(new ApiOkResponse(mapped));
+            return Ok();
         }
 
         /// <summary>
