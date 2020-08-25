@@ -170,6 +170,7 @@ namespace MismeAPI.Service.Impls
         public async Task<Dish> GetDishByIdAsync(int id)
         {
             var dish = await _uow.DishRepository.GetAll().Where(d => d.Id == id)
+                .Include(d => d.FavoriteDishes)
                 .Include(d => d.DishTags)
                     .ThenInclude(t => t.Tag)
                 .FirstOrDefaultAsync();
@@ -195,6 +196,7 @@ namespace MismeAPI.Service.Impls
         {
             search = search.Trim();
             var results = _uow.DishRepository.GetAll().Where(r => r.Name.ToLower().Equals(search.ToLower()))
+                .Include(d => d.FavoriteDishes)
                 .Include(d => d.DishTags)
                     .ThenInclude(t => t.Tag)
             .ToList();
@@ -205,6 +207,7 @@ namespace MismeAPI.Service.Impls
         {
             search = search.Trim();
             var results = _uow.DishRepository.GetAll().Where(r => r.Name.ToLower() != search.ToLower() && r.Name.ToLower().StartsWith(search.ToLower()))
+                .Include(d => d.FavoriteDishes)
                 .Include(d => d.DishTags)
                     .ThenInclude(t => t.Tag)
                 .OrderBy(r => r.Name)
@@ -218,6 +221,7 @@ namespace MismeAPI.Service.Impls
             var results = _uow.DishRepository.GetAll().Where(r => r.Name.ToLower() != search.ToLower()
                             && !r.Name.ToLower().StartsWith(search.ToLower())
                             && r.Name.ToLower().Contains(search.ToLower()))
+                            .Include(d => d.FavoriteDishes)
                             .Include(d => d.DishTags)
                                 .ThenInclude(t => t.Tag)
                             .OrderBy(r => r.Name)
@@ -228,8 +232,10 @@ namespace MismeAPI.Service.Impls
         public async Task<PaginatedList<Dish>> GetDishesAsync(string search, List<int> tags, int? page, int? perPage, int? harvardFilter)
         {
             var results = _uow.DishRepository.GetAll()
+                .Include(d => d.FavoriteDishes)
                 .Include(d => d.DishTags)
-                    .ThenInclude(t => t.Tag).AsQueryable();
+                    .ThenInclude(t => t.Tag)
+                .AsQueryable();
             //.FromCacheAsync(CacheEntries.ALL_DISHES);
 
             if (!string.IsNullOrWhiteSpace(search))
@@ -276,6 +282,48 @@ namespace MismeAPI.Service.Impls
             return await PaginatedList<Dish>.CreateAsync(results.AsQueryable(), page ?? 1, page.HasValue == false ? results.Count() : perPage ?? 10);
         }
 
+        public async Task<PaginatedList<Dish>> GetFavoriteDishesAsync(int loggedUser, string search, List<int> tags, int? page, int? perPage, int? harvardFilter)
+        {
+            var results = _uow.DishRepository.GetAll()
+                .Where(d => d.FavoriteDishes.Any(fd => fd.UserId == loggedUser))
+                .Include(d => d.FavoriteDishes)
+                .Include(d => d.DishTags)
+                    .ThenInclude(t => t.Tag)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                results = results.Where(r => r.Name.ToLower().Contains(search.ToLower()));
+            }
+            if (tags.Count > 0)
+            {
+                foreach (var t in tags)
+                {
+                    results = results.Where(d => d.DishTags.Any(d => d.TagId == t));
+                }
+            }
+            if (harvardFilter.HasValue)
+            {
+                switch (harvardFilter.Value)
+                {
+                    // proteic
+                    case 0:
+                        results = results.Where(r => r.IsProteic == true);
+                        break;
+                    // caloric
+                    case 1:
+                        results = results.Where(r => r.IsCaloric == true);
+                        break;
+
+                    default:
+                        results = results.Where(r => r.IsFruitAndVegetables == true);
+                        break;
+                }
+            }
+
+            return await PaginatedList<Dish>.CreateAsync(results, page ?? 1, page.HasValue == false ? results.Count() : perPage ?? 10);
+        }
+
         public async Task<Dish> UpdateDishAsync(int loggedUser, UpdateDishRequest dish)
         {
             // validate admin user
@@ -286,9 +334,10 @@ namespace MismeAPI.Service.Impls
             }
 
             var dishh = await _uow.DishRepository.GetAll().Where(d => d.Id == dish.Id)
-                 .Include(d => d.DishTags)
+                .Include(d => d.FavoriteDishes)
+                .Include(d => d.DishTags)
                     .ThenInclude(t => t.Tag)
-                 .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync();
             if (dishh == null)
             {
                 throw new NotFoundException(ExceptionConstants.NOT_FOUND, "Dish");
@@ -376,6 +425,44 @@ namespace MismeAPI.Service.Impls
             //expire cache
             //QueryCacheManager.ExpireTag(CacheEntries.ALL_DISHES);
             return dishh;
+        }
+
+        public async Task<Dish> AddFavoriteDishAsync(int loggedUser, int dishId)
+        {
+            var dish = await GetDishByIdAsync(dishId);
+
+            var exist = await _uow.FavoriteDishRepository.GetAll()
+                .Where(fd => fd.DishId == dishId && fd.UserId == loggedUser)
+                .FirstOrDefaultAsync();
+
+            if (exist != null)
+                return dish;
+
+            var favoriteDish = new FavoriteDish
+            {
+                UserId = loggedUser,
+                DishId = dishId
+            };
+
+            await _uow.FavoriteDishRepository.AddAsync(favoriteDish);
+            await _uow.CommitAsync();
+
+            return dish;
+        }
+
+        public async Task RemoveFavoriteDishAsync(int loggedUser, int dishId)
+        {
+            await GetDishByIdAsync(dishId);
+
+            var exist = await _uow.FavoriteDishRepository.GetAll()
+                .Where(fd => fd.DishId == dishId && fd.UserId == loggedUser)
+                .FirstOrDefaultAsync();
+
+            if (exist != null)
+            {
+                _uow.FavoriteDishRepository.Delete(exist);
+                await _uow.CommitAsync();
+            }
         }
     }
 }

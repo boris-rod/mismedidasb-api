@@ -1,4 +1,5 @@
 using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using MismeAPI.Common;
 using MismeAPI.Common.DTO.Response;
 using MismeAPI.Common.DTO.Response.CompoundDish;
@@ -26,17 +27,17 @@ namespace MismeAPI.Utils
     {
         private readonly IAmazonS3Service _amazonS3Service;
         private readonly IUserStatisticsService _userStatisticsService;
-        //private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         public MappingProfiles()
         {
         }
 
-        public MappingProfiles(IAmazonS3Service amazonS3Service, IUserStatisticsService userStatisticsService)
+        public MappingProfiles(IAmazonS3Service amazonS3Service, IUserStatisticsService userStatisticsService, IHttpContextAccessor httpContextAccessor)
         {
             _amazonS3Service = amazonS3Service ?? throw new ArgumentNullException(nameof(amazonS3Service));
             _userStatisticsService = userStatisticsService ?? throw new ArgumentNullException(nameof(userStatisticsService));
-            //_httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(amazonS3Service));
+            _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(amazonS3Service));
 
             CreateMap<User, UserResponse>()
                 .ForMember(d => d.Language, opts => opts.MapFrom(source => GetLanguage(source.UserSettings)))
@@ -95,8 +96,9 @@ namespace MismeAPI.Utils
 
             CreateMap<Dish, DishResponse>()
                  .ForMember(d => d.Name, opts => opts.MapFrom((src, dest, destMember, context) => GetDishName(src, GetLanguageInMapProp(context.Items))))
-                .ForMember(d => d.Tags, opts => opts.MapFrom(source => source.DishTags))
-                .ForMember(d => d.Image, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Image) ? "" : _amazonS3Service.GetPublicUrl(source.Image)));
+                 .ForMember(d => d.IsFavorite, opts => opts.MapFrom(source => IsFavorite(source)))
+                 .ForMember(d => d.Tags, opts => opts.MapFrom(source => source.DishTags))
+                 .ForMember(d => d.Image, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Image) ? "" : _amazonS3Service.GetPublicUrl(source.Image)));
 
             CreateMap<Dish, DishAdminResponse>();
             //.ForMember(d => d.Image, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Image) ? "" : _amazonS3Service.GetPublicUrl(source.Image)));
@@ -428,6 +430,13 @@ namespace MismeAPI.Utils
             {
                 return "ES";
             }
+        }
+
+        private bool IsFavorite(Dish dish)
+        {
+            var loggedUser = _httpContextAccessor.CurrentUser();
+
+            return dish.FavoriteDishes.Any(fd => fd.UserId == loggedUser);
         }
     }
 }

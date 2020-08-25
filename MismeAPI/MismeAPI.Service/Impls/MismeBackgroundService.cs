@@ -253,7 +253,11 @@ namespace MismeAPI.Service.Impls
             {
                 if (userSubscription.ValidAt.Date < today.Date)
                 {
-                    await _subscriptionService.DisableUserSubscriptionAsync(userSubscription.Id);
+                    /*Extend the subscription to all users to prevent loose plany - TODO disable this when the requirement be requested*/
+                    await _subscriptionService.AssignSubscriptionAsync(userSubscription.UserId, SubscriptionEnum.VIRTUAL_ASESSOR);
+
+                    // Do not disable subscriptions now.
+                    //await _subscriptionService.DisableUserSubscriptionAsync(userSubscription.Id);
                 }
             }
         }

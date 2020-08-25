@@ -2,6 +2,7 @@ using AutoMapper;
 using Hangfire;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -60,6 +61,7 @@ namespace MismeAPI
             }).AddNewtonsoftJson(opt => opt.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
 
             services.AddTransient<IUnitOfWork, UnitOfWork>();
+            services.AddTransient<IHttpContextAccessor, HttpContextAccessor>();
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             services.AddTransient<IAmazonS3Service, AmazonS3Service>();
             services.AddTransient<IFileService, FileService>();
@@ -96,9 +98,9 @@ namespace MismeAPI
             var provider = services.BuildServiceProvider();
             var amazonS3Service = provider.GetService<IAmazonS3Service>();
             var userStatisticsService = provider.GetService<IUserStatisticsService>();
-            //var contextAccessor = provider.GetService<IHttpContextAccessor>();
+            var contextAccessor = provider.GetService<IHttpContextAccessor>();
 
-            var apiMappings = new MappingProfiles(amazonS3Service, userStatisticsService);
+            var apiMappings = new MappingProfiles(amazonS3Service, userStatisticsService, contextAccessor);
             services.AddAutoMapper(x => x.AddProfile(apiMappings), typeof(Startup));
         }
 
