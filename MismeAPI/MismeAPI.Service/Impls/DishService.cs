@@ -3,6 +3,7 @@ using MismeAPI.Common;
 using MismeAPI.Common.DTO.Request;
 using MismeAPI.Common.DTO.Request.Dish;
 using MismeAPI.Common.Exceptions;
+using MismeAPI.Data;
 using MismeAPI.Data.Entities;
 using MismeAPI.Data.Entities.Enums;
 using MismeAPI.Data.UoW;
@@ -20,13 +21,13 @@ namespace MismeAPI.Service.Impls
     {
         private readonly IUnitOfWork _uow;
         private readonly IFileService _fileService;
-        //private readonly MismeContext _context;
+        private readonly MismeContext _context;
 
-        public DishService(IUnitOfWork uow, IFileService fileService/*, MismeContext context*/)
+        public DishService(IUnitOfWork uow, IFileService fileService, MismeContext context)
         {
             _uow = uow ?? throw new ArgumentNullException(nameof(uow));
             _fileService = fileService ?? throw new ArgumentNullException(nameof(fileService));
-            //_context = context ?? throw new ArgumentNullException(nameof(context));
+            _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
         public async Task ChangeDishTranslationAsync(int loggedUser, DishTranslationRequest dishTranslationRequest, int id)
@@ -62,7 +63,7 @@ namespace MismeAPI.Service.Impls
             _uow.DishRepository.Update(dish);
             await _uow.CommitAsync();
             //expire cache
-            //QueryCacheManager.ExpireTag(CacheEntries.ALL_DISHES);
+            QueryCacheManager.ExpireTag(CacheEntries.ALL_DISHES);
         }
 
         public async Task<Dish> CreateDishAsync(int loggedUser, CreateDishRequest dish)
@@ -175,7 +176,7 @@ namespace MismeAPI.Service.Impls
             await _uow.CommitAsync();
 
             //expire cache
-            //QueryCacheManager.ExpireTag(CacheEntries.ALL_DISHES);
+            QueryCacheManager.ExpireTag(CacheEntries.ALL_DISHES);
 
             return dbDish;
         }
@@ -202,7 +203,7 @@ namespace MismeAPI.Service.Impls
             await _uow.CommitAsync();
 
             //expire cache
-            //QueryCacheManager.ExpireTag(CacheEntries.ALL_DISHES);
+            QueryCacheManager.ExpireTag(CacheEntries.ALL_DISHES);
         }
 
         public async Task<Dish> GetDishByIdAsync(int id)
@@ -229,53 +230,103 @@ namespace MismeAPI.Service.Impls
             return dishes;
         }
 
-        private List<Dish> GetExactMatches(string search)
+        private async Task<IEnumerable<Dish>> GetExactMatches(string search)
         {
             search = search.Trim();
-            var results = _uow.DishRepository.GetAll().Where(r => r.Name.ToLower().Equals(search.ToLower()))
-                .Include(d => d.DishTags)
-                    .ThenInclude(t => t.Tag)
-            .ToList();
+            //var results = _uow.DishRepository.GetAll().Where(r => r.Name.ToLower().Equals(search.ToLower()))
+            //    .Include(d => d.DishTags)
+            //        .ThenInclude(t => t.Tag)
+            //.ToList();
+
+            var results = await _context.Dishes
+             .Include(d => d.DishTags)
+                 .ThenInclude(t => t.Tag)
+             .FromCacheAsync(CacheEntries.ALL_DISHES);
+
+            results = results.Where(r => r.Name.ToLower().Equals(search.ToLower()));
+
+            //var results = await _context.Dishes.Where(r => r.Name.ToLower().Equals(search.ToLower()))
+            //    .Include(d => d.DishTags)
+            //        .ThenInclude(t => t.Tag)
+            //.FromCacheAsync(CacheEntries.ALL_DISHES);
             return results;
         }
 
-        private List<Dish> GetStartWithMatches(string search)
+        private async Task<IEnumerable<Dish>> GetStartWithMatches(string search)
         {
             search = search.Trim();
-            var results = _uow.DishRepository.GetAll().Where(r => r.Name.ToLower() != search.ToLower() && r.Name.ToLower().StartsWith(search.ToLower()))
-                .Include(d => d.DishTags)
-                    .ThenInclude(t => t.Tag)
-                .OrderBy(r => r.Name)
-                .ToList();
+            //var results = _uow.DishRepository.GetAll().Where(r => r.Name.ToLower() != search.ToLower() && r.Name.ToLower().StartsWith(search.ToLower()))
+            //    .Include(d => d.DishTags)
+            //        .ThenInclude(t => t.Tag)
+            //    .OrderBy(r => r.Name)
+            //    .ToList();
+
+            var results = await _context.Dishes
+                         .Include(d => d.DishTags)
+                             .ThenInclude(t => t.Tag)
+                         .FromCacheAsync(CacheEntries.ALL_DISHES);
+
+            results = results.Where(r => r.Name.ToLower() != search.ToLower() && r.Name.ToLower().StartsWith(search.ToLower()))
+                             .OrderBy(r => r.Name);
+
+            //var results = await _context.Dishes.Where(r => r.Name.ToLower() != search.ToLower() && r.Name.ToLower().StartsWith(search.ToLower()))
+            //    .Include(d => d.DishTags)
+            //        .ThenInclude(t => t.Tag)
+            //    .OrderBy(r => r.Name)
+            //    .FromCacheAsync(CacheEntries.ALL_DISHES);
             return results;
         }
 
-        private List<Dish> GetContainsMatches(string search)
+        private async Task<IEnumerable<Dish>> GetContainsMatches(string search)
         {
             search = search.Trim();
-            var results = _uow.DishRepository.GetAll().Where(r => r.Name.ToLower() != search.ToLower()
-                            && !r.Name.ToLower().StartsWith(search.ToLower())
-                            && r.Name.ToLower().Contains(search.ToLower()))
-                            .Include(d => d.DishTags)
-                                .ThenInclude(t => t.Tag)
-                            .OrderBy(r => r.Name)
-                            .ToList();
+
+            var results = await _context.Dishes
+                           .Include(d => d.DishTags)
+                               .ThenInclude(t => t.Tag)
+                           .FromCacheAsync(CacheEntries.ALL_DISHES);
+
+            results = results.Where(r => r.Name.ToLower() != search.ToLower()
+                                     && !r.Name.ToLower().StartsWith(search.ToLower())
+                                     && r.Name.ToLower().Contains(search.ToLower()))
+                             .OrderBy(r => r.Name);
+
+            //var results = await _context.Dishes.Where(r => r.Name.ToLower() != search.ToLower()
+            //                       && !r.Name.ToLower().StartsWith(search.ToLower())
+            //                       && r.Name.ToLower().Contains(search.ToLower()))
+            //                .Include(d => d.DishTags)
+            //                    .ThenInclude(t => t.Tag)
+            //                 .OrderBy(r => r.Name)
+            //                .FromCacheAsync(CacheEntries.ALL_DISHES);
+
+            //var results = _uow.DishRepository.GetAll().Where(r => r.Name.ToLower() != search.ToLower()
+            //                && !r.Name.ToLower().StartsWith(search.ToLower())
+            //                && r.Name.ToLower().Contains(search.ToLower()))
+            //                .Include(d => d.DishTags)
+            //                    .ThenInclude(t => t.Tag)
+            //                .OrderBy(r => r.Name)
+            //                .ToList();
             return results;
         }
 
         public async Task<PaginatedList<Dish>> GetDishesAsync(string search, List<int> tags, int? page, int? perPage, int? harvardFilter)
         {
-            var results = _uow.DishRepository.GetAll()
-                .Include(d => d.DishTags)
-                    .ThenInclude(t => t.Tag).AsQueryable();
-            //.FromCacheAsync(CacheEntries.ALL_DISHES);
+            //var results = _uow.DishRepository.GetAll()
+            //    .Include(d => d.DishTags)
+            //        .ThenInclude(t => t.Tag).AsQueryable();
+            ////.FromCacheAsync(CacheEntries.ALL_DISHES);
+
+            var results = await _context.Dishes
+                           .Include(d => d.DishTags)
+                               .ThenInclude(t => t.Tag)
+                           .FromCacheAsync(CacheEntries.ALL_DISHES);
 
             if (!string.IsNullOrWhiteSpace(search))
             {
-                var equals = GetExactMatches(search);
+                var equals = await GetExactMatches(search);
 
-                var startsWith = GetStartWithMatches(search);
-                var contains = GetContainsMatches(search);
+                var startsWith = await GetStartWithMatches(search);
+                var contains = await GetContainsMatches(search);
 
                 results = (equals.Union(startsWith).Union(contains)).AsQueryable();
             }
