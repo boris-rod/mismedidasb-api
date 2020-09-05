@@ -94,11 +94,11 @@ namespace MismeAPI.Utils
             handsCodes.Add(18, "D:/Projects/Mismes/BD Alimentos Saira/Alimentos 100x100/18.jpg");
 
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-            using (var package = new ExcelPackage(new FileInfo("D:/Projects/Mismes/BD Alimentos Saira/Base Datos Yoandry para editar3.xlsx")))
+            using (var package = new ExcelPackage(new FileInfo("D:/Projects/Mismes/BD Alimentos Saira/BASESOLIDONUEVA 2 recortada.xlsx")))
             {
                 var sheetCount = package.Workbook.Worksheets.Count;
-                var firstSheet = package.Workbook.Worksheets["News"];
-                for (int i = 2; i <= 100; i++)
+                var firstSheet = package.Workbook.Worksheets["Postres"];
+                for (int i = 301; i <= 398; i++)
                 {
                     var code = firstSheet.Cells[i, 2].Text.Trim();
                     var dishName = firstSheet.Cells[i, 3].Text.Trim();

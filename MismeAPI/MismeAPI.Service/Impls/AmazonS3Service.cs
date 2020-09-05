@@ -43,7 +43,8 @@ namespace MismeAPI.Services.Impls
             {
                 return new AmazonS3Client();
             }
-            return new AmazonS3Client(accessKey, secretKey, RegionEndpoint.USEast2);
+            var region = _config["AWS:S3Env"];
+            return new AmazonS3Client(accessKey, secretKey, region == "dev" ? RegionEndpoint.USEast2 : RegionEndpoint.EUWest1);
         }
 
         public string GetPresignUrl(string key)
