@@ -555,7 +555,7 @@ namespace MismeAPI.Service.Impls
             await _uow.CommitAsync();
 
             //expire cache
-            //QueryCacheManager.ExpireTag(CacheEntries.ALL_DISHES);
+            QueryCacheManager.ExpireTag(CacheEntries.ALL_DISHES);
             return dishh;
         }
 
