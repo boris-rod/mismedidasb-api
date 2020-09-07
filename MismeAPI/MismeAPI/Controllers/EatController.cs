@@ -202,6 +202,23 @@ namespace MismeAPI.Controllers
         }
 
         /// <summary>
+        /// Add or update an eat. If the eat exists is updated, if not is created. Requires authentication.
+        /// </summary>
+        /// <param name="eat">Eat request object.</param>
+        [HttpPost("add-or-update")]
+        [Authorize]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> AddOrUpdateEat([FromBody] CreateEatRequest eat)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+
+            await _eatService.AddOrUpdateEatAsync(loggedUser, eat);
+
+            return Ok();
+        }
+
+        /// <summary>
         /// Update an eat. Requires authentication.
         /// </summary>
         /// <param name="eat">Eat request object.</param>

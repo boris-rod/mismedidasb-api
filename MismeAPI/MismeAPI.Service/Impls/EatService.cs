@@ -516,5 +516,84 @@ namespace MismeAPI.Service.Impls
 
             return false;
         }
+
+        public async Task AddOrUpdateEatAsync(int loggedUser, CreateEatRequest eat)
+        {
+            // this assume the user is creating an eat of each type every day
+            var eatDb = await _uow.EatRepository.GetAll()
+                .Where(e => e.CreatedAt.Date == DateTime.UtcNow.Date && e.EatType == (EatTypeEnum)eat.EatType)
+                .FirstOrDefaultAsync();
+            //this is an update
+            if (eatDb != null)
+            {
+                eatDb.ModifiedAt = DateTime.UtcNow;
+
+                // delete previous related dishes and compund dishes
+                var eatCompoundDishes = eatDb.EatCompoundDishes.ToList();
+                var eatDishes = eatDb.EatDishes.ToList();
+                foreach (var item in eatCompoundDishes)
+                {
+                    _uow.EatCompoundDishRepository.Delete(item);
+                }
+                foreach (var item in eatDishes)
+                {
+                    _uow.EatDishRepository.Delete(item);
+                }
+
+                // recreate the related dishes objects
+                var eatDishesNew = new List<EatDish>();
+                foreach (var ed in eat.Dishes)
+                {
+                    var eatD = new EatDish();
+                    eatD.DishId = ed.DishId;
+                    eatD.Qty = ed.Qty;
+
+                    eatDishesNew.Add(eatD);
+                }
+                eatDb.EatDishes = eatDishesNew;
+
+                var eatCompoundDishesNew = new List<EatCompoundDish>();
+                foreach (var ed in eat.CompoundDishes)
+                {
+                    var eatD = new EatCompoundDish();
+                    eatD.CompoundDishId = ed.DishId;
+                    eatD.Qty = ed.Qty;
+                    eatCompoundDishesNew.Add(eatD);
+                }
+                eatDb.EatCompoundDishes = eatCompoundDishesNew;
+            }
+            // this is a create
+            else
+            {
+                var e = new Eat();
+                e.EatType = (EatTypeEnum)eat.EatType;
+                e.CreatedAt = eat.EatUtcAt.HasValue ? eat.EatUtcAt.Value : DateTime.UtcNow;
+                e.ModifiedAt = DateTime.UtcNow;
+                e.UserId = loggedUser;
+                var eatDishes = new List<EatDish>();
+                foreach (var ed in eat.Dishes)
+                {
+                    var eatD = new EatDish();
+                    eatD.DishId = ed.DishId;
+                    eatD.Qty = ed.Qty;
+
+                    eatDishes.Add(eatD);
+                }
+                e.EatDishes = eatDishes;
+
+                var eatCompoundDishes = new List<EatCompoundDish>();
+                foreach (var ed in eat.CompoundDishes)
+                {
+                    var eatD = new EatCompoundDish();
+                    eatD.CompoundDishId = ed.DishId;
+                    eatD.Qty = ed.Qty;
+                    eatCompoundDishes.Add(eatD);
+                }
+                e.EatCompoundDishes = eatCompoundDishes;
+
+                await _uow.EatRepository.AddAsync(e);
+            }
+            await _uow.CommitAsync();
+        }
     }
 }

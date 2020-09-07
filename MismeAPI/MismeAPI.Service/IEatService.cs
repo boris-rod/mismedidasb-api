@@ -24,5 +24,7 @@ namespace MismeAPI.Service
         Task<(double imc, double kcal)> GetKCalImcAsync(int userId, DateTime date);
 
         Task<bool> AlreadyHavePlanByDateAsync(int userId, DateTime date);
+
+        Task AddOrUpdateEatAsync(int loggedUser, CreateEatRequest eat);
     }
 }
