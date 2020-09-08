@@ -4,7 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 using MismeAPI.BasicResponses;
 using MismeAPI.Common.DTO.Request;
 using MismeAPI.Common.DTO.Response;
+using MismeAPI.Common.DTO.Response.User;
 using MismeAPI.Service;
+using MismeAPI.Service.Utils;
 using MismeAPI.Utils;
 using Newtonsoft.Json;
 using System;
@@ -166,6 +168,24 @@ namespace MismeAPI.Controllers
             var loggedUser = User.GetUserIdFromToken();
 
             var result = await _userService.GetEatsCountAsync(loggedUser);
+
+            return Ok(new ApiOkResponse(result));
+        }
+
+        /// <summary>
+        /// Get current user health parameters for eat plan. Requires authentication.
+        /// </summary>
+        [HttpGet("eat-health-parameters")]
+        [ProducesResponseType(typeof(UserEatHealtParametersResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
+        public async Task<IActionResult> GetEatHealthParameters()
+        {
+            var loggedUser = User.GetUserIdFromToken();
+
+            var user = await _userService.GetUserDevicesAsync(loggedUser);
+            IHealthyHelper healthyHelper = new HealthyHelper(user.CurrentImc, user.CurrentKcal);
+
+            var result = healthyHelper.GetUserEatHealtParameters(user);
 
             return Ok(new ApiOkResponse(result));
         }

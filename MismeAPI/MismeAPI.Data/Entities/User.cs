@@ -1,6 +1,7 @@
 ﻿using MismeAPI.Data.Entities.Enums;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -58,6 +59,11 @@ namespace MismeAPI.Data.Entities
         public double CurrentImc { get; set; }
         public double CurrentKcal { get; set; }
         public DateTime? FirtsHealthMeasured { get; set; }
+        public int BreakFastKCalPercentage { get; set; }
+        public int Snack1KCalPercentage { get; set; }
+        public int LunchKCalPercentage { get; set; }
+        public int Snack2KCalPercentage { get; set; }
+        public int DinnerKCalPercentage { get; set; }
         public UserStatistics UserStatistics { get; set; }
         public UserReferral Invitation { get; set; }
         public virtual ICollection<UserToken> UserTokens { get; set; }

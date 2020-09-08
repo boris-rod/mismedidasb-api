@@ -66,6 +66,12 @@ namespace MismeAPI.Data
 
             modelBuilder.Entity<User>().HasMany(p => p.FavoriteDishes).WithOne(b => b.User).OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<Dish>().HasMany(p => p.FavoriteDishes).WithOne(b => b.Dish).OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<User>().Property(p => p.BreakFastKCalPercentage).HasDefaultValue(20);
+            modelBuilder.Entity<User>().Property(p => p.Snack1KCalPercentage).HasDefaultValue(10);
+            modelBuilder.Entity<User>().Property(p => p.LunchKCalPercentage).HasDefaultValue(35);
+            modelBuilder.Entity<User>().Property(p => p.Snack2KCalPercentage).HasDefaultValue(10);
+            modelBuilder.Entity<User>().Property(p => p.DinnerKCalPercentage).HasDefaultValue(25);
         }
     }
 }
