@@ -262,7 +262,7 @@ namespace MismeAPI.Controllers
         /// Return is valanced summary of a current user plan on a given date. Requires authentication.
         /// </summary>
         /// <param name="dateInUtc">Date of the plan to evaluate</param>
-        [HttpGet("is-valanced-plan")]
+        [HttpGet("is-balanced-plan")]
         [Authorize]
         [ProducesResponseType(typeof(EatBalancedSummaryResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
