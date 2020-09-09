@@ -26,5 +26,7 @@ namespace MismeAPI.Service
         Task<bool> AlreadyHavePlanByDateAsync(int userId, DateTime date);
 
         Task AddOrUpdateEatAsync(int loggedUser, CreateEatRequest eat);
+
+        Task<IEnumerable<Eat>> GetUserPlanPerDate(int loggedUser, DateTime dateInUtc);
     }
 }

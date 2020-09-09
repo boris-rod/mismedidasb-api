@@ -216,6 +216,20 @@ namespace MismeAPI.Service.Impls
             return e;
         }
 
+        public async Task<IEnumerable<Eat>> GetUserPlanPerDate(int loggedUser, DateTime dateInUtc)
+        {
+            var userEats = await _uow.EatRepository.GetAll().Where(e => e.UserId == loggedUser && e.CreatedAt.Date == dateInUtc.Date)
+                .Include(e => e.EatDishes)
+                    .ThenInclude(ed => ed.Dish)
+                .Include(e => e.EatCompoundDishes)
+                    .ThenInclude(es => es.CompoundDish)
+                        .ThenInclude(cd => cd.DishCompoundDishes)
+                            .ThenInclude(dcd => dcd.Dish)
+                .ToListAsync();
+
+            return userEats;
+        }
+
         public async Task CreateBulkEatAsync(int loggedUser, CreateBulkEatRequest eat)
         {
             var userEats = await _uow.EatRepository.GetAll().Where(e => e.UserId == loggedUser && e.CreatedAt.Date == eat.DateInUtc.Date)

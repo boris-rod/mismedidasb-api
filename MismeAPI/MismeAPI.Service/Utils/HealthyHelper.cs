@@ -1,9 +1,8 @@
-﻿using MismeAPI.Common.DTO.Response.User;
+﻿using MismeAPI.Common.DTO.Response;
+using MismeAPI.Common.DTO.Response.User;
 using MismeAPI.Data.Entities;
 using MismeAPI.Data.Entities.Enums;
-using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace MismeAPI.Service.Utils
 {
@@ -38,7 +37,7 @@ namespace MismeAPI.Service.Utils
             };
         }
 
-        public bool IsBalancedPlan(User user, IEnumerable<Eat> dayPlan)
+        public EatBalancedSummaryResponse IsBalancedPlan(User user, IEnumerable<Eat> dayPlan)
         {
             var parameters = GetUserEatHealtParameters(user);
 
@@ -53,6 +52,12 @@ namespace MismeAPI.Service.Utils
             bool lunchKcal = false;
             bool snack2Kcal = false;
             bool dinnerKcal = false;
+
+            double breakfastKcalPer = 0.0;
+            double snack1KcalPer = 0.0;
+            double lunchKcalPer = 0.0;
+            double snack2KcalPer = 0.0;
+            double dinnerKcalPer = 0.0;
 
             foreach (var eat in dayPlan)
             {
@@ -112,28 +117,28 @@ namespace MismeAPI.Service.Utils
                 switch (eat.EatType)
                 {
                     case EatTypeEnum.BREAKFAST:
-                        double breakfastKcalPer = GetEatTypeKcalPer(eatTypeCalories, parameters.BreakFastCalVal, parameters.BreakFastCalValExtra);
+                        breakfastKcalPer = GetEatTypeKcalPer(eatTypeCalories, parameters.BreakFastCalVal, parameters.BreakFastCalValExtra);
                         breakfastKcal = GetEatTypeKcal(eatTypeCalories, parameters.BreakFastCalVal, parameters.BreakFastCalValExtra, breakfastKcalPer);
 
                         break;
 
                     case EatTypeEnum.SNACK1:
-                        double snack1KcalPer = GetEatTypeKcalPer(eatTypeCalories, parameters.Snack1CalVal, parameters.Snack1CalValExtra);
+                        snack1KcalPer = GetEatTypeKcalPer(eatTypeCalories, parameters.Snack1CalVal, parameters.Snack1CalValExtra);
                         snack1Kcal = GetEatTypeKcal(eatTypeCalories, parameters.Snack1CalVal, parameters.Snack1CalValExtra, snack1KcalPer);
                         break;
 
                     case EatTypeEnum.LUNCH:
-                        double luchKcalPer = GetEatTypeKcalPer(eatTypeCalories, parameters.LunchCalVal, parameters.LunchCalValExtra);
-                        lunchKcal = GetEatTypeKcal(eatTypeCalories, parameters.LunchCalVal, parameters.LunchCalValExtra, luchKcalPer);
+                        lunchKcalPer = GetEatTypeKcalPer(eatTypeCalories, parameters.LunchCalVal, parameters.LunchCalValExtra);
+                        lunchKcal = GetEatTypeKcal(eatTypeCalories, parameters.LunchCalVal, parameters.LunchCalValExtra, lunchKcalPer);
                         break;
 
                     case EatTypeEnum.SNACK2:
-                        double snack2KcalPer = GetEatTypeKcalPer(eatTypeCalories, parameters.Snack2CalVal, parameters.Snack2CalValExtra);
+                        snack2KcalPer = GetEatTypeKcalPer(eatTypeCalories, parameters.Snack2CalVal, parameters.Snack2CalValExtra);
                         snack2Kcal = GetEatTypeKcal(eatTypeCalories, parameters.Snack2CalVal, parameters.Snack2CalValExtra, snack2KcalPer);
                         break;
 
                     case EatTypeEnum.DINNER:
-                        double dinnerKcalPer = GetEatTypeKcalPer(eatTypeCalories, parameters.DinnerCalVal, parameters.DinnerCalValExtra);
+                        dinnerKcalPer = GetEatTypeKcalPer(eatTypeCalories, parameters.DinnerCalVal, parameters.DinnerCalValExtra);
                         dinnerKcal = GetEatTypeKcal(eatTypeCalories, parameters.DinnerCalVal, parameters.DinnerCalValExtra, dinnerKcalPer);
                         break;
 
@@ -156,7 +161,38 @@ namespace MismeAPI.Service.Utils
             double fiberPer = currentFiberSum * 100 / 50;
             bool isFiberOk = fiberPer <= 100 && fiberPer > 30 * 100 / 50;
 
-            return isKcalAllOk && isProteinsOk && isCarbohydratesOk && isFatOk && isFiberOk && breakfastKcal && snack1Kcal && lunchKcal && snack2Kcal && dinnerKcal;
+            bool isBalanced = isKcalAllOk && isProteinsOk && isCarbohydratesOk && isFatOk && isFiberOk && breakfastKcal && snack1Kcal && lunchKcal && snack2Kcal && dinnerKcal;
+
+            var summary = new EatBalancedSummaryResponse
+            {
+                BreakfastKcalPer = breakfastKcalPer,
+                CarbohydratesPer = carbohydratesPer,
+                CurrentCaloriesSum = currentCaloriesSum,
+                CurrentCarbohydratesSum = currentCarbohydratesSum,
+                CurrentFatSum = currentFatSum,
+                CurrentFiberSum = currentFiberSum,
+                CurrentProteinsSum = currentProteinsSum,
+                DinnerKcalPer = dinnerKcalPer,
+                FatPer = fatPer,
+                FiberPer = fiberPer,
+                IsBalanced = isBalanced,
+                IsBreakfastKcalOk = breakfastKcal,
+                IsCarbohydratesOk = isCarbohydratesOk,
+                IsDinnerKcalOk = dinnerKcal,
+                IsFatOk = isFatOk,
+                IsFiberOk = isFiberOk,
+                IsKcalAllOk = isKcalAllOk,
+                IsLunchKcalOk = lunchKcal,
+                IsProteinsOk = isProteinsOk,
+                IsSnack1KcalOk = snack1Kcal,
+                IsSnack2KcalOk = snack2Kcal,
+                LunchKcalPer = lunchKcalPer,
+                ProteinPer = proteinPer,
+                Snack1KcalPer = snack1KcalPer,
+                Snack2KcalPer = snack2KcalPer
+            };
+
+            return summary;
         }
 
         private double KCalOffSetVal
