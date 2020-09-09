@@ -257,5 +257,25 @@ namespace MismeAPI.Controllers
 
             return Ok();
         }
+
+        /// <summary>
+        /// Return is valanced summary of a current user plan on a given date. Requires authentication.
+        /// </summary>
+        /// <param name="dateInUtc">Date of the plan to evaluate</param>
+        [HttpGet("is-valanced-plan")]
+        [Authorize]
+        [ProducesResponseType(typeof(EatBalancedSummaryResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> IsValancedPlan([FromQuery] DateTime dateInUtc)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            var user = await _userService.GetUserDevicesAsync(loggedUser);
+            var plan = await _eatService.GetUserPlanPerDate(loggedUser, dateInUtc);
+
+            IHealthyHelper healthyHelper = new HealthyHelper(user.CurrentImc, user.CurrentKcal);
+            var result = healthyHelper.IsBalancedPlan(user, plan);
+
+            return Ok(new ApiOkResponse(result));
+        }
     }
 }
