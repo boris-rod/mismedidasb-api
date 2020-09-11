@@ -271,8 +271,9 @@ namespace MismeAPI.Controllers
             var loggedUser = User.GetUserIdFromToken();
             var user = await _userService.GetUserDevicesAsync(loggedUser);
             var plan = await _eatService.GetUserPlanPerDate(loggedUser, dateInUtc);
+            var userImcKcal = await _eatService.GetKCalImcAsync(loggedUser, dateInUtc);
 
-            IHealthyHelper healthyHelper = new HealthyHelper(user.CurrentImc, user.CurrentKcal);
+            IHealthyHelper healthyHelper = new HealthyHelper(userImcKcal.imc, userImcKcal.kcal);
             var result = healthyHelper.IsBalancedPlan(user, plan);
 
             return Ok(new ApiOkResponse(result));

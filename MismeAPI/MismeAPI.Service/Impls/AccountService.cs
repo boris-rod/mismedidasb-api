@@ -108,7 +108,7 @@ namespace MismeAPI.Services.Impls
 
             if (user.CurrentImc <= 0 || user.CurrentKcal <= 0 || user.FirtsHealthMeasured.HasValue == false)
             {
-                var info = await GetKCalIMCFirstHeltMeasureAsync(user.Id);
+                var info = await GetCurrentKCalIMCFirstHeltMeasureAsync(user.Id);
                 kcal = info.kcal;
                 imc = info.imc;
                 first = info.firstHealthMeasure;
@@ -131,7 +131,7 @@ namespace MismeAPI.Services.Impls
             return (user, token, refreshToken, kcal, imc, first);
         }
 
-        private async Task<(double kcal, double imc, DateTime? firstHealthMeasure)> GetKCalIMCFirstHeltMeasureAsync(int userId)
+        private async Task<(double kcal, double imc, DateTime? firstHealthMeasure)> GetCurrentKCalIMCFirstHeltMeasureAsync(int userId)
         {
             try
             {
@@ -970,7 +970,7 @@ namespace MismeAPI.Services.Impls
 
             if (user.CurrentImc <= 0 || user.CurrentKcal <= 0 || user.FirtsHealthMeasured.HasValue == false)
             {
-                var info = await GetKCalIMCFirstHeltMeasureAsync(user.Id);
+                var info = await GetCurrentKCalIMCFirstHeltMeasureAsync(user.Id);
                 kcal = info.kcal;
                 imc = info.imc;
                 first = info.firstHealthMeasure;
