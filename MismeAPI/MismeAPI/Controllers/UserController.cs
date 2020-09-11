@@ -22,11 +22,13 @@ namespace MismeAPI.Controllers
     {
         private readonly IUserService _userService;
         private readonly IMapper _mapper;
+        private readonly IEatService _eatService;
 
-        public UserController(IUserService userService, IMapper mapper)
+        public UserController(IUserService userService, IMapper mapper, IEatService eatService)
         {
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _eatService = eatService ?? throw new ArgumentNullException(nameof(eatService));
         }
 
         /// <summary>
@@ -175,16 +177,17 @@ namespace MismeAPI.Controllers
         /// <summary>
         /// Get current user health parameters for eat plan. Requires authentication.
         /// </summary>
+        /// <param name="dateInUtc">Date of the plan to evaluate</param>
         [HttpGet("eat-health-parameters")]
         [ProducesResponseType(typeof(UserEatHealtParametersResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
         public async Task<IActionResult> GetEatHealthParameters([FromQuery] DateTime dateInUtc)
         {
             var loggedUser = User.GetUserIdFromToken();
-
             var user = await _userService.GetUserDevicesAsync(loggedUser);
-            IHealthyHelper healthyHelper = new HealthyHelper(user.CurrentImc, user.CurrentKcal);
+            var userImcKcal = await _eatService.GetKCalImcAsync(loggedUser, dateInUtc);
 
+            IHealthyHelper healthyHelper = new HealthyHelper(userImcKcal.imc, userImcKcal.kcal);
             var result = healthyHelper.GetUserEatHealtParameters(user);
 
             return Ok(new ApiOkResponse(result));
