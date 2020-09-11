@@ -178,7 +178,7 @@ namespace MismeAPI.Controllers
         [HttpGet("eat-health-parameters")]
         [ProducesResponseType(typeof(UserEatHealtParametersResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
-        public async Task<IActionResult> GetEatHealthParameters()
+        public async Task<IActionResult> GetEatHealthParameters([FromQuery] DateTime dateInUtc)
         {
             var loggedUser = User.GetUserIdFromToken();
 
