@@ -1,3 +1,4 @@
+using System;
 using System.Security.Claims;
 
 namespace MismeAPI.Utils
@@ -24,6 +25,13 @@ namespace MismeAPI.Utils
             var claimsIdentity = user.Identity as ClaimsIdentity;
             var userId = claimsIdentity.FindFirst(ClaimTypes.UserData)?.Value;
             return int.Parse(userId);
+        }
+
+        public static DateTime FromUTCToLocalTime(this DateTime dt, int timezoneOffset)
+        {
+            // Convert a DateTime from UTC timezone into the user's timezone.
+
+            return dt.AddHours(timezoneOffset);
         }
     }
 }

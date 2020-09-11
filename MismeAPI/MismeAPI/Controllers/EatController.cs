@@ -270,7 +270,7 @@ namespace MismeAPI.Controllers
         {
             var loggedUser = User.GetUserIdFromToken();
             var user = await _userService.GetUserDevicesAsync(loggedUser);
-            var plan = await _eatService.GetUserPlanPerDate(loggedUser, dateInUtc);
+            var plan = await _eatService.GetUserPlanPerDateAsync(loggedUser, dateInUtc);
             var userImcKcal = await _eatService.GetKCalImcAsync(loggedUser, dateInUtc);
 
             IHealthyHelper healthyHelper = new HealthyHelper(userImcKcal.imc, userImcKcal.kcal);

@@ -27,6 +27,6 @@ namespace MismeAPI.Service
 
         Task AddOrUpdateEatAsync(int loggedUser, CreateEatRequest eat);
 
-        Task<IEnumerable<Eat>> GetUserPlanPerDate(int loggedUser, DateTime dateInUtc);
+        Task<IEnumerable<Eat>> GetUserPlanPerDateAsync(int loggedUser, DateTime dateInUtc);
     }
 }
