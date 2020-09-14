@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MismeAPI.Common;
 using MismeAPI.Common.DTO.Request;
+using MismeAPI.Common.DTO.Response;
 using MismeAPI.Common.Exceptions;
 using MismeAPI.Data.Entities;
 using MismeAPI.Data.Entities.Enums;
@@ -504,6 +505,45 @@ namespace MismeAPI.Service.Impls
             await _uow.CommitAsync();
 
             await SetIsBalancedPlanAync(loggedUser, dateInUtc);
+        }
+
+        /// <summary>
+        /// Return list of plan summary assuming that only one user's eats are provided
+        /// </summary>
+        /// <param name="eats">List of eats of an user</param>
+        /// <returns></returns>
+        public async Task<List<PlanSummaryResponse>> GetPlanSummaryAsync(IEnumerable<Eat> eats)
+        {
+            var result = new List<PlanSummaryResponse>();
+            var anyEat = eats.FirstOrDefault();
+            if (anyEat == null)
+                return result;
+
+            var user = await _userService.GetUserDevicesAsync(anyEat.UserId);
+
+            foreach (var eat in eats)
+            {
+                var planDate = eat.CreatedAt;
+                if (!result.Any(r => r.PlanDateTime.Date == planDate.Date))
+                {
+                    var userEats = eats.Where(e => e.CreatedAt.Date == planDate.Date);
+
+                    IHealthyHelper healthyHelper = new HealthyHelper(eat.ImcAtThatMoment, eat.KCalAtThatMoment);
+                    var userHealthParameters = healthyHelper.GetUserEatHealtParameters(user);
+                    var isBalancedSummary = healthyHelper.IsBalancedPlan(user, userEats);
+
+                    var planSummary = new PlanSummaryResponse
+                    {
+                        PlanDateTime = planDate,
+                        UserEatHealtParameters = userHealthParameters,
+                        EatBalancedSummary = isBalancedSummary
+                    };
+
+                    result.Add(planSummary);
+                }
+            }
+
+            return result;
         }
 
         private async Task SetIsBalancedPlanAync(int loggedUser, DateTime planUtcAt)

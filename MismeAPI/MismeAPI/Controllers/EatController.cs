@@ -88,25 +88,9 @@ namespace MismeAPI.Controllers
                 opt.Items["lang"] = language;
             });
 
-            //var dict = new Dictionary<DateTime, FoodValues>();
-            //foreach (var item in mapped)
-            //{
-            //    var val = dict.Keys.FirstOrDefault(k => k.Date == item.CreatedAt.Date);
-            //    FoodValues value;
+            var planSummaries = await _eatService.GetPlanSummaryAsync(result);
 
-            // var key = dict.ContainsKey(item.CreatedAt.Date);
-
-            // if (key == true) { dict.TryGetValue(item.CreatedAt.Date, out value); item.IMC =
-            // value.IMC; item.KCal = value.KCal; } else { var res = await
-            // _eatService.GetKCalImcAsync(userId, item.CreatedAt); dict.Add(item.CreatedAt.Date,
-            // new FoodValues { IMC = res.imc, KCal = res.kcal });
-
-            //        item.IMC = res.imc;
-            //        item.KCal = res.kcal;
-            //    }
-            //}
-
-            return Ok(new ApiOkResponse(mapped));
+            return Ok(new ApiPlanResponse(mapped, planSummaries));
         }
 
         /// <summary>

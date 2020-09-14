@@ -15,5 +15,6 @@ namespace MismeAPI.Common.DTO.Response
 
         public double IMC { get; set; }
         public double KCal { get; set; }
+        public bool IsBalanced { get; set; }
     }
 }
