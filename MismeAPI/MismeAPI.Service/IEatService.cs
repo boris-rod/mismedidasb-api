@@ -1,4 +1,5 @@
 ﻿using MismeAPI.Common.DTO.Request;
+using MismeAPI.Common.DTO.Response;
 using MismeAPI.Data.Entities;
 using MismeAPI.Services.Utils;
 using System;
@@ -27,6 +28,8 @@ namespace MismeAPI.Service
 
         Task AddOrUpdateEatAsync(int loggedUser, CreateEatRequest eat);
 
-        Task<IEnumerable<Eat>> GetUserPlanPerDate(int loggedUser, DateTime dateInUtc);
+        Task<IEnumerable<Eat>> GetUserPlanPerDateAsync(int loggedUser, DateTime dateInUtc);
+
+        Task<List<PlanSummaryResponse>> GetPlanSummaryAsync(IEnumerable<Eat> eats);
     }
 }

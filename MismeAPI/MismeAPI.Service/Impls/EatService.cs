@@ -1,10 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MismeAPI.Common;
 using MismeAPI.Common.DTO.Request;
+using MismeAPI.Common.DTO.Response;
 using MismeAPI.Common.Exceptions;
 using MismeAPI.Data.Entities;
 using MismeAPI.Data.Entities.Enums;
 using MismeAPI.Data.UoW;
+using MismeAPI.Service.Utils;
 using MismeAPI.Services;
 using MismeAPI.Services.Utils;
 using System;
@@ -216,7 +218,7 @@ namespace MismeAPI.Service.Impls
             return e;
         }
 
-        public async Task<IEnumerable<Eat>> GetUserPlanPerDate(int loggedUser, DateTime dateInUtc)
+        public async Task<IEnumerable<Eat>> GetUserPlanPerDateAsync(int loggedUser, DateTime dateInUtc)
         {
             var userEats = await _uow.EatRepository.GetAll().Where(e => e.UserId == loggedUser && e.CreatedAt.Date == dateInUtc.Date)
                 .Include(e => e.EatDishes)
@@ -397,12 +399,12 @@ namespace MismeAPI.Service.Impls
 
         private bool IsValidDateForPlan(DateTime planDateUtc, DateTime? userCurrentLocalTime)
         {
-            var today = DateTime.UtcNow.Date;
+            var now = DateTime.UtcNow;
 
-            if (planDateUtc.Date > today.Date)
+            if (planDateUtc.Date > now.Date)
                 return true;
 
-            if (planDateUtc.Date == today.Date)
+            if (planDateUtc.Date == now.Date)
             {
                 if (userCurrentLocalTime.HasValue && userCurrentLocalTime.Value.Hour <= 9)
                     return true;
@@ -413,9 +415,15 @@ namespace MismeAPI.Service.Impls
 
         public async Task AddOrUpdateEatAsync(int loggedUser, CreateEatRequest eat)
         {
+            if (!eat.EatUtcAt.HasValue)
+            {
+                throw new InvalidDataException("is required", "EatUtcAt");
+            }
+
+            var dateInUtc = eat.EatUtcAt.Value;
             // this assume the user is creating an eat of each type every day
             var eatDb = await _uow.EatRepository.GetAll()
-                .Where(e => e.CreatedAt.Date == DateTime.UtcNow.Date && e.EatType == (EatTypeEnum)eat.EatType)
+                .Where(e => e.CreatedAt.Date == dateInUtc.Date && e.EatType == (EatTypeEnum)eat.EatType)
                 .FirstOrDefaultAsync();
             //this is an update
             if (eatDb != null)
@@ -459,11 +467,18 @@ namespace MismeAPI.Service.Impls
             // this is a create
             else
             {
+                var imcKcals = await GetKCalImcAsync(loggedUser, dateInUtc);
+                var kcal = imcKcals.kcal;
+                var imc = imcKcals.imc;
                 var e = new Eat();
                 e.EatType = (EatTypeEnum)eat.EatType;
-                e.CreatedAt = eat.EatUtcAt.HasValue ? eat.EatUtcAt.Value : DateTime.UtcNow;
+                e.CreatedAt = dateInUtc;
                 e.ModifiedAt = DateTime.UtcNow;
                 e.UserId = loggedUser;
+                e.EatUtcAt = eat.EatUtcAt;
+                e.KCalAtThatMoment = kcal;
+                e.ImcAtThatMoment = imc;
+
                 var eatDishes = new List<EatDish>();
                 foreach (var ed in eat.Dishes)
                 {
@@ -487,6 +502,96 @@ namespace MismeAPI.Service.Impls
 
                 await _uow.EatRepository.AddAsync(e);
             }
+            await _uow.CommitAsync();
+
+            await SetIsBalancedPlanAync(loggedUser, dateInUtc);
+        }
+
+        /// <summary>
+        /// Return list of plan summary assuming that only one user's eats are provided
+        /// </summary>
+        /// <param name="eats">List of eats of an user</param>
+        /// <returns></returns>
+        public async Task<List<PlanSummaryResponse>> GetPlanSummaryAsync(IEnumerable<Eat> eats)
+        {
+            var result = new List<PlanSummaryResponse>();
+            var anyEat = eats.FirstOrDefault();
+            if (anyEat == null)
+                return result;
+
+            var user = await _userService.GetUserDevicesAsync(anyEat.UserId);
+
+            foreach (var eat in eats)
+            {
+                var planDate = eat.CreatedAt;
+                if (!result.Any(r => r.PlanDateTime.Date == planDate.Date))
+                {
+                    var userEats = eats.Where(e => e.CreatedAt.Date == planDate.Date);
+
+                    IHealthyHelper healthyHelper = new HealthyHelper(eat.ImcAtThatMoment, eat.KCalAtThatMoment);
+                    var userHealthParameters = healthyHelper.GetUserEatHealtParameters(user);
+                    var isBalancedSummary = healthyHelper.IsBalancedPlan(user, userEats);
+
+                    var planSummary = new PlanSummaryResponse
+                    {
+                        PlanDateTime = planDate,
+                        UserEatHealtParameters = userHealthParameters,
+                        EatBalancedSummary = isBalancedSummary
+                    };
+
+                    result.Add(planSummary);
+                }
+            }
+
+            return result;
+        }
+
+        private async Task SetIsBalancedPlanAync(int loggedUser, DateTime planUtcAt)
+        {
+            var user = await _userService.GetUserDevicesAsync(loggedUser);
+            var userEats = await GetUserPlanPerDateAsync(loggedUser, planUtcAt);
+            var imcKcals = await GetKCalImcAsync(loggedUser, planUtcAt);
+
+            bool? oldPlanBalanced = null;
+            DateTime? oldPlanCreatedAt = null;
+
+            if (userEats.Count() > 0)
+            {
+                // Plan Exists
+                var d = userEats.FirstOrDefault();
+
+                oldPlanBalanced = d.IsBalancedPlan;
+                oldPlanCreatedAt = d.PlanCreatedAt;
+            }
+
+            var kcal = imcKcals.kcal;
+            var imc = imcKcals.imc;
+
+            IHealthyHelper healthyHelper = new HealthyHelper(imc, kcal);
+            var result = healthyHelper.IsBalancedPlan(user, userEats);
+
+            var nowUtc = DateTime.UtcNow;
+            var userCurrentDateTime = nowUtc.AddHours(user.TimeZoneOffset);
+
+            foreach (var eat in userEats)
+            {
+                eat.ModifiedAt = nowUtc;
+                eat.IsBalanced = result.IsBalanced;
+
+                if (IsValidDateForPlan(eat.CreatedAt, userCurrentDateTime))
+                {
+                    eat.PlanCreatedAt = planUtcAt;
+                    eat.IsBalancedPlan = result.IsBalanced;
+                }
+                else
+                {
+                    eat.PlanCreatedAt = oldPlanCreatedAt;
+                    eat.IsBalancedPlan = oldPlanBalanced;
+                }
+
+                await _uow.EatRepository.UpdateAsync(eat, eat.Id);
+            }
+
             await _uow.CommitAsync();
         }
     }

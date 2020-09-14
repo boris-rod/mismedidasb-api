@@ -152,6 +152,7 @@ namespace MismeAPI.Utils
                        .ForMember(d => d.EatDishResponse, opts => opts.MapFrom(source => source.EatDishes))
                        .ForMember(d => d.KCal, opts => opts.MapFrom(source => source.KCalAtThatMoment))
                        .ForMember(d => d.IMC, opts => opts.MapFrom(source => source.ImcAtThatMoment))
+                       .ForMember(d => d.IsBalanced, opts => opts.MapFrom(source => source.IsBalanced))
                        .ForMember(d => d.EatCompoundDishResponse, opts => opts.MapFrom(source => source.EatCompoundDishes));
 
             CreateMap<UserSetting, BasicSettingResponse>()
@@ -267,7 +268,6 @@ namespace MismeAPI.Utils
                 .ForMember(d => d.ProductId, opts => opts.MapFrom(source => source.Subscription != null ? (int)source.Subscription.Product : -1))
                 .ForMember(d => d.Product, opts => opts.MapFrom(source => source.Subscription != null ? source.Subscription.Product.ToString() : ""))
                 .ForMember(d => d.Name, opts => opts.MapFrom(source => source.Subscription != null ? source.Subscription.Name : ""));
-
 
             CreateMap<App, AppResponse>();
         }
