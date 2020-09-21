@@ -58,6 +58,7 @@ namespace MismeAPI.Data.Entities
         public double? PolyUnsaturatedFat { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime ModifiedAt { get; set; }
+        public int HandCode { get; set; }
         public virtual ICollection<DishTag> DishTags { get; set; }
         public virtual ICollection<EatDish> EatDishes { get; set; }
         public virtual ICollection<DishCompoundDish> DishCompoundDishes { get; set; }
