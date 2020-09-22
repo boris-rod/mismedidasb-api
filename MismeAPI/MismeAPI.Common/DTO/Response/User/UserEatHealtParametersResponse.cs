@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace MismeAPI.Common.DTO.Response.User
+﻿namespace MismeAPI.Common.DTO.Response.User
 {
     public class UserEatHealtParametersResponse
     {
@@ -19,5 +15,15 @@ namespace MismeAPI.Common.DTO.Response.User
         public double Snack2CalValExtra { get; set; }
         public double DinnerCalVal { get; set; }
         public double DinnerCalValExtra { get; set; }
+        public double IMC { get; set; }
+        public double Kcal { get; set; }
+        public double MinProteinsPercent { get; set; }
+        public double MaxProteinsPercent { get; set; }
+        public double MinCarbohydratesPercent { get; set; }
+        public double MaxCarbohydratesPercent { get; set; }
+        public double MinFatPercent { get; set; }
+        public double MaxFatPercent { get; set; }
+        public double MinFiberPercent { get; set; }
+        public double MaxFiberPercent { get; set; }
     }
 }
