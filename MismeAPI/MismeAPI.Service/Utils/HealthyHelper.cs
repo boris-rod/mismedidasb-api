@@ -34,6 +34,16 @@ namespace MismeAPI.Service.Utils
                 Snack2CalValExtra = EatKCalValExtra(user.Snack2KCalPercentage),
                 DinnerCalVal = EatKCalVal(user.DinnerKCalPercentage),
                 DinnerCalValExtra = EatKCalValExtra(user.DinnerKCalPercentage),
+                IMC = _imc,
+                Kcal = _dailyKCal,
+                MinFiberPercent = 30,
+                MaxFiberPercent = 50,
+                MinCarbohydratesPercent = 35,
+                MaxCarbohydratesPercent = 55,
+                MinFatPercent = 20,
+                MaxFatPercent = 35,
+                MinProteinsPercent = 12,
+                MaxProteinsPercent = 25
             };
         }
 
@@ -71,15 +81,15 @@ namespace MismeAPI.Service.Utils
 
                     var dishProteins = eatDish.Dish.Proteins.HasValue ? eatDish.Dish.Proteins.Value : 0;
                     var proteins = dishProteins * eatDish.Qty;
-                    currentProteinsSum += proteins;
+                    currentProteinsSum += proteins * 4;
 
                     var dishCarbs = eatDish.Dish.Carbohydrates.HasValue ? eatDish.Dish.Carbohydrates.Value : 0;
                     var carbohydrates = dishCarbs * eatDish.Qty;
-                    currentCarbohydratesSum += carbohydrates;
+                    currentCarbohydratesSum += carbohydrates * 4;
 
                     var dishFats = eatDish.Dish.Fat.HasValue ? eatDish.Dish.Fat.Value : 0;
                     var fats = dishFats * eatDish.Qty;
-                    currentFatSum += fats;
+                    currentFatSum += fats * 9;
 
                     var dishFibs = eatDish.Dish.Fiber.HasValue ? eatDish.Dish.Fiber.Value : 0;
                     var fibers = dishFibs * eatDish.Qty;
@@ -96,15 +106,15 @@ namespace MismeAPI.Service.Utils
 
                         var dishProteins = dishCompoundDish.Dish.Proteins.HasValue ? dishCompoundDish.Dish.Proteins.Value : 0;
                         var proteins = dishProteins * eatCompoundDish.Qty * dishCompoundDish.DishQty;
-                        currentProteinsSum += proteins;
+                        currentProteinsSum += proteins * 4; // * 4 because it is in g to kcal
 
                         var dishCarbs = dishCompoundDish.Dish.Carbohydrates.HasValue ? dishCompoundDish.Dish.Carbohydrates.Value : 0;
                         var carbohydrates = dishCarbs * eatCompoundDish.Qty * dishCompoundDish.DishQty;
-                        currentProteinsSum += carbohydrates;
+                        currentProteinsSum += carbohydrates * 4; // to convert to kcal
 
                         var dishFats = dishCompoundDish.Dish.Fat.HasValue ? dishCompoundDish.Dish.Fat.Value : 0;
                         var fats = dishFats * eatCompoundDish.Qty * dishCompoundDish.DishQty;
-                        currentFatSum += fats;
+                        currentFatSum += fats * 9; // to convert to kcal
 
                         var dishFibs = dishCompoundDish.Dish.Fiber.HasValue ? dishCompoundDish.Dish.Fiber.Value : 0;
                         var fibers = dishFibs * eatCompoundDish.Qty * dishCompoundDish.DishQty;
@@ -150,16 +160,16 @@ namespace MismeAPI.Service.Utils
             bool isKcalAllOk = currentCaloriesSum > parameters.KCalMin && currentCaloriesSum <= parameters.KCalMax;
 
             double proteinPer = currentProteinsSum * 100 / (parameters.KCalMax * 25 / 100);
-            bool isProteinsOk = proteinPer <= 100 && proteinPer > (12 * 100 / 25);
+            bool isProteinsOk = proteinPer <= 100 && proteinPer > (parameters.MinProteinsPercent * 100 / parameters.MaxProteinsPercent);
 
             double carbohydratesPer = currentCarbohydratesSum * 100 / (parameters.KCalMax * 55 / 100);
-            bool isCarbohydratesOk = carbohydratesPer <= 100 && carbohydratesPer > 35 * 100 / 55;
+            bool isCarbohydratesOk = carbohydratesPer <= 100 && carbohydratesPer > parameters.MinCarbohydratesPercent * 100 / parameters.MaxCarbohydratesPercent;
 
             double fatPer = currentFatSum * 100 / (parameters.KCalMax * 35 / 100);
-            bool isFatOk = fatPer <= 100 && fatPer > 20 * 100 / 35;
+            bool isFatOk = fatPer <= 100 && fatPer > parameters.MinFatPercent * 100 / parameters.MaxFatPercent;
 
             double fiberPer = currentFiberSum * 100 / 50;
-            bool isFiberOk = fiberPer <= 100 && fiberPer > 30 * 100 / 50;
+            bool isFiberOk = fiberPer <= 100 && fiberPer > parameters.MinFiberPercent * 100 / parameters.MaxFiberPercent;
 
             bool isBalanced = isKcalAllOk && isProteinsOk && isCarbohydratesOk && isFatOk && isFiberOk && breakfastKcal && snack1Kcal && lunchKcal && snack2Kcal && dinnerKcal;
 
