@@ -1,5 +1,6 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using MismeAPI.Common;
 using MismeAPI.Common.DTO.Response;
 using MismeAPI.Common.DTO.Response.CompoundDish;
@@ -20,6 +21,7 @@ using MismeAPI.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 
 namespace MismeAPI.Utils
 {
@@ -270,6 +272,14 @@ namespace MismeAPI.Utils
                 .ForMember(d => d.Name, opts => opts.MapFrom(source => source.Subscription != null ? source.Subscription.Name : ""));
 
             CreateMap<App, AppResponse>();
+
+            CreateMap<HealthReportEntry, HealthCheckResponse>()
+             .ForMember(d => d.Description, opts => opts.MapFrom(source => source.Description))
+             .ForMember(d => d.Duration, opts => opts.MapFrom(source => source.Duration.TotalSeconds))
+             .ForMember(d => d.ServiceStatus, opts => opts.MapFrom(source => source.Status == HealthStatus.Healthy ?
+                                                                             HttpStatusCode.OK :
+                                                                             (source.Status == HealthStatus.Degraded ? HttpStatusCode.OK : HttpStatusCode.ServiceUnavailable)))
+             .ForMember(d => d.Exception, opts => opts.MapFrom(source => source.Exception == null ? "" : source.Exception.Message));
         }
 
         private int GetLastAnswer(Question src, IDictionary<string, object> items = null)

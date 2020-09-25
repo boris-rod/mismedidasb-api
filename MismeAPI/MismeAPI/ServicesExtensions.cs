@@ -193,5 +193,11 @@ namespace MismeAPI
                              .CreateLogger();
             }
         }
+
+        public static void ConfigureHealthChecks(this IServiceCollection services, IConfiguration config)
+        {
+            services.AddHealthChecks()
+                   .AddMySql(config.GetConnectionString("ApiConnection"));
+        }
     }
 }

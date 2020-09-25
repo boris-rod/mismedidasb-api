@@ -1,10 +1,12 @@
 using AutoMapper;
 using Hangfire;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using MismeAPI.Data.Repository;
 using MismeAPI.Data.UoW;
@@ -50,7 +52,7 @@ namespace MismeAPI
             services.ConfigureTokenAuth(Configuration);
             services.AddResponseCaching();
             services.ConfigureCompression();
-
+            services.ConfigureHealthChecks(Configuration);
             services.ConfigureDetection();
 
             services.AddHttpContextAccessor();
@@ -143,6 +145,16 @@ namespace MismeAPI
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapHub<UserHub>("/userHub", map => { });
+
+                endpoints.MapHealthChecks("/health", new HealthCheckOptions()
+                {
+                    ResultStatusCodes =
+                    {
+                        [HealthStatus.Healthy] = StatusCodes.Status200OK,
+                        [HealthStatus.Degraded] = StatusCodes.Status200OK,
+                        [HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
+                    }
+                });
                 endpoints.MapControllers();
             });
 
