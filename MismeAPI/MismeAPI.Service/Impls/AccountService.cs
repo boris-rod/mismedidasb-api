@@ -99,8 +99,11 @@ namespace MismeAPI.Services.Impls
 
             await _uow.UserTokenRepository.AddAsync(t);
 
-            user.TimeZone = loginRequest.UserTimeZone;
-            user.TimeZoneOffset = loginRequest.UserTimeZoneOffset;
+            if (!string.IsNullOrEmpty(loginRequest.UserTimeZone))
+            {
+                user.TimeZone = loginRequest.UserTimeZone;
+                user.TimeZoneOffset = loginRequest.UserTimeZoneOffset;
+            }
 
             var kcal = 0.0;
             var imc = 0.0;

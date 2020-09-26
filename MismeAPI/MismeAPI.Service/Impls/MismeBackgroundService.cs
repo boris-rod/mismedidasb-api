@@ -6,6 +6,7 @@ using MismeAPI.Common;
 using MismeAPI.Data.Entities.Enums;
 using MismeAPI.Data.UoW;
 using MismeAPI.Service.Utils;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -172,6 +173,9 @@ namespace MismeAPI.Service.Impls
         {
             var today = DateTime.UtcNow;
 
+            Log.Information("HandleUserStreaksAsync start for " + timeOffsetRange.ToString());
+            Log.Information("HandleUserStreaksAsync utc date: " + today.ToString());
+
             var query = _uow.UserRepository.GetAll()
                 .Include(u => u.UserStatistics)
                 .Include(u => u.Eats)
@@ -190,6 +194,8 @@ namespace MismeAPI.Service.Impls
 
             foreach (var user in userWithPlan)
             {
+                Log.Information("HandleUserStreaksAsync with-plan user: " + user.Email);
+
                 var userStatistics = await _userStatisticsService.GetOrCreateUserStatisticsByUserAsync(user.Id);
                 var balancedCurrentStreak = userStatistics.BalancedEatCurrentStreak;
                 var eatCurrentStreak = userStatistics.EatCurrentStreak;
@@ -228,6 +234,8 @@ namespace MismeAPI.Service.Impls
 
             foreach (var userNoPlan in userWithoutPlan)
             {
+                Log.Information("HandleUserStreaksAsync with-no-plan user: " + userNoPlan.Email);
+
                 var userStatistics = await _userStatisticsService.GetOrCreateUserStatisticsByUserAsync(userNoPlan.Id);
                 var balancedCurrentStreak = userStatistics.BalancedEatCurrentStreak;
                 var eatCurrentStreak = userStatistics.EatCurrentStreak;
