@@ -179,6 +179,7 @@ namespace MismeAPI.Service.Impls
             var query = _uow.UserRepository.GetAll()
                 .Include(u => u.UserStatistics)
                 .Include(u => u.Eats)
+                    .ThenInclude(e => e.User)
                 .Include(u => u.Devices)
                 .AsQueryable();
 
@@ -189,8 +190,8 @@ namespace MismeAPI.Service.Impls
 
             var users = await query.ToListAsync();
 
-            var userWithPlan = users.Where(u => u.Eats.Any(e => e.PlanCreatedAt.HasValue && e.PlanCreatedAt.Value.Date == today.Date));
-            var userWithoutPlan = users.Where(u => !u.Eats.Any(e => e.PlanCreatedAt.HasValue && e.PlanCreatedAt.Value.Date == today.Date));
+            var userWithPlan = users.Where(u => u.Eats.Any(e => e.PlanCreatedAt.HasValue && UtcToLocalTime(e.PlanCreatedAt.Value, e.User.TimeZoneOffset).Date == today.Date));
+            var userWithoutPlan = users.Where(u => !u.Eats.Any(e => e.PlanCreatedAt.HasValue && UtcToLocalTime(e.PlanCreatedAt.Value, e.User.TimeZoneOffset).Date == today.Date));
 
             foreach (var user in userWithPlan)
             {
@@ -200,7 +201,7 @@ namespace MismeAPI.Service.Impls
                 var balancedCurrentStreak = userStatistics.BalancedEatCurrentStreak;
                 var eatCurrentStreak = userStatistics.EatCurrentStreak;
 
-                var isBalanced = user.Eats.Any(e => (e.IsBalancedPlan.HasValue && e.IsBalancedPlan.Value) && (e.PlanCreatedAt.HasValue && e.PlanCreatedAt.Value.Date == today.Date));
+                var isBalanced = user.Eats.Any(e => (e.IsBalancedPlan.HasValue && e.IsBalancedPlan.Value) && (e.PlanCreatedAt.HasValue && UtcToLocalTime(e.PlanCreatedAt.Value, e.User.TimeZoneOffset).Date == today.Date));
                 var streakType = isBalanced ? StreakEnum.BALANCED_EAT : StreakEnum.EAT;
 
                 userStatistics = await _userStatisticsService.IncrementCurrentStreakAsync(userStatistics, streakType);
@@ -268,6 +269,11 @@ namespace MismeAPI.Service.Impls
                     //await _subscriptionService.DisableUserSubscriptionAsync(userSubscription.Id);
                 }
             }
+        }
+
+        private DateTime UtcToLocalTime(DateTime dateUtc, int userOffset = 0)
+        {
+            return dateUtc.AddHours(userOffset);
         }
     }
 }
