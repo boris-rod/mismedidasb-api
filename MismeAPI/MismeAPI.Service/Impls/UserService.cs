@@ -722,6 +722,11 @@ namespace MismeAPI.Service.Impls
             return await _uow.EatRepository.CountAsync();
         }
 
+        /// <summary>
+        /// PlanCreatedAt is in UTC so make sure that today is in the user's current timezone
+        /// </summary>
+        /// <param name="date"></param>
+        /// <returns>Users with plans</returns>
         public async Task<IEnumerable<User>> GetUsersWithPlanAsync(DateTime date)
         {
             var usersWithPlans = await _uow.UserRepository.GetAll()
@@ -736,6 +741,11 @@ namespace MismeAPI.Service.Impls
             return usersWithPlans;
         }
 
+        /// <summary>
+        /// PlanCreatedAt is in UTC so make sure that today is in the user's current timezone
+        /// </summary>
+        /// <param name="date"></param>
+        /// <returns>Users that have no plans</returns>
         public async Task<IEnumerable<User>> GetUsersWithoutPlanAsync(DateTime date)
         {
             var usersWithoutPlans = await _uow.UserRepository.GetAll()
