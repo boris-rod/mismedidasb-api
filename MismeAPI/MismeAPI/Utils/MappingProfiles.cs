@@ -1,6 +1,5 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using MismeAPI.Common;
 using MismeAPI.Common.DTO.Response;
