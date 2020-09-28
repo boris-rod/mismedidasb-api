@@ -55,6 +55,7 @@ namespace MismeAPI.Data.UoW
             UserSubscriptionScheduleRepository = UserSubscriptionScheduleRepository ?? new GenericRepository<UserSubscriptionSchedule>(_context);
             AppRepository = AppRepository ?? new GenericRepository<App>(_context);
             FavoriteDishRepository = FavoriteDishRepository ?? new GenericRepository<FavoriteDish>(_context);
+            LackSelfControlDishRepository = LackSelfControlDishRepository ?? new GenericRepository<LackSelfControlDish>(_context);
         }
 
         public IGenericRepository<User> UserRepository { get; set; }
@@ -99,6 +100,7 @@ namespace MismeAPI.Data.UoW
         public IGenericRepository<UserSubscriptionSchedule> UserSubscriptionScheduleRepository { get; set; }
         public IGenericRepository<FavoriteDish> FavoriteDishRepository { get; set; }
         public IGenericRepository<App> AppRepository { get; set; }
+        public IGenericRepository<LackSelfControlDish> LackSelfControlDishRepository { get; set; }
 
         public async Task<int> CommitAsync()
         {

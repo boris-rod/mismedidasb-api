@@ -1,5 +1,6 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using MismeAPI.Common;
 using MismeAPI.Common.DTO.Response;
@@ -127,6 +128,8 @@ namespace MismeAPI.Utils
                  .ForMember(d => d.Zinc, opts => opts.MapFrom(src => src.Zinc ?? 0.0))
                  .ForMember(d => d.Name, opts => opts.MapFrom((src, dest, destMember, context) => GetDishName(src, GetLanguageInMapProp(context.Items))))
                  .ForMember(d => d.IsFavorite, opts => opts.MapFrom(source => IsFavorite(source)))
+                 .ForMember(d => d.IsLackSelfControlDish, opts => opts.MapFrom(source => IsLackSelfControl(source)))
+                 .ForMember(d => d.LackSelfControlDishIntensity, opts => opts.MapFrom(source => LackSelfControlIntensity(source)))
                  .ForMember(d => d.Tags, opts => opts.MapFrom(source => source.DishTags))
                  .ForMember(d => d.Image, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Image) ? "" : _amazonS3Service.GetPublicUrl(source.Image)));
 
@@ -500,6 +503,22 @@ namespace MismeAPI.Utils
             var loggedUser = _httpContextAccessor.CurrentUser();
 
             return dish.FavoriteDishes.Any(fd => fd.UserId == loggedUser);
+        }
+
+        private bool IsLackSelfControl(Dish dish)
+        {
+            var loggedUser = _httpContextAccessor.CurrentUser();
+
+            return dish.LackSelfControlDishes.Any(fd => fd.UserId == loggedUser);
+        }
+
+        private int LackSelfControlIntensity(Dish dish)
+        {
+            var loggedUser = _httpContextAccessor.CurrentUser();
+
+            var item = dish.LackSelfControlDishes.FirstOrDefault(fd => fd.UserId == loggedUser);
+
+            return item != null ? item.Intensity : 0;
         }
     }
 }
