@@ -50,6 +50,7 @@ namespace MismeAPI.Data.UoW
         IGenericRepository<UserSubscriptionSchedule> UserSubscriptionScheduleRepository { get; set; }
         IGenericRepository<App> AppRepository { get; set; }
         IGenericRepository<FavoriteDish> FavoriteDishRepository { get; set; }
+        IGenericRepository<LackSelfControlDish> LackSelfControlDishRepository { get; set; }
         IGenericRepository<HandConversionFactor> HandConversionFactorRepository { get; set; }
 
         Task<int> CommitAsync();

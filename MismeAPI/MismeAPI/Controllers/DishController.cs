@@ -299,5 +299,66 @@ namespace MismeAPI.Controllers
 
             return Ok();
         }
+
+        /// <summary>
+        /// Add a dish to current user lack-self-control dishes. Requires authentication.
+        /// </summary>
+        /// <param name="request">Request object - contains dish and intensity</param>
+        [HttpPost("lack-self-control/create")]
+        [Authorize]
+        [ProducesResponseType(typeof(DishResponse), (int)HttpStatusCode.Created)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> AddLackSelfControlDish(CreateUpdateLackControlDishRequest request)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            var result = await _dishService.AddOrUpdateLackselfControlDishAsync(loggedUser, request.DishId, request.Intensity);
+
+            var language = await _userService.GetUserLanguageFromUserIdAsync(loggedUser);
+            var mapped = _mapper.Map<DishResponse>(result, opt =>
+            {
+                opt.Items["lang"] = language;
+            });
+            return Created("", new ApiOkResponse(mapped));
+        }
+
+        /// <summary>
+        /// Update a lack-self-control dishe intensity. Requires authentication.
+        /// </summary>
+        /// <param name="request">Request object - contains dish and intensity</param>
+        [HttpPut("lack-self-control/update")]
+        [Authorize]
+        [ProducesResponseType(typeof(DishResponse), (int)HttpStatusCode.Created)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> UpdateLackSelfControlDish(CreateUpdateLackControlDishRequest request)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            var result = await _dishService.AddOrUpdateLackselfControlDishAsync(loggedUser, request.DishId, request.Intensity);
+
+            var language = await _userService.GetUserLanguageFromUserIdAsync(loggedUser);
+            var mapped = _mapper.Map<DishResponse>(result, opt =>
+            {
+                opt.Items["lang"] = language;
+            });
+            return Ok(new ApiOkResponse(mapped));
+        }
+
+        /// <summary>
+        /// Delete a dish from current user lack-self-control dishes. Requires authentication.
+        /// </summary>
+        /// <param name="dishId">Dish to remove from lack-self-control dishes</param>
+        [HttpDelete("lack-self-control/delete")]
+        [Authorize]
+        [ProducesResponseType(typeof(DishResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> DeleteLackSelfControlDish(int dishId)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            await _dishService.RemoveLackselfControlDishAsync(loggedUser, dishId);
+
+            return Ok();
+        }
     }
 }

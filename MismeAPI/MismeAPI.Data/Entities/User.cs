@@ -24,6 +24,7 @@ namespace MismeAPI.Data.Entities
             Subscriptions = new HashSet<UserSubscription>();
             UserSoloAnswers = new HashSet<UserSoloAnswer>();
             FavoriteDishes = new HashSet<FavoriteDish>();
+            LackSelfControlDishes = new HashSet<LackSelfControlDish>();
         }
 
         public int Id { get; set; }
@@ -78,5 +79,6 @@ namespace MismeAPI.Data.Entities
         public virtual ICollection<UserSubscription> Subscriptions { get; set; }
         public virtual ICollection<UserSoloAnswer> UserSoloAnswers { get; set; }
         public virtual ICollection<FavoriteDish> FavoriteDishes { get; set; }
+        public virtual ICollection<LackSelfControlDish> LackSelfControlDishes { get; set; }
     }
 }

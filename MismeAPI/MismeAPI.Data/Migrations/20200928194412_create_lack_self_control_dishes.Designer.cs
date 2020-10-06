@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MismeAPI.Data;
 
 namespace MismeAPI.Data.Migrations
 {
     [DbContext(typeof(MismeContext))]
-    partial class MismeContextModelSnapshot : ModelSnapshot
+    [Migration("20200928194412_create_lack_self_control_dishes")]
+    partial class create_lack_self_control_dishes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -610,38 +612,6 @@ namespace MismeAPI.Data.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("lackselfcontroldishes");
-                });
-
-            modelBuilder.Entity("MismeAPI.Data.Entities.HandConversionFactor", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<double>("ConversionFactor")
-                        .HasColumnType("double");
-
-                    b.Property<double>("ConversionFactor10Code")
-                        .HasColumnType("double");
-
-                    b.Property<double>("ConversionFactor11Code")
-                        .HasColumnType("double");
-
-                    b.Property<double>("ConversionFactor3Code")
-                        .HasColumnType("double");
-
-                    b.Property<double>("ConversionFactor6Code")
-                        .HasColumnType("double");
-
-                    b.Property<int>("Gender")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Height")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("HandConversionFactors");
                 });
 
             modelBuilder.Entity("MismeAPI.Data.Entities.Poll", b =>
