@@ -28,5 +28,7 @@ namespace MismeAPI.Service
         Task<Dish> AddFavoriteDishAsync(int loggedUser, int dishId);
 
         Task RemoveFavoriteDishAsync(int loggedUser, int dishId);
+
+        Task<double> GetConversionFactorAsync(int height, int sex, int code);
     }
 }
