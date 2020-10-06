@@ -1,7 +1,9 @@
 ﻿using MismeAPI.Data.Entities.Enums;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MismeAPI.Data.Entities
 {
+    [Table("handconversionfactor")]
     public class HandConversionFactor
     {
         public int Id { get; set; }
