@@ -22,13 +22,15 @@ namespace MismeAPI.Service.Impls
         private readonly IScheduleService _scheduleService;
         private readonly IUserService _userService;
         private readonly IAccountService _accountService;
+        private readonly IDishService _dishService;
 
-        public EatService(IUnitOfWork uow, IScheduleService scheduleService, IUserService userService, IAccountService accountService)
+        public EatService(IUnitOfWork uow, IScheduleService scheduleService, IUserService userService, IAccountService accountService, IDishService dishService)
         {
             _uow = uow ?? throw new ArgumentNullException(nameof(uow));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _scheduleService = scheduleService ?? throw new ArgumentNullException(nameof(scheduleService));
             _accountService = accountService ?? throw new ArgumentNullException(nameof(accountService));
+            _dishService = dishService ?? throw new ArgumentNullException(nameof(dishService));
         }
 
         public async Task<Eat> CreateEatAsync(int loggedUser, CreateEatRequest eat)
@@ -528,7 +530,7 @@ namespace MismeAPI.Service.Impls
                 {
                     var userEats = eats.Where(e => e.CreatedAt.Date == planDate.Date);
 
-                    IHealthyHelper healthyHelper = new HealthyHelper(eat.ImcAtThatMoment, eat.KCalAtThatMoment);
+                    IHealthyHelper healthyHelper = new HealthyHelper(eat.ImcAtThatMoment, eat.KCalAtThatMoment, _accountService, _dishService, _uow);
                     var userHealthParameters = healthyHelper.GetUserEatHealtParameters(user);
                     var isBalancedSummary = healthyHelper.IsBalancedPlan(user, userEats);
 
@@ -567,7 +569,7 @@ namespace MismeAPI.Service.Impls
             var kcal = imcKcals.kcal;
             var imc = imcKcals.imc;
 
-            IHealthyHelper healthyHelper = new HealthyHelper(imc, kcal);
+            IHealthyHelper healthyHelper = new HealthyHelper(imc, kcal, _accountService, _dishService, _uow);
             var result = healthyHelper.IsBalancedPlan(user, userEats);
 
             var nowUtc = DateTime.UtcNow;
