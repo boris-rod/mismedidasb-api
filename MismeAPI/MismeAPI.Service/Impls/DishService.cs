@@ -210,6 +210,7 @@ namespace MismeAPI.Service.Impls
         {
             var dish = await _uow.DishRepository.GetAll().Where(d => d.Id == id)
                 .Include(d => d.FavoriteDishes)
+                .Include(d => d.LackSelfControlDishes)
                 .Include(d => d.DishTags)
                     .ThenInclude(t => t.Tag)
                 .FirstOrDefaultAsync();
@@ -241,6 +242,7 @@ namespace MismeAPI.Service.Impls
 
             var results = await _context.Dishes
                 .Include(d => d.FavoriteDishes)
+                .Include(d => d.LackSelfControlDishes)
                 .Include(d => d.DishTags)
                     .ThenInclude(t => t.Tag)
                 .FromCacheAsync(CacheEntries.ALL_DISHES);
@@ -265,6 +267,7 @@ namespace MismeAPI.Service.Impls
 
             var results = await _context.Dishes
                          .Include(d => d.FavoriteDishes)
+                         .Include(d => d.LackSelfControlDishes)
                          .Include(d => d.DishTags)
                              .ThenInclude(t => t.Tag)
                          .FromCacheAsync(CacheEntries.ALL_DISHES);
@@ -286,6 +289,7 @@ namespace MismeAPI.Service.Impls
 
             var results = await _context.Dishes
                            .Include(d => d.FavoriteDishes)
+                           .Include(d => d.LackSelfControlDishes)
                            .Include(d => d.DishTags)
                                .ThenInclude(t => t.Tag)
                            .FromCacheAsync(CacheEntries.ALL_DISHES);
@@ -322,6 +326,7 @@ namespace MismeAPI.Service.Impls
 
             var results = await _context.Dishes
                            .Include(d => d.FavoriteDishes)
+                           .Include(d => d.LackSelfControlDishes)
                            .Include(d => d.DishTags)
                                .ThenInclude(t => t.Tag)
                            .FromCacheAsync(CacheEntries.ALL_DISHES);
@@ -375,6 +380,50 @@ namespace MismeAPI.Service.Impls
             var results = _uow.DishRepository.GetAll()
                 .Where(d => d.FavoriteDishes.Any(fd => fd.UserId == loggedUser))
                 .Include(d => d.FavoriteDishes)
+                .Include(d => d.LackSelfControlDishes)
+                .Include(d => d.DishTags)
+                    .ThenInclude(t => t.Tag)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                results = results.Where(r => r.Name.ToLower().Contains(search.ToLower()));
+            }
+            if (tags.Count > 0)
+            {
+                foreach (var t in tags)
+                {
+                    results = results.Where(d => d.DishTags.Any(d => d.TagId == t));
+                }
+            }
+            if (harvardFilter.HasValue)
+            {
+                switch (harvardFilter.Value)
+                {
+                    // proteic
+                    case 0:
+                        results = results.Where(r => r.IsProteic == true);
+                        break;
+                    // caloric
+                    case 1:
+                        results = results.Where(r => r.IsCaloric == true);
+                        break;
+
+                    default:
+                        results = results.Where(r => r.IsFruitAndVegetables == true);
+                        break;
+                }
+            }
+
+            return await PaginatedList<Dish>.CreateAsync(results, page ?? 1, page.HasValue == false ? results.Count() : perPage ?? 10);
+        }
+
+        public async Task<PaginatedList<Dish>> GetLackSelfControlDishesAsync(int loggedUser, string search, List<int> tags, int? page, int? perPage, int? harvardFilter)
+        {
+            var results = _uow.DishRepository.GetAll()
+                .Where(d => d.LackSelfControlDishes.Any(fd => fd.UserId == loggedUser))
+                .Include(d => d.FavoriteDishes)
+                .Include(d => d.LackSelfControlDishes)
                 .Include(d => d.DishTags)
                     .ThenInclude(t => t.Tag)
                 .AsQueryable();
@@ -423,6 +472,7 @@ namespace MismeAPI.Service.Impls
 
             var dishh = await _uow.DishRepository.GetAll().Where(d => d.Id == dish.Id)
                 .Include(d => d.FavoriteDishes)
+                .Include(d => d.LackSelfControlDishes)
                 .Include(d => d.DishTags)
                     .ThenInclude(t => t.Tag)
                 .FirstOrDefaultAsync();
@@ -593,6 +643,52 @@ namespace MismeAPI.Service.Impls
             if (exist != null)
             {
                 _uow.FavoriteDishRepository.Delete(exist);
+                await _uow.CommitAsync();
+            }
+        }
+
+        public async Task<Dish> AddOrUpdateLackselfControlDishAsync(int loggedUser, int dishId, int intensity)
+        {
+            var dish = await GetDishByIdAsync(dishId);
+
+            var exist = await _uow.LackSelfControlDishRepository.GetAll()
+                .Where(fd => fd.DishId == dishId && fd.UserId == loggedUser)
+                .FirstOrDefaultAsync();
+
+            if (exist != null)
+            {
+                exist.Intensity = intensity;
+
+                await _uow.LackSelfControlDishRepository.UpdateAsync(exist, dishId);
+                await _uow.CommitAsync();
+
+                return dish;
+            }
+
+            var noControlDish = new LackSelfControlDish
+            {
+                UserId = loggedUser,
+                DishId = dishId,
+                Intensity = intensity
+            };
+
+            await _uow.LackSelfControlDishRepository.AddAsync(noControlDish);
+            await _uow.CommitAsync();
+
+            return dish;
+        }
+
+        public async Task RemoveLackselfControlDishAsync(int loggedUser, int dishId)
+        {
+            await GetDishByIdAsync(dishId);
+
+            var exist = await _uow.LackSelfControlDishRepository.GetAll()
+                .Where(fd => fd.DishId == dishId && fd.UserId == loggedUser)
+                .FirstOrDefaultAsync();
+
+            if (exist != null)
+            {
+                _uow.LackSelfControlDishRepository.Delete(exist);
                 await _uow.CommitAsync();
             }
         }

@@ -25,8 +25,14 @@ namespace MismeAPI.Service
 
         Task<PaginatedList<Dish>> GetFavoriteDishesAsync(int loggedUser, string search, List<int> tags, int? page, int? perPage, int? harvardFilter);
 
+        Task<PaginatedList<Dish>> GetLackSelfControlDishesAsync(int loggedUser, string search, List<int> tags, int? page, int? perPage, int? harvardFilter);
+
         Task<Dish> AddFavoriteDishAsync(int loggedUser, int dishId);
 
         Task RemoveFavoriteDishAsync(int loggedUser, int dishId);
+
+        Task<Dish> AddOrUpdateLackselfControlDishAsync(int loggedUser, int dishId, int intensity);
+
+        Task RemoveLackselfControlDishAsync(int loggedUser, int dishId);
     }
 }
