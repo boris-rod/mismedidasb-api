@@ -2,7 +2,6 @@
 using MismeAPI.Common.DTO.Response.User;
 using MismeAPI.Data.Entities;
 using MismeAPI.Data.Entities.Enums;
-using MismeAPI.Data.UoW;
 using MismeAPI.Services;
 using System;
 using System.Collections.Generic;
@@ -15,15 +14,13 @@ namespace MismeAPI.Service.Utils
         private readonly double _dailyKCal;
         private readonly IAccountService _accountService;
         private readonly IDishService _dishService;
-        private readonly IUnitOfWork _uow;
 
-        public HealthyHelper(double imc, double dailyKCal, IAccountService accountService, IDishService dishService, IUnitOfWork uow)
+        public HealthyHelper(double imc, double dailyKCal, IAccountService accountService, IDishService dishService)
         {
             _imc = imc;
             _dailyKCal = dailyKCal;
             _accountService = accountService ?? throw new ArgumentNullException(nameof(accountService));
             _dishService = dishService ?? throw new ArgumentNullException(nameof(dishService));
-            _uow = uow ?? throw new ArgumentNullException(nameof(uow));
         }
 
         public UserEatHealtParametersResponse GetUserEatHealtParameters(User user)

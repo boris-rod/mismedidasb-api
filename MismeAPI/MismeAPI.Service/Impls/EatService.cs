@@ -530,7 +530,7 @@ namespace MismeAPI.Service.Impls
                 {
                     var userEats = eats.Where(e => e.CreatedAt.Date == planDate.Date);
 
-                    IHealthyHelper healthyHelper = new HealthyHelper(eat.ImcAtThatMoment, eat.KCalAtThatMoment, _accountService, _dishService, _uow);
+                    IHealthyHelper healthyHelper = new HealthyHelper(eat.ImcAtThatMoment, eat.KCalAtThatMoment, _accountService, _dishService);
                     var userHealthParameters = healthyHelper.GetUserEatHealtParameters(user);
                     var isBalancedSummary = healthyHelper.IsBalancedPlan(user, userEats);
 
@@ -569,7 +569,7 @@ namespace MismeAPI.Service.Impls
             var kcal = imcKcals.kcal;
             var imc = imcKcals.imc;
 
-            IHealthyHelper healthyHelper = new HealthyHelper(imc, kcal, _accountService, _dishService, _uow);
+            IHealthyHelper healthyHelper = new HealthyHelper(imc, kcal, _accountService, _dishService);
             var result = healthyHelper.IsBalancedPlan(user, userEats);
 
             var nowUtc = DateTime.UtcNow;
