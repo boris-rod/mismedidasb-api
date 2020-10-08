@@ -2,6 +2,8 @@
 using MismeAPI.Common.DTO.Response.User;
 using MismeAPI.Data.Entities;
 using MismeAPI.Data.Entities.Enums;
+using MismeAPI.Services;
+using System;
 using System.Collections.Generic;
 
 namespace MismeAPI.Service.Utils
@@ -10,11 +12,15 @@ namespace MismeAPI.Service.Utils
     {
         private readonly double _imc;
         private readonly double _dailyKCal;
+        private readonly IAccountService _accountService;
+        private readonly IDishService _dishService;
 
-        public HealthyHelper(double imc, double dailyKCal)
+        public HealthyHelper(double imc, double dailyKCal, IAccountService accountService, IDishService dishService)
         {
             _imc = imc;
             _dailyKCal = dailyKCal;
+            _accountService = accountService ?? throw new ArgumentNullException(nameof(accountService));
+            _dishService = dishService ?? throw new ArgumentNullException(nameof(dishService));
         }
 
         public UserEatHealtParametersResponse GetUserEatHealtParameters(User user)
@@ -49,6 +55,9 @@ namespace MismeAPI.Service.Utils
 
         public EatBalancedSummaryResponse IsBalancedPlan(User user, IEnumerable<Eat> dayPlan)
         {
+            var sex = _accountService.GetSexAsync(user.Id).Result;
+            var height = _accountService.GetSexAsync(user.Id).Result;
+
             var parameters = GetUserEatHealtParameters(user);
 
             double currentCaloriesSum = 0;
@@ -75,24 +84,47 @@ namespace MismeAPI.Service.Utils
 
                 foreach (var eatDish in eat.EatDishes)
                 {
+                    var factor = 1.0;
+                    switch (eatDish.Dish.HandCode)
+                    {
+                        case 3:
+                            factor = _dishService.GetConversionFactorAsync(height, sex, 3).Result;
+                            break;
+
+                        case 6:
+                            factor = _dishService.GetConversionFactorAsync(height, sex, 6).Result;
+                            break;
+
+                        case 10:
+                            factor = _dishService.GetConversionFactorAsync(height, sex, 10).Result;
+                            break;
+
+                        case 11:
+                            factor = _dishService.GetConversionFactorAsync(height, sex, 11).Result;
+                            break;
+
+                        default:
+                            break;
+                    }
+
                     var dishCals = eatDish.Dish.Calories.HasValue ? eatDish.Dish.Calories.Value : 0;
-                    var calories = dishCals * eatDish.Qty;
+                    var calories = dishCals * factor * eatDish.Qty;
                     eatTypeCalories += calories;
 
                     var dishProteins = eatDish.Dish.Proteins.HasValue ? eatDish.Dish.Proteins.Value : 0;
-                    var proteins = dishProteins * eatDish.Qty;
+                    var proteins = dishProteins * factor * eatDish.Qty;
                     currentProteinsSum += proteins * 4;
 
                     var dishCarbs = eatDish.Dish.Carbohydrates.HasValue ? eatDish.Dish.Carbohydrates.Value : 0;
-                    var carbohydrates = dishCarbs * eatDish.Qty;
+                    var carbohydrates = dishCarbs * factor * eatDish.Qty;
                     currentCarbohydratesSum += carbohydrates * 4;
 
                     var dishFats = eatDish.Dish.Fat.HasValue ? eatDish.Dish.Fat.Value : 0;
-                    var fats = dishFats * eatDish.Qty;
+                    var fats = dishFats * factor * eatDish.Qty;
                     currentFatSum += fats * 9;
 
                     var dishFibs = eatDish.Dish.Fiber.HasValue ? eatDish.Dish.Fiber.Value : 0;
-                    var fibers = dishFibs * eatDish.Qty;
+                    var fibers = dishFibs * factor * eatDish.Qty;
                     currentFiberSum += fibers;
                 }
 
@@ -100,24 +132,47 @@ namespace MismeAPI.Service.Utils
                 {
                     foreach (var dishCompoundDish in eatCompoundDish.CompoundDish.DishCompoundDishes)
                     {
+                        var factor = 1.0;
+                        switch (dishCompoundDish.Dish.HandCode)
+                        {
+                            case 3:
+                                factor = _dishService.GetConversionFactorAsync(height, sex, 3).Result;
+                                break;
+
+                            case 6:
+                                factor = _dishService.GetConversionFactorAsync(height, sex, 6).Result;
+                                break;
+
+                            case 10:
+                                factor = _dishService.GetConversionFactorAsync(height, sex, 10).Result;
+                                break;
+
+                            case 11:
+                                factor = _dishService.GetConversionFactorAsync(height, sex, 11).Result;
+                                break;
+
+                            default:
+                                break;
+                        }
+
                         var dishCals = dishCompoundDish.Dish.Calories.HasValue ? dishCompoundDish.Dish.Calories.Value : 0;
-                        var calories = dishCals * eatCompoundDish.Qty * dishCompoundDish.DishQty;
+                        var calories = dishCals * factor * eatCompoundDish.Qty * dishCompoundDish.DishQty;
                         eatTypeCalories = calories;
 
                         var dishProteins = dishCompoundDish.Dish.Proteins.HasValue ? dishCompoundDish.Dish.Proteins.Value : 0;
-                        var proteins = dishProteins * eatCompoundDish.Qty * dishCompoundDish.DishQty;
+                        var proteins = dishProteins * factor * eatCompoundDish.Qty * dishCompoundDish.DishQty;
                         currentProteinsSum += proteins * 4; // * 4 because it is in g to kcal
 
                         var dishCarbs = dishCompoundDish.Dish.Carbohydrates.HasValue ? dishCompoundDish.Dish.Carbohydrates.Value : 0;
-                        var carbohydrates = dishCarbs * eatCompoundDish.Qty * dishCompoundDish.DishQty;
+                        var carbohydrates = dishCarbs * factor * eatCompoundDish.Qty * dishCompoundDish.DishQty;
                         currentProteinsSum += carbohydrates * 4; // to convert to kcal
 
                         var dishFats = dishCompoundDish.Dish.Fat.HasValue ? dishCompoundDish.Dish.Fat.Value : 0;
-                        var fats = dishFats * eatCompoundDish.Qty * dishCompoundDish.DishQty;
+                        var fats = dishFats * factor * eatCompoundDish.Qty * dishCompoundDish.DishQty;
                         currentFatSum += fats * 9; // to convert to kcal
 
                         var dishFibs = dishCompoundDish.Dish.Fiber.HasValue ? dishCompoundDish.Dish.Fiber.Value : 0;
-                        var fibers = dishFibs * eatCompoundDish.Qty * dishCompoundDish.DishQty;
+                        var fibers = dishFibs * factor * eatCompoundDish.Qty * dishCompoundDish.DishQty;
                         currentFiberSum += fibers;
                     }
                 }

@@ -36,12 +36,66 @@ namespace MismeAPI.Utils
             //{
             //    //ImportDishesAsync(_uow, serviceProvider).Wait();
             //    //RemoveDishesAsync(serviceProvider).Wait();
-            //    UploadHandCode(_uow, serviceProvider).Wait();
+            //    //UploadHandCode(_uow, serviceProvider).Wait();
+            //    //ImportHandCodeConversionValues(_uow, serviceProvider).Wait();
             //}
             //catch (Exception ex)
             //{
             //    throw ex;
             //}
+        }
+
+        private static async Task ImportHandCodeConversionValues(IUnitOfWork _uow, IServiceProvider serviceProvider)
+        {
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            using (var package = new ExcelPackage(new FileInfo("D:/Projects/Mismes/BD Alimentos Saira/FACTORES C.xlsx")))
+            {
+                var sheetCount = package.Workbook.Worksheets.Count;
+                var firstSheet = package.Workbook.Worksheets["Femenina"];
+                for (int i = 2; i <= 54; i++)
+                {
+                    var height = int.Parse(firstSheet.Cells[i, 2].Text.Trim());
+                    var conversion = double.Parse(firstSheet.Cells[i, 3].Text.Trim());
+                    var conversion3 = double.Parse(firstSheet.Cells[i, 4].Text.Trim());
+                    var conversion10 = double.Parse(firstSheet.Cells[i, 5].Text.Trim());
+                    var conversion11 = double.Parse(firstSheet.Cells[i, 6].Text.Trim());
+                    var conversion6 = double.Parse(firstSheet.Cells[i, 7].Text.Trim());
+
+                    var conversionEntry = new HandConversionFactor();
+                    conversionEntry.Height = height;
+                    conversionEntry.Gender = GenderEnum.FEMALE;
+                    conversionEntry.ConversionFactor = conversion;
+                    conversionEntry.ConversionFactor3Code = conversion3;
+                    conversionEntry.ConversionFactor6Code = conversion6;
+                    conversionEntry.ConversionFactor10Code = conversion10;
+                    conversionEntry.ConversionFactor11Code = conversion11;
+
+                    await _uow.HandConversionFactorRepository.AddAsync(conversionEntry);
+                }
+
+                var secondSheet = package.Workbook.Worksheets["Masculino"];
+                for (int i = 2; i <= 47; i++)
+                {
+                    var height = int.Parse(secondSheet.Cells[i, 2].Text.Trim());
+                    var conversion = double.Parse(secondSheet.Cells[i, 3].Text.Trim());
+                    var conversion3 = double.Parse(secondSheet.Cells[i, 4].Text.Trim());
+                    var conversion10 = double.Parse(secondSheet.Cells[i, 5].Text.Trim());
+                    var conversion11 = double.Parse(secondSheet.Cells[i, 6].Text.Trim());
+                    var conversion6 = double.Parse(secondSheet.Cells[i, 7].Text.Trim());
+
+                    var conversionEntry = new HandConversionFactor();
+                    conversionEntry.Height = height;
+                    conversionEntry.Gender = GenderEnum.MALE;
+                    conversionEntry.ConversionFactor = conversion;
+                    conversionEntry.ConversionFactor3Code = conversion3;
+                    conversionEntry.ConversionFactor6Code = conversion6;
+                    conversionEntry.ConversionFactor10Code = conversion10;
+                    conversionEntry.ConversionFactor11Code = conversion11;
+
+                    await _uow.HandConversionFactorRepository.AddAsync(conversionEntry);
+                }
+                await _uow.CommitAsync();
+            }
         }
 
         private static async Task UploadHandCode(IUnitOfWork _uow, IServiceProvider serviceProvider)

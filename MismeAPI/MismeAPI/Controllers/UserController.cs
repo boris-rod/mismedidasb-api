@@ -7,6 +7,7 @@ using MismeAPI.Common.DTO.Response;
 using MismeAPI.Common.DTO.Response.User;
 using MismeAPI.Service;
 using MismeAPI.Service.Utils;
+using MismeAPI.Services;
 using MismeAPI.Utils;
 using Newtonsoft.Json;
 using System;
@@ -23,12 +24,16 @@ namespace MismeAPI.Controllers
         private readonly IUserService _userService;
         private readonly IMapper _mapper;
         private readonly IEatService _eatService;
+        private readonly IAccountService _accountService;
+        private readonly IDishService _dishService;
 
-        public UserController(IUserService userService, IMapper mapper, IEatService eatService)
+        public UserController(IUserService userService, IMapper mapper, IEatService eatService, IAccountService accountService, IDishService dishService)
         {
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _eatService = eatService ?? throw new ArgumentNullException(nameof(eatService));
+            _accountService = accountService ?? throw new ArgumentNullException(nameof(accountService));
+            _dishService = dishService ?? throw new ArgumentNullException(nameof(dishService));
         }
 
         /// <summary>
@@ -187,7 +192,7 @@ namespace MismeAPI.Controllers
             var user = await _userService.GetUserDevicesAsync(loggedUser);
             var userImcKcal = await _eatService.GetKCalImcAsync(loggedUser, dateInUtc);
 
-            IHealthyHelper healthyHelper = new HealthyHelper(userImcKcal.imc, userImcKcal.kcal);
+            IHealthyHelper healthyHelper = new HealthyHelper(userImcKcal.imc, userImcKcal.kcal, _accountService, _dishService);
             var result = healthyHelper.GetUserEatHealtParameters(user);
 
             return Ok(new ApiOkResponse(result));

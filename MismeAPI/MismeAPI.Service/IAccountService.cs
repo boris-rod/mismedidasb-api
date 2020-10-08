@@ -57,5 +57,9 @@ namespace MismeAPI.Services
         Task<double> GetKCalAsync(int userId);
 
         Task<double> GetIMCAsync(int userId);
+
+        Task<int> GetHeightAsync(int userId);
+
+        Task<int> GetSexAsync(int userId);
     }
 }

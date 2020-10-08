@@ -1126,5 +1126,131 @@ namespace MismeAPI.Services.Impls
 
             return (isValid, suggestions);
         }
+
+        public async Task<int> GetHeightAsync(int userId)
+        {
+            try
+            {
+                var concept = await _uow.ConceptRepository.GetAll().Where(c => c.Codename == CodeNamesConstants.HEALTH_MEASURES).FirstOrDefaultAsync();
+
+                if (concept != null)
+                {
+                    var polls = _uow.PollRepository.GetAll().Where(p => p.ConceptId == concept.Id)
+                          .Include(p => p.Questions)
+                          .OrderBy(p => p.Order)
+                          .ToList();
+                    // this is hardcoded but is the way it is.
+
+                    // poll 1- personal data
+                    var questions = polls.ElementAt(0).Questions.OrderBy(q => q.Order);
+
+                    var age = 0;
+                    var weight = 0;
+                    var height = 0;
+                    var sex = 0;
+
+                    var count = 0;
+                    foreach (var q in questions)
+                    {
+                        var ua = _uow.UserAnswerRepository.GetAll().Where(u => u.UserId == userId && u.Answer.QuestionId == q.Id)
+                            .Include(u => u.Answer)
+                                .ThenInclude(a => a.Question)
+                            .OrderByDescending(ua => ua.CreatedAt)
+                            .FirstOrDefault();
+                        //age
+                        if (count == 0 && ua != null)
+                        {
+                            age = ua.Answer.Weight;
+                        }
+                        //weight
+                        else if (count == 1 && ua != null)
+                        {
+                            weight = ua.Answer.Weight;
+                        }
+                        //height
+                        else if (count == 2 && ua != null)
+                        {
+                            height = ua.Answer.Weight;
+                        }
+                        //sex
+                        else
+                        {
+                            sex = ua.Answer.Weight;
+                        }
+
+                        count += 1;
+                    }
+                    return height;
+                }
+            }
+            catch (Exception)
+            {
+                return 0;
+            }
+            return 0;
+        }
+
+        public async Task<int> GetSexAsync(int userId)
+        {
+            try
+            {
+                var concept = await _uow.ConceptRepository.GetAll().Where(c => c.Codename == CodeNamesConstants.HEALTH_MEASURES).FirstOrDefaultAsync();
+
+                if (concept != null)
+                {
+                    var polls = _uow.PollRepository.GetAll().Where(p => p.ConceptId == concept.Id)
+                          .Include(p => p.Questions)
+                          .OrderBy(p => p.Order)
+                          .ToList();
+                    // this is hardcoded but is the way it is.
+
+                    // poll 1- personal data
+                    var questions = polls.ElementAt(0).Questions.OrderBy(q => q.Order);
+
+                    var age = 0;
+                    var weight = 0;
+                    var height = 0;
+                    var sex = 0;
+
+                    var count = 0;
+                    foreach (var q in questions)
+                    {
+                        var ua = _uow.UserAnswerRepository.GetAll().Where(u => u.UserId == userId && u.Answer.QuestionId == q.Id)
+                            .Include(u => u.Answer)
+                                .ThenInclude(a => a.Question)
+                            .OrderByDescending(ua => ua.CreatedAt)
+                            .FirstOrDefault();
+                        //age
+                        if (count == 0 && ua != null)
+                        {
+                            age = ua.Answer.Weight;
+                        }
+                        //weight
+                        else if (count == 1 && ua != null)
+                        {
+                            weight = ua.Answer.Weight;
+                        }
+                        //height
+                        else if (count == 2 && ua != null)
+                        {
+                            height = ua.Answer.Weight;
+                        }
+                        //sex
+                        else
+                        {
+                            sex = ua.Answer.Weight;
+                        }
+
+                        count += 1;
+                    }
+                    return sex;
+                }
+            }
+            catch (Exception)
+            {
+                return 0;
+            }
+            return 0;
+        }
     }
 }

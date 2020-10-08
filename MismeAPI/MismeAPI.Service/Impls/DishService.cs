@@ -702,5 +702,34 @@ namespace MismeAPI.Service.Impls
                 QueryCacheManager.ExpireTag(CacheEntries.ALL_DISHES);
             }
         }
+
+        public async Task<double> GetConversionFactorAsync(int height, int sex, int code)
+        {
+            var factor = await _uow.HandConversionFactorRepository.GetAll().Where(c => c.Height == height && c.Gender == (GenderEnum)sex).FirstOrDefaultAsync();
+            if (factor != null)
+            {
+                if (code == 3)
+                {
+                    return factor.ConversionFactor3Code;
+                }
+                else if (code == 6)
+                {
+                    return factor.ConversionFactor6Code;
+                }
+                else if (code == 10)
+                {
+                    return factor.ConversionFactor10Code;
+                }
+                else if (code == 11)
+                {
+                    return factor.ConversionFactor11Code;
+                }
+                else
+                {
+                    return 1.0;
+                }
+            }
+            return 1.0;
+        }
     }
 }

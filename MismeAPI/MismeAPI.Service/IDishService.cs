@@ -34,5 +34,7 @@ namespace MismeAPI.Service
         Task<Dish> AddOrUpdateLackselfControlDishAsync(int loggedUser, int dishId, int intensity);
 
         Task RemoveLackselfControlDishAsync(int loggedUser, int dishId);
+
+        Task<double> GetConversionFactorAsync(int height, int sex, int code);
     }
 }

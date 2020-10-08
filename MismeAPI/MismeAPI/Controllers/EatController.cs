@@ -6,6 +6,7 @@ using MismeAPI.Common.DTO.Request;
 using MismeAPI.Common.DTO.Response;
 using MismeAPI.Service;
 using MismeAPI.Service.Utils;
+using MismeAPI.Services;
 using MismeAPI.Utils;
 using Newtonsoft.Json;
 using System;
@@ -22,13 +23,17 @@ namespace MismeAPI.Controllers
         private readonly IUserService _userService;
         private readonly IMapper _mapper;
         private readonly IRewardHelper _rewardHelper;
+        private readonly IAccountService _accountService;
+        private readonly IDishService _dishService;
 
-        public EatController(IEatService eatService, IUserService userService, IMapper mapper, IRewardHelper rewardHelper)
+        public EatController(IEatService eatService, IUserService userService, IMapper mapper, IRewardHelper rewardHelper, IAccountService accountService, IDishService dishService)
         {
             _eatService = eatService ?? throw new ArgumentNullException(nameof(eatService));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _rewardHelper = rewardHelper ?? throw new ArgumentNullException(nameof(rewardHelper));
+            _accountService = accountService ?? throw new ArgumentNullException(nameof(accountService));
+            _dishService = dishService ?? throw new ArgumentNullException(nameof(dishService));
         }
 
         /// <summary>
@@ -257,7 +262,7 @@ namespace MismeAPI.Controllers
             var plan = await _eatService.GetUserPlanPerDateAsync(loggedUser, dateInUtc);
             var userImcKcal = await _eatService.GetKCalImcAsync(loggedUser, dateInUtc);
 
-            IHealthyHelper healthyHelper = new HealthyHelper(userImcKcal.imc, userImcKcal.kcal);
+            IHealthyHelper healthyHelper = new HealthyHelper(userImcKcal.imc, userImcKcal.kcal, _accountService, _dishService);
             var result = healthyHelper.IsBalancedPlan(user, plan);
 
             return Ok(new ApiOkResponse(result));

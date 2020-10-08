@@ -52,6 +52,7 @@ namespace MismeAPI.Data
         public DbSet<FavoriteDish> FavoriteDish { get; set; }
         public DbSet<FavoriteCompoundDishes> FavoriteCompoundDish { get; set; }
         public DbSet<App> App { get; set; }
+        public DbSet<HandConversionFactor> HandConversionFactors { get; set; }
         public DbSet<LackSelfControlDish> LackSelfControlDishes { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<Order> Order { get; set; }
