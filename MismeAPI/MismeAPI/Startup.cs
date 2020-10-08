@@ -20,6 +20,7 @@ using MismeAPI.Services;
 using MismeAPI.Services.Impls;
 using MismeAPI.Utils;
 using Newtonsoft.Json;
+using Stripe;
 using System;
 
 namespace MismeAPI
@@ -66,8 +67,8 @@ namespace MismeAPI
             services.AddTransient<IHttpContextAccessor, HttpContextAccessor>();
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             services.AddTransient<IAmazonS3Service, AmazonS3Service>();
-            services.AddTransient<IFileService, FileService>();
-            services.AddTransient<IAccountService, AccountService>();
+            services.AddTransient<IFileService, Services.Impls.FileService>();
+            services.AddTransient<IAccountService, Services.Impls.AccountService>();
             services.AddTransient<IEmailService, EmailService>();
             services.AddTransient<IPollService, PollService>();
             services.AddTransient<IQuestionService, QuestionService>();
@@ -95,8 +96,11 @@ namespace MismeAPI
             services.AddTransient<IScheduleService, ScheduleService>();
             services.AddTransient<INotificationService, NotificationService>();
             services.AddTransient<ISoloQuestionService, SoloQuestionService>();
-            services.AddTransient<ISubscriptionService, SubscriptionService>();
+            services.AddTransient<ISubscriptionService, MismeAPI.Service.Impls.SubscriptionService>();
             services.AddTransient<IAppService, AppService>();
+            services.AddTransient<IPaymentService, PaymentService>();
+            services.AddTransient<IPaypalService, PaypalService>();
+            services.AddTransient<IProductService, Services.Impls.ProductService>();
 
             var provider = services.BuildServiceProvider();
             var amazonS3Service = provider.GetService<IAmazonS3Service>();
@@ -105,6 +109,9 @@ namespace MismeAPI
 
             var apiMappings = new MappingProfiles(amazonS3Service, userStatisticsService, contextAccessor);
             services.AddAutoMapper(x => x.AddProfile(apiMappings), typeof(Startup));
+
+            var stripeApiKey = Configuration.GetSection("Stripe")["ApiKey"];
+            StripeConfiguration.ApiKey = stripeApiKey;
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

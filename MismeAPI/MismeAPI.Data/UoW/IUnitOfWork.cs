@@ -51,6 +51,8 @@ namespace MismeAPI.Data.UoW
         IGenericRepository<App> AppRepository { get; set; }
         IGenericRepository<FavoriteDish> FavoriteDishRepository { get; set; }
         IGenericRepository<LackSelfControlDish> LackSelfControlDishRepository { get; set; }
+        IGenericRepository<Product> ProductRepository { get; set; }
+        IGenericRepository<Order> OrderRepository { get; set; }
 
         Task<int> CommitAsync();
     }

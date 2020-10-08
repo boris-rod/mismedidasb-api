@@ -7,6 +7,7 @@ using MismeAPI.Common.DTO.Response.CompoundDish;
 using MismeAPI.Common.DTO.Response.ContactUs;
 using MismeAPI.Common.DTO.Response.CutPoint;
 using MismeAPI.Common.DTO.Response.GeneralContent;
+using MismeAPI.Common.DTO.Response.Product;
 using MismeAPI.Common.DTO.Response.Reminder;
 using MismeAPI.Common.DTO.Response.Result;
 using MismeAPI.Common.DTO.Response.Reward;
@@ -139,7 +140,6 @@ namespace MismeAPI.Utils
 
             CreateMap<DishTag, TagResponse>()
                 .ForMember(d => d.Name, opts => opts.MapFrom(source => source.Tag.Name))
-                .ForMember(d => d.Id, opts => opts.MapFrom(source => source.TagId))
                 .ForMember(d => d.Id, opts => opts.MapFrom(source => source.TagId));
 
             CreateMap<EatDish, EatDishResponse>()
@@ -282,6 +282,10 @@ namespace MismeAPI.Utils
                                                                              HttpStatusCode.OK :
                                                                              (source.Status == HealthStatus.Degraded ? HttpStatusCode.OK : HttpStatusCode.ServiceUnavailable)))
              .ForMember(d => d.Exception, opts => opts.MapFrom(source => source.Exception == null ? "" : source.Exception.Message));
+
+            CreateMap<Product, ProductResponse>()
+                       .ForMember(d => d.TypeId, opts => opts.MapFrom(source => (int)source.Type))
+                       .ForMember(d => d.Type, opts => opts.MapFrom(source => source.Type.ToString()));
         }
 
         private int GetLastAnswer(Question src, IDictionary<string, object> items = null)

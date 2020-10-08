@@ -52,6 +52,8 @@ namespace MismeAPI.Data
         public DbSet<FavoriteDish> FavoriteDish { get; set; }
         public DbSet<App> App { get; set; }
         public DbSet<LackSelfControlDish> LackSelfControlDishes { get; set; }
+        public DbSet<Product> Products { get; set; }
+        public DbSet<Order> Order { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -76,6 +78,9 @@ namespace MismeAPI.Data
             modelBuilder.Entity<User>().Property(p => p.LunchKCalPercentage).HasDefaultValue(35);
             modelBuilder.Entity<User>().Property(p => p.Snack2KCalPercentage).HasDefaultValue(10);
             modelBuilder.Entity<User>().Property(p => p.DinnerKCalPercentage).HasDefaultValue(25);
+
+            modelBuilder.Entity<User>().HasMany(p => p.Orders).WithOne(b => b.User).OnDelete(DeleteBehavior.SetNull);
+            modelBuilder.Entity<Product>().HasMany(p => p.Orders).WithOne(b => b.Product).OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

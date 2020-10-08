@@ -25,9 +25,12 @@ namespace MismeAPI.Data.Entities
             UserSoloAnswers = new HashSet<UserSoloAnswer>();
             FavoriteDishes = new HashSet<FavoriteDish>();
             LackSelfControlDishes = new HashSet<LackSelfControlDish>();
+            Orders = new HashSet<Order>();
         }
 
         public int Id { get; set; }
+        public string StripeCustomerId { get; set; }
+        public string PaypalCustomerId { get; set; }
 
         [Required]
         public string FullName { get; set; }
@@ -80,5 +83,6 @@ namespace MismeAPI.Data.Entities
         public virtual ICollection<UserSoloAnswer> UserSoloAnswers { get; set; }
         public virtual ICollection<FavoriteDish> FavoriteDishes { get; set; }
         public virtual ICollection<LackSelfControlDish> LackSelfControlDishes { get; set; }
+        public virtual ICollection<Order> Orders { get; set; }
     }
 }
