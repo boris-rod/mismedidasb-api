@@ -24,13 +24,14 @@ namespace MismeAPI.Utils
             var _categoryRewardService = serviceProvider.GetRequiredService<IRewardCategoryService>();
             var _soloQuestionService = serviceProvider.GetRequiredService<ISoloQuestionService>();
             var _subscriptionService = serviceProvider.GetRequiredService<ISubscriptionService>();
+            var _productService = serviceProvider.GetRequiredService<IProductService>();
 
             await CreateAdminUserAsync(_uow);
 
             await _categoryRewardService.InitRewardCategoriesAsync();
             await _soloQuestionService.SeedSoloQuestionsAsync();
             await _subscriptionService.SeedSubscriptionAsync();
-
+            await _productService.SeedProductsAsync();
             //try
             //{
             //    //ImportDishesAsync(_uow, serviceProvider).Wait();

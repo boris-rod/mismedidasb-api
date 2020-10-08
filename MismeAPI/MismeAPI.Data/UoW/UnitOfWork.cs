@@ -57,6 +57,8 @@ namespace MismeAPI.Data.UoW
             FavoriteDishRepository = FavoriteDishRepository ?? new GenericRepository<FavoriteDish>(_context);
             LackSelfControlDishRepository = LackSelfControlDishRepository ?? new GenericRepository<LackSelfControlDish>(_context);
             HandConversionFactorRepository = HandConversionFactorRepository ?? new GenericRepository<HandConversionFactor>(_context);
+            ProductRepository = ProductRepository ?? new GenericRepository<Product>(_context);
+            OrderRepository = OrderRepository ?? new GenericRepository<Order>(_context);
         }
 
         public IGenericRepository<User> UserRepository { get; set; }
@@ -103,6 +105,8 @@ namespace MismeAPI.Data.UoW
         public IGenericRepository<App> AppRepository { get; set; }
         public IGenericRepository<HandConversionFactor> HandConversionFactorRepository { get; set; }
         public IGenericRepository<LackSelfControlDish> LackSelfControlDishRepository { get; set; }
+        public IGenericRepository<Product> ProductRepository { get; set; }
+        public IGenericRepository<Order> OrderRepository { get; set; }
 
         public async Task<int> CommitAsync()
         {
