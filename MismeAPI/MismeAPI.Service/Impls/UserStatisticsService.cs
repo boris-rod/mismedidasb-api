@@ -152,15 +152,7 @@ namespace MismeAPI.Service.Impls
 
         public async Task<UserStatistics> UpdateTotalPoints(User user, int points)
         {
-            // validate target user exists
-            var existUser = await _uow.UserRepository.GetAll().Where(d => d.Id == user.Id).FirstOrDefaultAsync();
-
-            if (existUser == null)
-            {
-                throw new NotFoundException(ExceptionConstants.NOT_FOUND, "User");
-            }
-
-            var statistics = await GetOrCreateUserStatisticsAsync(existUser);
+            var statistics = await GetOrCreateUserStatisticsAsync(user);
             // TODO user statics missing
 
             var newPoints = statistics.Points + points;
