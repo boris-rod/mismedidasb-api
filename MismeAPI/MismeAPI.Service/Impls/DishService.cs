@@ -629,6 +629,8 @@ namespace MismeAPI.Service.Impls
             await _uow.FavoriteDishRepository.AddAsync(favoriteDish);
             await _uow.CommitAsync();
 
+            QueryCacheManager.ExpireTag(CacheEntries.ALL_DISHES);
+
             return dish;
         }
 
@@ -644,6 +646,8 @@ namespace MismeAPI.Service.Impls
             {
                 _uow.FavoriteDishRepository.Delete(exist);
                 await _uow.CommitAsync();
+
+                QueryCacheManager.ExpireTag(CacheEntries.ALL_DISHES);
             }
         }
 
@@ -662,6 +666,8 @@ namespace MismeAPI.Service.Impls
                 await _uow.LackSelfControlDishRepository.UpdateAsync(exist, dishId);
                 await _uow.CommitAsync();
 
+                QueryCacheManager.ExpireTag(CacheEntries.ALL_DISHES);
+
                 return dish;
             }
 
@@ -674,6 +680,8 @@ namespace MismeAPI.Service.Impls
 
             await _uow.LackSelfControlDishRepository.AddAsync(noControlDish);
             await _uow.CommitAsync();
+
+            QueryCacheManager.ExpireTag(CacheEntries.ALL_DISHES);
 
             return dish;
         }
@@ -690,6 +698,8 @@ namespace MismeAPI.Service.Impls
             {
                 _uow.LackSelfControlDishRepository.Delete(exist);
                 await _uow.CommitAsync();
+
+                QueryCacheManager.ExpireTag(CacheEntries.ALL_DISHES);
             }
         }
     }
