@@ -90,6 +90,36 @@ namespace MismeAPI.Controllers
         }
 
         /// <summary>
+        /// Get all lack self control dishes of the logged user. Requires authentication.
+        /// </summary>
+        /// <param name="search">Search param.</param>
+        /// <param name="tags">Tags id for filtering.</param>
+        /// <param name="page">Page to be listed. If null all the dishes will be returned.</param>
+        /// <param name="perPage">By defaul 10 but only will take effect if the page param is specified.</param>
+        /// <param name="harvardFilter">0- proteic, 1- caloric, 2- fruitVegetable.</param>
+        [HttpGet("lack-self-control-dishes")]
+        [Authorize]
+        [ProducesResponseType(typeof(IEnumerable<DishResponse>), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetLackSelfControlDishes(string search, List<int> tags, int? page, int? perPage, int? harvardFilter)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            var language = await _userService.GetUserLanguageFromUserIdAsync(loggedUser);
+
+            var result = await _dishService.GetLackSelfControlDishesAsync(loggedUser, search, tags, page, perPage, harvardFilter);
+
+            HttpContext.Response.Headers.Add("PagingData", JsonConvert.SerializeObject(result.GetPaginationData));
+            HttpContext.Response.Headers["Access-Control-Expose-Headers"] = "PagingData";
+            HttpContext.Response.Headers["Access-Control-Allow-Headers"] = "PagingData";
+
+            var mapped = _mapper.Map<IEnumerable<DishResponse>>(result, opt =>
+            {
+                opt.Items["lang"] = language;
+            });
+
+            return Ok(new ApiOkResponse(mapped));
+        }
+
+        /// <summary>
         /// Get dish by id. Requires authentication.
         /// </summary>
         /// <param name="id">Dish id.</param>

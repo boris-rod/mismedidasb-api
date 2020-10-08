@@ -50,6 +50,7 @@ namespace MismeAPI.Data
         public DbSet<UserSubscription> UserSubscription { get; set; }
         public DbSet<UserSubscriptionSchedule> UserSubscriptionSchedule { get; set; }
         public DbSet<FavoriteDish> FavoriteDish { get; set; }
+        public DbSet<FavoriteCompoundDishes> FavoriteCompoundDish { get; set; }
         public DbSet<App> App { get; set; }
         public DbSet<LackSelfControlDish> LackSelfControlDishes { get; set; }
         public DbSet<Product> Products { get; set; }
@@ -69,9 +70,13 @@ namespace MismeAPI.Data
 
             modelBuilder.Entity<User>().HasMany(p => p.FavoriteDishes).WithOne(b => b.User).OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<Dish>().HasMany(p => p.FavoriteDishes).WithOne(b => b.Dish).OnDelete(DeleteBehavior.Cascade);
-
             modelBuilder.Entity<User>().HasMany(p => p.LackSelfControlDishes).WithOne(b => b.User).OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<Dish>().HasMany(p => p.LackSelfControlDishes).WithOne(b => b.Dish).OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<User>().HasMany(p => p.FavoriteCompoundDishes).WithOne(b => b.User).OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<CompoundDish>().HasMany(p => p.FavoriteDishes).WithOne(b => b.Dish).OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<User>().HasMany(p => p.LackSelfControlDishes).WithOne(b => b.User).OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<CompoundDish>().HasMany(p => p.LackSelfControlDishes).WithOne(b => b.Dish).OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<User>().Property(p => p.BreakFastKCalPercentage).HasDefaultValue(20);
             modelBuilder.Entity<User>().Property(p => p.Snack1KCalPercentage).HasDefaultValue(10);

@@ -26,6 +26,8 @@ namespace MismeAPI.Data.Entities
             FavoriteDishes = new HashSet<FavoriteDish>();
             LackSelfControlDishes = new HashSet<LackSelfControlDish>();
             Orders = new HashSet<Order>();
+            FavoriteCompoundDishes = new HashSet<FavoriteCompoundDishes>();
+            LackSelfControlCompoundDishes = new HashSet<LackSelfControlCompoundDish>();
         }
 
         public int Id { get; set; }
@@ -83,6 +85,8 @@ namespace MismeAPI.Data.Entities
         public virtual ICollection<UserSoloAnswer> UserSoloAnswers { get; set; }
         public virtual ICollection<FavoriteDish> FavoriteDishes { get; set; }
         public virtual ICollection<LackSelfControlDish> LackSelfControlDishes { get; set; }
+        public virtual ICollection<FavoriteCompoundDishes> FavoriteCompoundDishes { get; set; }
+        public virtual ICollection<LackSelfControlCompoundDish> LackSelfControlCompoundDishes { get; set; }
         public virtual ICollection<Order> Orders { get; set; }
     }
 }

@@ -184,6 +184,8 @@ namespace MismeAPI.Service.Impls
             var c = await _uow.CompoundDishRepository.GetAll()
                 .Where(c => c.Id == compoundDishId && c.UserId == ownerId)
                 .Include(c => c.EatCompoundDishes)
+                .Include(d => d.FavoriteDishes)
+                .Include(d => d.LackSelfControlDishes)
                 .FirstOrDefaultAsync();
 
             if (c == null)
@@ -215,6 +217,8 @@ namespace MismeAPI.Service.Impls
             }
 
             var results = _uow.CompoundDishRepository.GetAll()
+                .Include(d => d.FavoriteDishes)
+                .Include(d => d.LackSelfControlDishes)
                 .Include(d => d.CreatedBy)
                 .Include(d => d.DishCompoundDishes)
                   .ThenInclude(t => t.Dish)
@@ -242,10 +246,12 @@ namespace MismeAPI.Service.Impls
             return await results.ToListAsync();
         }
 
-        public async Task<IEnumerable<CompoundDish>> GetUserCompoundDishesAsync(int ownerId, string search)
+        public async Task<IEnumerable<CompoundDish>> GetUserCompoundDishesAsync(int ownerId, string search, bool? favorites, bool? lackSelfControl)
         {
             var results = _uow.CompoundDishRepository.GetAll()
                 .Where(c => c.UserId == ownerId && c.IsDeleted == false)
+                .Include(d => d.FavoriteDishes)
+                .Include(d => d.LackSelfControlDishes)
                 .Include(d => d.DishCompoundDishes)
                     .ThenInclude(t => t.Dish)
                 .AsQueryable();
@@ -253,6 +259,22 @@ namespace MismeAPI.Service.Impls
             if (!string.IsNullOrWhiteSpace(search))
             {
                 results = results.Where(r => r.Name.ToLower().Contains(search.ToLower()));
+            }
+
+            if (favorites.HasValue)
+            {
+                if (favorites.Value == true)
+                    results.Where(cd => cd.FavoriteDishes.Any(fd => fd.UserId == ownerId));
+                else
+                    results.Where(cd => !cd.FavoriteDishes.Any(fd => fd.UserId == ownerId));
+            }
+
+            if (lackSelfControl.HasValue)
+            {
+                if (lackSelfControl.Value == true)
+                    results.Where(cd => cd.LackSelfControlDishes.Any(fd => fd.UserId == ownerId));
+                else
+                    results.Where(cd => !cd.LackSelfControlDishes.Any(fd => fd.UserId == ownerId));
             }
 
             return await results.ToListAsync();
@@ -286,6 +308,8 @@ namespace MismeAPI.Service.Impls
                 .Include(c => c.CreatedBy)
                 .Include(c => c.DishCompoundDishes)
                 .Include(c => c.EatCompoundDishes)
+                .Include(d => d.FavoriteDishes)
+                .Include(d => d.LackSelfControlDishes)
                 .FirstOrDefaultAsync();
 
             if (compoundDish == null)
@@ -324,6 +348,106 @@ namespace MismeAPI.Service.Impls
                 await _uow.CommitAsync();
 
                 return compoundDish;
+            }
+        }
+
+        public async Task<CompoundDish> GetCompoundDishByIdAsync(int id)
+        {
+            var cDish = await _uow.CompoundDishRepository.GetAll()
+                .Where(c => c.Id == id)
+                .Include(d => d.FavoriteDishes)
+                .Include(d => d.LackSelfControlDishes)
+                .Include(d => d.DishCompoundDishes)
+                    .ThenInclude(t => t.Dish)
+                .FirstOrDefaultAsync();
+
+            if (cDish == null)
+                throw new NotFoundException(ExceptionConstants.NOT_FOUND, "Compound Dish");
+
+            return cDish;
+        }
+
+        public async Task<CompoundDish> AddFavoriteAsync(int loggedUser, int dishId)
+        {
+            var dish = await GetCompoundDishByIdAsync(dishId);
+
+            var exist = await _uow.FavoriteCompoundDishRepository.GetAll()
+                .Where(fd => fd.DishId == dishId && fd.UserId == loggedUser)
+                .FirstOrDefaultAsync();
+
+            if (exist != null)
+                return dish;
+
+            var favoriteDish = new FavoriteCompoundDishes
+            {
+                UserId = loggedUser,
+                DishId = dishId
+            };
+
+            await _uow.FavoriteCompoundDishRepository.AddAsync(favoriteDish);
+            await _uow.CommitAsync();
+
+            return dish;
+        }
+
+        public async Task RemoveFavoriteDishAsync(int loggedUser, int dishId)
+        {
+            await GetCompoundDishByIdAsync(dishId);
+
+            var exist = await _uow.FavoriteCompoundDishRepository.GetAll()
+                .Where(fd => fd.DishId == dishId && fd.UserId == loggedUser)
+                .FirstOrDefaultAsync();
+
+            if (exist != null)
+            {
+                _uow.FavoriteCompoundDishRepository.Delete(exist);
+                await _uow.CommitAsync();
+            }
+        }
+
+        public async Task<CompoundDish> AddOrUpdateLackselfControlDishAsync(int loggedUser, int dishId, int intensity)
+        {
+            var dish = await GetCompoundDishByIdAsync(dishId);
+
+            var exist = await _uow.LackSelfControlCompoundDishRepository.GetAll()
+                .Where(fd => fd.DishId == dishId && fd.UserId == loggedUser)
+                .FirstOrDefaultAsync();
+
+            if (exist != null)
+            {
+                exist.Intensity = intensity;
+
+                await _uow.LackSelfControlCompoundDishRepository.UpdateAsync(exist, dishId);
+                await _uow.CommitAsync();
+
+                return dish;
+            }
+
+            var noControlDish = new LackSelfControlCompoundDish
+            {
+                UserId = loggedUser,
+                DishId = dishId,
+                Intensity = intensity
+            };
+
+            await _uow.LackSelfControlCompoundDishRepository.AddAsync(noControlDish);
+            await _uow.CommitAsync();
+
+            return dish;
+        }
+
+        public async Task RemoveLackselfControlDishAsync(int loggedUser, int dishId)
+        {
+            await GetCompoundDishByIdAsync(dishId);
+
+            var exist = await _uow.LackSelfControlCompoundDishRepository.GetAll()
+                .Where(fd => fd.DishId == dishId && fd.UserId == loggedUser)
+                .FirstOrDefaultAsync();
+
+            if (exist != null)
+            {
+                _uow.LackSelfControlCompoundDishRepository.Delete(exist);
+                await _uow.CommitAsync();
             }
         }
 

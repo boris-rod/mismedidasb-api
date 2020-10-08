@@ -11,6 +11,8 @@ namespace MismeAPI.Data.Entities
         {
             DishCompoundDishes = new HashSet<DishCompoundDish>();
             EatCompoundDishes = new HashSet<EatCompoundDish>();
+            FavoriteDishes = new HashSet<FavoriteCompoundDishes>();
+            LackSelfControlDishes = new HashSet<LackSelfControlCompoundDish>();
         }
 
         public int Id { get; set; }
@@ -28,5 +30,7 @@ namespace MismeAPI.Data.Entities
 
         public virtual ICollection<DishCompoundDish> DishCompoundDishes { get; set; }
         public virtual ICollection<EatCompoundDish> EatCompoundDishes { get; set; }
+        public virtual ICollection<FavoriteCompoundDishes> FavoriteDishes { get; set; }
+        public virtual ICollection<LackSelfControlCompoundDish> LackSelfControlDishes { get; set; }
     }
 }
