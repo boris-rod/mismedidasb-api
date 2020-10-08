@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using MismeAPI.BasicResponses;
 using MismeAPI.Common.DTO.Request;
 using MismeAPI.Common.DTO.Request.CompoundDish;
+using MismeAPI.Common.DTO.Request.Dish;
 using MismeAPI.Common.DTO.Response.CompoundDish;
 using MismeAPI.Data.Entities.Enums;
 using MismeAPI.Service;
@@ -51,15 +52,17 @@ namespace MismeAPI.Controllers
         /// Get all user compound dishes. Requires authentication.
         /// </summary>
         /// <param name="search">Search param.</param>
+        /// <param name="favorites">Filter by favorite check</param>
+        /// <param name="lackSelfControl">Filter by self lack control check</param>
         [HttpGet]
         [Authorize]
         [ProducesResponseType(typeof(IEnumerable<CompoundDishResponse>), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> GetUser(string search)
+        public async Task<IActionResult> GetUser(string search, bool? favorites, bool? lackSelfControl)
         {
             var loggedUser = User.GetUserIdFromToken();
             var language = await _userService.GetUserLanguageFromUserIdAsync(loggedUser);
 
-            var result = await _compoundDishService.GetUserCompoundDishesAsync(loggedUser, search);
+            var result = await _compoundDishService.GetUserCompoundDishesAsync(loggedUser, search, favorites, lackSelfControl);
 
             var mapped = _mapper.Map<IEnumerable<CompoundDishResponse>>(result, opt =>
             {
@@ -167,6 +170,84 @@ namespace MismeAPI.Controllers
             /*#end reward section*/
 
             return Created("", null);
+        }
+
+        /// <summary>
+        /// Add a compund dish to current user favorite dishes. Requires authentication.
+        /// </summary>
+        /// <param name="dishId">Dish to add to favorite</param>
+        [HttpPost("favorite/create")]
+        [Authorize]
+        [ProducesResponseType(typeof(CompoundDishResponse), (int)HttpStatusCode.Created)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> AddFavoriteDish(int dishId)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            var result = await _compoundDishService.AddFavoriteAsync(loggedUser, dishId);
+
+            var language = await _userService.GetUserLanguageFromUserIdAsync(loggedUser);
+            var mapped = _mapper.Map<CompoundDishResponse>(result, opt =>
+            {
+                opt.Items["lang"] = language;
+            });
+            return Created("", new ApiOkResponse(mapped));
+        }
+
+        /// <summary>
+        /// Delete a compund dish from current user favorite dishes. Requires authentication.
+        /// </summary>
+        /// <param name="dishId">Dish to remove from favorites</param>
+        [HttpDelete("favorite/delete")]
+        [Authorize]
+        [ProducesResponseType(typeof(CompoundDishResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> DeleteFavoriteDish(int dishId)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            await _compoundDishService.RemoveFavoriteDishAsync(loggedUser, dishId);
+
+            return Ok();
+        }
+
+        /// <summary>
+        /// Add/Update a compund dish to current user lack-self-control dishes. Requires authentication.
+        /// </summary>
+        /// <param name="request">Request object - contains dish and intensity</param>
+        [HttpPost("lack-self-control/create-update")]
+        [Authorize]
+        [ProducesResponseType(typeof(CompoundDishResponse), (int)HttpStatusCode.Created)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> AddLackSelfControlDish(CreateUpdateLackControlDishRequest request)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            var result = await _compoundDishService.AddOrUpdateLackselfControlDishAsync(loggedUser, request.DishId, request.Intensity);
+
+            var language = await _userService.GetUserLanguageFromUserIdAsync(loggedUser);
+            var mapped = _mapper.Map<DishCompoundDishResponse>(result, opt =>
+            {
+                opt.Items["lang"] = language;
+            });
+            return Created("", new ApiOkResponse(mapped));
+        }
+
+        /// <summary>
+        /// Delete a compound dish from current user lack-self-control dishes. Requires authentication.
+        /// </summary>
+        /// <param name="dishId">Dish to remove from lack-self-control dishes</param>
+        [HttpDelete("lack-self-control/delete")]
+        [Authorize]
+        [ProducesResponseType(typeof(CompoundDishResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> DeleteLackSelfControlDish(int dishId)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            await _compoundDishService.RemoveLackselfControlDishAsync(loggedUser, dishId);
+
+            return Ok();
         }
     }
 }

@@ -8,7 +8,7 @@ namespace MismeAPI.Service
 {
     public interface ICompoundDishService
     {
-        Task<IEnumerable<CompoundDish>> GetUserCompoundDishesAsync(int ownerId, string search);
+        Task<IEnumerable<CompoundDish>> GetUserCompoundDishesAsync(int ownerId, string search, bool? favorites, bool? lackSelfControl);
 
         Task<IEnumerable<CompoundDish>> GetAllCompoundDishesAsync(int adminId, string search, int filter);
 
@@ -21,5 +21,13 @@ namespace MismeAPI.Service
         Task MarkCompoundDishAsReviewedAsync(int loggedUser, int id);
 
         Task ConvertUserDishAsync(int loggedUser, UpdateDishRequest dish);
+
+        Task<CompoundDish> AddFavoriteAsync(int loggedUser, int dishId);
+
+        Task RemoveFavoriteDishAsync(int loggedUser, int dishId);
+
+        Task<CompoundDish> AddOrUpdateLackselfControlDishAsync(int loggedUser, int dishId, int intensity);
+
+        Task RemoveLackselfControlDishAsync(int loggedUser, int dishId);
     }
 }

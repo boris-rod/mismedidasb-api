@@ -221,7 +221,10 @@ namespace MismeAPI.Utils
                 .ForMember(d => d.VitaminD, opts => opts.MapFrom(source => source.DishCompoundDishes.Count > 0 ? source.DishCompoundDishes.Sum(d => (d.Dish.VitaminD ?? 0.0) * d.DishQty) : 0.0))
                 .ForMember(d => d.VitaminE, opts => opts.MapFrom(source => source.DishCompoundDishes.Count > 0 ? source.DishCompoundDishes.Sum(d => (d.Dish.VitaminE ?? 0.0) * d.DishQty) : 0.0))
                 .ForMember(d => d.VitaminK, opts => opts.MapFrom(source => source.DishCompoundDishes.Count > 0 ? source.DishCompoundDishes.Sum(d => (d.Dish.VitaminK ?? 0.0) * d.DishQty) : 0.0))
-                .ForMember(d => d.Volume, opts => opts.MapFrom(source => source.DishCompoundDishes.Count > 0 ? source.DishCompoundDishes.Sum(d => (d.Dish.Volume ?? 0.0) * d.DishQty) : 0.0));
+                .ForMember(d => d.Volume, opts => opts.MapFrom(source => source.DishCompoundDishes.Count > 0 ? source.DishCompoundDishes.Sum(d => (d.Dish.Volume ?? 0.0) * d.DishQty) : 0.0))
+                .ForMember(d => d.IsFavorite, opts => opts.MapFrom(source => IsFavorite(source)))
+                .ForMember(d => d.IsLackSelfControlDish, opts => opts.MapFrom(source => IsLackSelfControl(source)))
+                .ForMember(d => d.LackSelfControlDishIntensity, opts => opts.MapFrom(source => LackSelfControlIntensity(source)));
 
             CreateMap<CompoundDish, AdminCompoundDishResponse>()
                 .ForMember(d => d.Username, opts => opts.MapFrom(source => source.CreatedBy.Username))
@@ -508,6 +511,13 @@ namespace MismeAPI.Utils
             return dish.FavoriteDishes.Any(fd => fd.UserId == loggedUser);
         }
 
+        private bool IsFavorite(CompoundDish dish)
+        {
+            var loggedUser = _httpContextAccessor.CurrentUser();
+
+            return dish.FavoriteDishes.Any(fd => fd.UserId == loggedUser);
+        }
+
         private bool IsLackSelfControl(Dish dish)
         {
             var loggedUser = _httpContextAccessor.CurrentUser();
@@ -515,7 +525,23 @@ namespace MismeAPI.Utils
             return dish.LackSelfControlDishes.Any(fd => fd.UserId == loggedUser);
         }
 
+        private bool IsLackSelfControl(CompoundDish dish)
+        {
+            var loggedUser = _httpContextAccessor.CurrentUser();
+
+            return dish.LackSelfControlDishes.Any(fd => fd.UserId == loggedUser);
+        }
+
         private int LackSelfControlIntensity(Dish dish)
+        {
+            var loggedUser = _httpContextAccessor.CurrentUser();
+
+            var item = dish.LackSelfControlDishes.FirstOrDefault(fd => fd.UserId == loggedUser);
+
+            return item != null ? item.Intensity : 0;
+        }
+
+        private int LackSelfControlIntensity(CompoundDish dish)
         {
             var loggedUser = _httpContextAccessor.CurrentUser();
 

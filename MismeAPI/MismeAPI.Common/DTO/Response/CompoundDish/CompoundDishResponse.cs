@@ -17,6 +17,10 @@ namespace MismeAPI.Common.DTO.Response.CompoundDish
         public DateTime ModifiedAt { get; set; }
         public bool IsDeleted { get; set; }
         public DateTime? DeletedAt { get; set; }
+
+        public bool IsFavorite { get; set; }
+        public bool IsLackSelfControlDish { get; set; }
+        public int LackSelfControlDishIntensity { get; set; }
         public ICollection<DishCompoundDishResponse> DishCompoundDishResponse { get; set; }
 
         public double Calories { get; set; }
