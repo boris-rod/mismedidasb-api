@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using MismeAPI.BasicResponses;
 using MismeAPI.Services;
 using MismeAPI.Utils;
@@ -16,11 +17,13 @@ namespace MismeAPI.Controllers
     {
         private readonly IPaymentService _paymentService;
         private readonly IMapper _mapper;
+        private readonly IConfiguration _config;
 
-        public PaymentController(IPaymentService paymentService, IMapper mapper)
+        public PaymentController(IPaymentService paymentService, IMapper mapper, IConfiguration config)
         {
             _paymentService = paymentService ?? throw new ArgumentNullException(nameof(paymentService));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _config = config ?? throw new ArgumentNullException(nameof(config));
         }
 
         /// <summary>
@@ -47,10 +50,14 @@ namespace MismeAPI.Controllers
         public async Task<IActionResult> StripePaymentIntentWebHook()
         {
             var json = await new StreamReader(HttpContext.Request.Body).ReadToEndAsync();
+            var endpointSecret = _config.GetSection("Stripe")["EndpointSecret"];
 
             try
             {
                 var stripeEvent = EventUtility.ParseEvent(json);
+
+                var signatureHeader = Request.Headers["Stripe-Signature"];
+                stripeEvent = EventUtility.ConstructEvent(json, signatureHeader, endpointSecret);
 
                 // Handle the event
                 if (stripeEvent.Type == Events.PaymentIntentSucceeded)
