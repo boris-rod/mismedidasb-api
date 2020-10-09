@@ -205,14 +205,15 @@ namespace MismeAPI.Services.Impls
                 };
 
                 await _uow.OrderRepository.AddAsync(order);
+                await _uow.CommitAsync();
             }
             else
             {
                 order.Status = orderStatus;
                 order.StatusInformation = statusInformation;
                 order.ModifiedAt = DateTime.UtcNow;
-                await _uow.OrderRepository.UpdateAsync(order, order.Id);
 
+                await _uow.OrderRepository.UpdateAsync(order, order.Id);
                 await _uow.CommitAsync();
             }
         }
