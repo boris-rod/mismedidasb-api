@@ -55,5 +55,6 @@ namespace MismeAPI.Common.DTO.Response.CompoundDish
         public double SaturatedFat { get; set; }
         public double MonoUnsaturatedFat { get; set; }
         public double PolyUnsaturatedFat { get; set; }
+        public double Alcohol { get; set; }
     }
 }
