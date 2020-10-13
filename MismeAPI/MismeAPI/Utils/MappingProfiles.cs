@@ -126,6 +126,7 @@ namespace MismeAPI.Utils
                  .ForMember(d => d.VitaminK, opts => opts.MapFrom(src => src.VitaminK ?? 0.0))
                  .ForMember(d => d.Volume, opts => opts.MapFrom(src => src.Volume ?? 0.0))
                  .ForMember(d => d.Zinc, opts => opts.MapFrom(src => src.Zinc ?? 0.0))
+                 .ForMember(d => d.Alcohol, opts => opts.MapFrom(src => src.Alcohol ?? 0.0))
                  .ForMember(d => d.Name, opts => opts.MapFrom((src, dest, destMember, context) => GetDishName(src, GetLanguageInMapProp(context.Items))))
                  .ForMember(d => d.IsFavorite, opts => opts.MapFrom(source => IsFavorite(source)))
                  .ForMember(d => d.IsLackSelfControlDish, opts => opts.MapFrom(source => IsLackSelfControl(source)))
@@ -221,6 +222,8 @@ namespace MismeAPI.Utils
                 .ForMember(d => d.VitaminD, opts => opts.MapFrom(source => source.DishCompoundDishes.Count > 0 ? source.DishCompoundDishes.Sum(d => (d.Dish.VitaminD ?? 0.0) * d.DishQty) : 0.0))
                 .ForMember(d => d.VitaminE, opts => opts.MapFrom(source => source.DishCompoundDishes.Count > 0 ? source.DishCompoundDishes.Sum(d => (d.Dish.VitaminE ?? 0.0) * d.DishQty) : 0.0))
                 .ForMember(d => d.VitaminK, opts => opts.MapFrom(source => source.DishCompoundDishes.Count > 0 ? source.DishCompoundDishes.Sum(d => (d.Dish.VitaminK ?? 0.0) * d.DishQty) : 0.0))
+                .ForMember(d => d.Alcohol, opts => opts.MapFrom(source => source.DishCompoundDishes.Count > 0 ? source.DishCompoundDishes.Sum(d => (d.Dish.Alcohol ?? 0.0) * d.DishQty) : 0.0))
+                .ForMember(d => d.Volume, opts => opts.MapFrom(source => source.DishCompoundDishes.Count > 0 ? source.DishCompoundDishes.Sum(d => (d.Dish.Volume ?? 0.0) * d.DishQty) : 0.0));
                 .ForMember(d => d.Volume, opts => opts.MapFrom(source => source.DishCompoundDishes.Count > 0 ? source.DishCompoundDishes.Sum(d => (d.Dish.Volume ?? 0.0) * d.DishQty) : 0.0))
                 .ForMember(d => d.IsFavorite, opts => opts.MapFrom(source => IsFavorite(source)))
                 .ForMember(d => d.IsLackSelfControlDish, opts => opts.MapFrom(source => IsLackSelfControl(source)))
@@ -260,6 +263,7 @@ namespace MismeAPI.Utils
                 .ForMember(d => d.VitaminD, opts => opts.MapFrom(source => source.DishCompoundDishes.Count > 0 ? source.DishCompoundDishes.Sum(d => (d.Dish.VitaminD ?? 0.0) * d.DishQty) : 0.0))
                 .ForMember(d => d.VitaminE, opts => opts.MapFrom(source => source.DishCompoundDishes.Count > 0 ? source.DishCompoundDishes.Sum(d => (d.Dish.VitaminE ?? 0.0) * d.DishQty) : 0.0))
                 .ForMember(d => d.VitaminK, opts => opts.MapFrom(source => source.DishCompoundDishes.Count > 0 ? source.DishCompoundDishes.Sum(d => (d.Dish.VitaminK ?? 0.0) * d.DishQty) : 0.0))
+                .ForMember(d => d.Alcohol, opts => opts.MapFrom(source => source.DishCompoundDishes.Count > 0 ? source.DishCompoundDishes.Sum(d => (d.Dish.Alcohol ?? 0.0) * d.DishQty) : 0.0))
                 .ForMember(d => d.Volume, opts => opts.MapFrom(source => source.DishCompoundDishes.Count > 0 ? source.DishCompoundDishes.Sum(d => (d.Dish.Volume ?? 0.0) * d.DishQty) : 0.0));
 
             CreateMap<CutPoint, CutPointResponse>();
