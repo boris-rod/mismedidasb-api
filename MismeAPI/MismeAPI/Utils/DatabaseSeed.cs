@@ -174,11 +174,12 @@ namespace MismeAPI.Utils
             handsCodes.Add(18, "D:/Projects/Mismes/BD Alimentos Saira/Alimentos 100x100/18.jpg");
 
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-            using (var package = new ExcelPackage(new FileInfo("D:/Projects/Mismes/BD Alimentos Saira/Envido  nuevos solo y para eliminar.xlsx")))
+            //using (var package = new ExcelPackage(new FileInfo("D:/Projects/Mismes/BD Alimentos Saira/Envido  nuevos solo y para eliminar.xlsx")))
+            using (var package = new ExcelPackage(new FileInfo("D:/Projects/Mismes/BD Alimentos Saira/Poner en produccion/Enviar Yoandy10102020.xlsx")))
             {
                 var sheetCount = package.Workbook.Worksheets.Count;
-                var firstSheet = package.Workbook.Worksheets["Incluido nuevo"];
-                for (int i = 701; i <= 722; i++)
+                var firstSheet = package.Workbook.Worksheets["Incluido 2da etapa"];
+                for (int i = 701; i <= 781; i++)
                 {
                     var code = firstSheet.Cells[i, 2].Text.Trim();
                     var dishName = firstSheet.Cells[i, 3].Text.Trim();

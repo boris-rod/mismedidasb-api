@@ -101,6 +101,7 @@ namespace MismeAPI
             services.AddTransient<IPaymentService, PaymentService>();
             services.AddTransient<IPaypalService, PaypalService>();
             services.AddTransient<IProductService, Services.Impls.ProductService>();
+            services.AddTransient<IReportService, ReportService>();
 
             var provider = services.BuildServiceProvider();
             var amazonS3Service = provider.GetService<IAmazonS3Service>();
