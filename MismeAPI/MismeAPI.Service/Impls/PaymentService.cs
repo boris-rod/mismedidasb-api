@@ -100,7 +100,7 @@ namespace MismeAPI.Services.Impls
                 order = new Data.Entities.Order
                 {
                     ExternalId = clientSecret,
-                    Amount = Convert.ToDecimal(paymentIntent.Amount / 100),
+                    Amount = paymentIntent.Amount / 100m,
                     Status = OrderStatusEnum.SUCCED,
                     StatusInformation = paymentIntent.ToString(),
                     PaymentMethod = PaymentMethodEnum.STRIPE,
@@ -196,7 +196,7 @@ namespace MismeAPI.Services.Impls
                 order = new Data.Entities.Order
                 {
                     ExternalId = paymentIntent.ClientSecret,
-                    Amount = Convert.ToDecimal(paymentIntent.Amount / 100),
+                    Amount = paymentIntent.Amount / 100m,
                     Status = orderStatus,
                     StatusInformation = statusInformation,
                     PaymentMethod = PaymentMethodEnum.STRIPE,
@@ -264,7 +264,7 @@ namespace MismeAPI.Services.Impls
                 ProductId = product.Id,
                 ProductName = product.Name,
                 ProductDescription = product.Description,
-                Amount = Convert.ToDecimal(amount / 100),
+                Amount = amount / 100m,
                 Status = OrderStatusEnum.PROCESING,
                 StatusInformation = "Stripe Payment Intent Requested",
                 PaymentMethod = PaymentMethodEnum.STRIPE,
