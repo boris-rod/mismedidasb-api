@@ -121,7 +121,7 @@ namespace MismeAPI.Services.Impls
                 order.ModifiedAt = DateTime.UtcNow;
                 await _uow.OrderRepository.UpdateAsync(order, order.Id);
 
-                await HandlePointsIncrementActionAsync(order);
+                await HandleCoinsIncrementActionAsync(order);
                 await _uow.CommitAsync();
             }
         }
@@ -218,14 +218,14 @@ namespace MismeAPI.Services.Impls
             }
         }
 
-        private async Task HandlePointsIncrementActionAsync(Data.Entities.Order order)
+        private async Task HandleCoinsIncrementActionAsync(Data.Entities.Order order)
         {
             var user = order.User;
             var product = order.Product;
 
-            if (user != null && product != null && product.Type == ProductEnum.POINT_OFFER)
+            if (user != null && product != null && product.Type == ProductEnum.COIN_OFFER)
             {
-                await _userStatisticsService.UpdateTotalPoints(user, product.Value);
+                await _userStatisticsService.UpdateTotalCoinsAsync(user, product.Value);
             }
 
             // TODO: Evaluate with Frontend devs y they need a PN with the success payment completed
@@ -235,7 +235,7 @@ namespace MismeAPI.Services.Impls
         {
             switch (product.Type)
             {
-                case ProductEnum.POINT_OFFER:
+                case ProductEnum.COIN_OFFER:
                     return Convert.ToInt32(product.Price * 100);
 
                 default:

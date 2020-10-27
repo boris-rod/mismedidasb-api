@@ -2,6 +2,6 @@
 {
     public enum ProductEnum
     {
-        POINT_OFFER
+        COIN_OFFER
     }
 }
