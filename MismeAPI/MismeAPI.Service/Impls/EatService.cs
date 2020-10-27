@@ -262,6 +262,7 @@ namespace MismeAPI.Service.Impls
 
                 _uow.EatRepository.Delete(d);
             }
+
             var eatResult = new List<Eat>();
             ////this days not eat yet
             //if (userEats.Count == 0)
@@ -297,21 +298,28 @@ namespace MismeAPI.Service.Impls
 
                 foreach (var d in item.Dishes)
                 {
-                    var ed = new EatDish();
-                    ed.DishId = d.DishId;
-                    ed.Eat = e;
-                    ed.Qty = d.Qty;
-
-                    await _uow.EatDishRepository.AddAsync(ed);
+                    var count = await _uow.DishRepository.GetAll().CountAsync(repo => repo.Id == d.DishId);
+                    if (count > 0)
+                    {
+                        var ed = new EatDish();
+                        ed.DishId = d.DishId;
+                        ed.Eat = e;
+                        ed.Qty = d.Qty;
+                        await _uow.EatDishRepository.AddAsync(ed);
+                    }
                 }
                 foreach (var d in item.CompoundDishes)
                 {
-                    var ed = new EatCompoundDish();
-                    ed.CompoundDishId = d.DishId;
-                    ed.Eat = e;
-                    ed.Qty = d.Qty;
+                    var count = await _uow.CompoundDishRepository.GetAll().CountAsync(repo => repo.Id == d.DishId);
+                    if (count > 0)
+                    {
+                        var ed = new EatCompoundDish();
+                        ed.CompoundDishId = d.DishId;
+                        ed.Eat = e;
+                        ed.Qty = d.Qty;
 
-                    await _uow.EatCompoundDishRepository.AddAsync(ed);
+                        await _uow.EatCompoundDishRepository.AddAsync(ed);
+                    }
                 }
             }
             //}
