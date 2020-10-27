@@ -81,6 +81,7 @@ namespace MismeAPI.Service.Impls
             dishh.SaturatedFat = dish.SaturatedFat;
             dishh.PolyUnsaturatedFat = dish.PolyUnsaturatedFat;
             dishh.MonoUnsaturatedFat = dish.MonoUnsaturatedFat;
+            dishh.Alcohol = dish.Alcohol;
 
             if (dish.Classification == 0)
             {

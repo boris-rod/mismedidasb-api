@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MismeAPI.Data;
 
 namespace MismeAPI.Data.Migrations
 {
     [DbContext(typeof(MismeContext))]
-    partial class MismeContextModelSnapshot : ModelSnapshot
+    [Migration("20201013130050_AddAlcoholField")]
+    partial class AddAlcoholField
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -547,27 +549,6 @@ namespace MismeAPI.Data.Migrations
                     b.ToTable("eatschedule");
                 });
 
-            modelBuilder.Entity("MismeAPI.Data.Entities.FavoriteCompoundDishes", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<int>("DishId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DishId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("favoritecompounddish");
-                });
-
             modelBuilder.Entity("MismeAPI.Data.Entities.FavoriteDish", b =>
                 {
                     b.Property<int>("Id")
@@ -642,30 +623,6 @@ namespace MismeAPI.Data.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("handconversionfactor");
-                });
-
-            modelBuilder.Entity("MismeAPI.Data.Entities.LackSelfControlCompoundDish", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<int>("DishId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Intensity")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DishId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("lackselfcontrolcompounddishes");
                 });
 
             modelBuilder.Entity("MismeAPI.Data.Entities.LackSelfControlDish", b =>
@@ -1771,21 +1728,6 @@ namespace MismeAPI.Data.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("MismeAPI.Data.Entities.FavoriteCompoundDishes", b =>
-                {
-                    b.HasOne("MismeAPI.Data.Entities.CompoundDish", "Dish")
-                        .WithMany("FavoriteDishes")
-                        .HasForeignKey("DishId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("MismeAPI.Data.Entities.User", "User")
-                        .WithMany("FavoriteCompoundDishes")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("MismeAPI.Data.Entities.FavoriteDish", b =>
                 {
                     b.HasOne("MismeAPI.Data.Entities.Dish", "Dish")
@@ -1796,21 +1738,6 @@ namespace MismeAPI.Data.Migrations
 
                     b.HasOne("MismeAPI.Data.Entities.User", "User")
                         .WithMany("FavoriteDishes")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("MismeAPI.Data.Entities.LackSelfControlCompoundDish", b =>
-                {
-                    b.HasOne("MismeAPI.Data.Entities.CompoundDish", "Dish")
-                        .WithMany("LackSelfControlDishes")
-                        .HasForeignKey("DishId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("MismeAPI.Data.Entities.User", "User")
-                        .WithMany("LackSelfControlCompoundDishes")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
