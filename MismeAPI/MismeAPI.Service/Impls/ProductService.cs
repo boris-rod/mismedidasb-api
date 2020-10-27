@@ -83,7 +83,7 @@ namespace MismeAPI.Services.Impls
                 Value = 1000,
                 CreatedAt = now,
                 ModifiedAt = now,
-                Type = ProductEnum.POINT_OFFER
+                Type = ProductEnum.COIN_OFFER
             };
             await _uow.ProductRepository.AddAsync(product1);
 
@@ -95,7 +95,7 @@ namespace MismeAPI.Services.Impls
                 Value = 2000,
                 CreatedAt = now,
                 ModifiedAt = now,
-                Type = ProductEnum.POINT_OFFER
+                Type = ProductEnum.COIN_OFFER
             };
             await _uow.ProductRepository.AddAsync(product2);
 
