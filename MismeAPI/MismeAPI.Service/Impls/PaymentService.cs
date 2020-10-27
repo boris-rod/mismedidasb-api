@@ -247,6 +247,7 @@ namespace MismeAPI.Services.Impls
         {
             var order = await _uow.OrderRepository.GetAll()
                 .Include(o => o.User)
+                .Include(o => o.Product)
                 .Where(o => o.ExternalId == externalId)
                 .FirstOrDefaultAsync();
 
