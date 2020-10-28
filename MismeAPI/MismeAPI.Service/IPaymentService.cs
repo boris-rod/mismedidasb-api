@@ -1,7 +1,6 @@
-﻿using Amazon.S3;
-using Amazon.S3.Model;
+﻿using MismeAPI.Common.DTO.Response.Payment;
 using Stripe;
-using System.IO;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace MismeAPI.Services
@@ -15,5 +14,7 @@ namespace MismeAPI.Services
         Task HandlePaymentIntentFailed(PaymentIntent paymentIntent);
 
         Task HandlePaymentIntentCanceled(PaymentIntent paymentIntent);
+
+        Task<IEnumerable<StripePaymentMethodResponse>> GetStripeCustomerPaymentMethods(int userId);
     }
 }

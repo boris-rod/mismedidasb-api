@@ -3,11 +3,14 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using MismeAPI.BasicResponses;
+using MismeAPI.Common.DTO.Response.Payment;
 using MismeAPI.Services;
 using MismeAPI.Utils;
 using Stripe;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace MismeAPI.Controllers
@@ -33,6 +36,9 @@ namespace MismeAPI.Controllers
         /// <returns>Client secret for payment intent</returns>
         [Authorize]
         [HttpPost("create-stripe-payment-intent")]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
         public async Task<IActionResult> CreatePaymentIntentToken([FromQuery] int productId)
         {
             var loggedUser = User.GetUserIdFromToken();
@@ -88,6 +94,24 @@ namespace MismeAPI.Controllers
                 Console.WriteLine(e.Message);
                 return BadRequest();
             }
+        }
+
+        /// <summary>
+        /// Get current user payment methods used in stripe
+        /// </summary>
+        /// <returns></returns>
+        [Authorize]
+        [HttpGet("stripe-payment-methods")]
+        [ProducesResponseType(typeof(IEnumerable<StripePaymentMethodResponse>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> GetStripePaymentMethods()
+        {
+            var loggedUser = User.GetUserIdFromToken();
+
+            var paymentMethods = await _paymentService.GetStripeCustomerPaymentMethods(loggedUser);
+
+            return Ok(new ApiOkResponse(paymentMethods));
         }
     }
 }

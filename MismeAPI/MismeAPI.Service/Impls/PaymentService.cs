@@ -1,30 +1,16 @@
-﻿using DeviceDetectorNET;
-using DeviceDetectorNET.Cache;
-using DeviceDetectorNET.Parser;
-using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
-using MismeAPI.Common;
-using MismeAPI.Common.DTO.Request;
+using MismeAPI.Common.DTO.Response.Payment;
 using MismeAPI.Common.Exceptions;
 using MismeAPI.Data.Entities;
 using MismeAPI.Data.Entities.Enums;
 using MismeAPI.Data.UoW;
 using MismeAPI.Service;
-using MismeAPI.Service.Utils;
-using rlcx.suid;
 using Stripe;
 using System;
 using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
-using System.Security.Claims;
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Wangkanai.Detection;
 
 namespace MismeAPI.Services.Impls
 {
@@ -152,19 +138,46 @@ namespace MismeAPI.Services.Impls
             await HandlePaymentIntentNotSuccess(paymentIntent, order, OrderStatusEnum.CANCELED);
         }
 
-        public async Task<StripeList<PaymentMethod>> GetStripeCustomerPaymentMethods(int userId)
+        public async Task<IEnumerable<StripePaymentMethodResponse>> GetStripeCustomerPaymentMethods(int userId)
         {
-            var user = await _userService.GetUserAsync(userId);
-            var options = new PaymentMethodListOptions
+            var user = await _userService.GetUserDevicesAsync(userId);
+
+            var result = new List<StripePaymentMethodResponse>();
+
+            if (!string.IsNullOrEmpty(user.StripeCustomerId))
             {
-                Customer = user.StripeCustomerId,
-                Type = "card",
-            };
+                var options = new PaymentMethodListOptions
+                {
+                    Customer = user.StripeCustomerId,
+                    Type = "card"
+                };
 
-            var service = new PaymentMethodService();
-            var paymentMethods = await service.ListAsync(options);
+                var service = new PaymentMethodService();
+                var paymentMethods = await service.ListAsync(options);
 
-            return paymentMethods;
+                foreach (var method in paymentMethods)
+                {
+                    if (method.Type == "card" && method.Card != null)
+                    {
+                        var card = method.Card;
+                        var mapped = new StripePaymentMethodResponse
+                        {
+                            PaymentMethodId = method.Id,
+                            Last4 = card.Last4,
+                            Country = card.Country,
+                            Description = card.Description,
+                            ExpMonth = card.ExpMonth,
+                            ExpYear = card.ExpYear,
+                            Funding = card.Funding,
+                            Issuer = card.Issuer
+                        };
+
+                        result.Add(mapped);
+                    }
+                }
+            }
+
+            return result;
         }
 
         private async Task CreateStripeCustomerAsync(User user)
