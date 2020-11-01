@@ -38,7 +38,7 @@ namespace MismeAPI.Services.Impls
         /// <param name="logguedUser"></param>
         /// <param name="productId"></param>
         /// <returns></returns>
-        public async Task<string> PaymentIntentAsync(int logguedUser, int productId)
+        public async Task<string> PaymentIntentAsync(int logguedUser, int productId, bool setupFutureUsage)
         {
             var user = await _userService.GetUserAsync(logguedUser);
             var product = await _productService.GetProductAsync(productId);
@@ -60,6 +60,9 @@ namespace MismeAPI.Services.Impls
                 Customer = user.StripeCustomerId,
                 Description = "Buying product " + product.Name + ". {ID: " + product.Id + "}"
             };
+
+            if (setupFutureUsage)
+                options.SetupFutureUsage = "on_session";
 
             var service = new PaymentIntentService();
             var paymentIntent = await service.CreateAsync(options);

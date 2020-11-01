@@ -7,7 +7,7 @@ namespace MismeAPI.Services
 {
     public interface IPaymentService
     {
-        Task<string> PaymentIntentAsync(int logguedUser, int productId);
+        Task<string> PaymentIntentAsync(int logguedUser, int productId, bool setupFutureUsage);
 
         Task HandlePaymentIntentSucceeded(PaymentIntent paymentIntent);
 

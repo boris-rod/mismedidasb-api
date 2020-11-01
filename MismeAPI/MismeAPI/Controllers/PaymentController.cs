@@ -33,17 +33,20 @@ namespace MismeAPI.Controllers
         /// Init a stripe payment intent
         /// </summary>
         /// <param name="productId">Product that the current user will buy</param>
+        /// <param name="setupFutureUsage">
+        /// Define if the user want to save the card for future on_session payments
+        /// </param>
         /// <returns>Client secret for payment intent</returns>
         [Authorize]
         [HttpPost("create-stripe-payment-intent")]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Unauthorized)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
-        public async Task<IActionResult> CreatePaymentIntentToken([FromQuery] int productId)
+        public async Task<IActionResult> CreatePaymentIntentToken([FromQuery] int productId, [FromQuery] bool setupFutureUsage)
         {
             var loggedUser = User.GetUserIdFromToken();
 
-            var clientSecret = await _paymentService.PaymentIntentAsync(loggedUser, productId);
+            var clientSecret = await _paymentService.PaymentIntentAsync(loggedUser, productId, setupFutureUsage);
 
             return Created("Payment Intent", new ApiOkResponse(new { clientSecret }));
         }
