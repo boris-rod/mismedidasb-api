@@ -183,6 +183,29 @@ namespace MismeAPI.Services.Impls
             return result;
         }
 
+        public async Task DeleteStripeCustomerPaymentMethod(int userId, string paymentMethodId)
+        {
+            var user = await _userService.GetUserDevicesAsync(userId);
+
+            if (!string.IsNullOrEmpty(user.StripeCustomerId))
+            {
+                var service = new PaymentMethodService();
+                var paymentMethod = await service.GetAsync(paymentMethodId);
+
+                if (paymentMethod != null)
+                {
+                    if (paymentMethod.CustomerId != user.StripeCustomerId)
+                    {
+                        throw new ForbiddenException("You dont have permission to remove this payment method");
+                    }
+                    else
+                    {
+                        await service.DetachAsync(paymentMethodId);
+                    }
+                }
+            }
+        }
+
         private async Task CreateStripeCustomerAsync(User user)
         {
             var options = new CustomerCreateOptions

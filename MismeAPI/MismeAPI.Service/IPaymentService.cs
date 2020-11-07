@@ -16,5 +16,7 @@ namespace MismeAPI.Services
         Task HandlePaymentIntentCanceled(PaymentIntent paymentIntent);
 
         Task<IEnumerable<StripePaymentMethodResponse>> GetStripeCustomerPaymentMethods(int userId);
+
+        Task DeleteStripeCustomerPaymentMethod(int userId, string paymentMethodId);
     }
 }

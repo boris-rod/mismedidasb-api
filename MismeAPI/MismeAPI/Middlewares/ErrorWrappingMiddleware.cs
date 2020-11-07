@@ -61,6 +61,12 @@ namespace MismeAPI.Middlewares
                 context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
                 Message = ex.Message;
             }
+            catch (ForbiddenException ex)
+            {
+                Log.Error(ex, ex.Message);
+                context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                Message = ex.Message;
+            }
             catch (Exception ex)
             {
                 Log.Error(ex, ex.Message);
