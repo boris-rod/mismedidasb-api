@@ -116,5 +116,23 @@ namespace MismeAPI.Controllers
 
             return Ok(new ApiOkResponse(paymentMethods));
         }
+
+        /// <summary>
+        /// Delete a payment method used in stripe
+        /// </summary>
+        /// <returns></returns>
+        [Authorize]
+        [HttpDelete("stripe-payment-methods")]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> DeleteStripePaymentMethod([FromQuery] string paymentMethodId)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+
+            await _paymentService.DeleteStripeCustomerPaymentMethod(loggedUser, paymentMethodId);
+
+            return NoContent();
+        }
     }
 }
