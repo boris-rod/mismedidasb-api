@@ -51,6 +51,7 @@ namespace MismeAPI.Services.Impls
                         break;
 
                     default:
+                        result = result.OrderBy(i => i.Price);
                         break;
                 }
             }
@@ -75,12 +76,24 @@ namespace MismeAPI.Services.Impls
             if (count > 0)
                 return;
 
+            var product0 = new Product
+            {
+                Name = "Paquete de 500 monedas",
+                Description = "Paquete de monedas para pagar servicios en PlaniFive",
+                Price = 0.99m,
+                Value = 500,
+                CreatedAt = now,
+                ModifiedAt = now,
+                Type = ProductEnum.COIN_OFFER
+            };
+            await _uow.ProductRepository.AddAsync(product0);
+
             var product1 = new Product
             {
-                Name = "Paquete de 1000 puntos",
-                Description = "Paquete de puntos para pagar servicios en PlaniFive",
-                Price = 1.99m,
-                Value = 1000,
+                Name = "Paquete de 2000 monedas",
+                Description = "Paquete de monedas para pagar servicios en PlaniFive",
+                Price = 2.99m,
+                Value = 2000,
                 CreatedAt = now,
                 ModifiedAt = now,
                 Type = ProductEnum.COIN_OFFER
@@ -89,10 +102,10 @@ namespace MismeAPI.Services.Impls
 
             var product2 = new Product
             {
-                Name = "Paquete de 2000 puntos",
-                Description = "Paquete de puntos para pagar servicios en PlaniFive",
-                Price = 2.99m,
-                Value = 2000,
+                Name = "Paquete de 3500 monedas",
+                Description = "Paquete de monedas para pagar servicios en PlaniFive",
+                Price = 4.99m,
+                Value = 3500,
                 CreatedAt = now,
                 ModifiedAt = now,
                 Type = ProductEnum.COIN_OFFER
