@@ -51,6 +51,7 @@ namespace MismeAPI.Services.Impls
                         break;
 
                     default:
+                        result = result.OrderBy(i => i.Price);
                         break;
                 }
             }
