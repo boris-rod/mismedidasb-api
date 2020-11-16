@@ -4,7 +4,7 @@ namespace MismeAPI.Service
 {
     public interface IReportService
     {
-        void GetNutritionalReport();
+        Task GetNutritionalReport(int userId);
 
         Task GetFeedReportAsync();
     }
