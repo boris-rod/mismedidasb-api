@@ -132,7 +132,7 @@ namespace APITaxi.API.Controllers
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
-        public async Task<IActionResult> Update([FromRoute]int id, UpdateSubscriptionRequest request)
+        public async Task<IActionResult> Update([FromRoute] int id, UpdateSubscriptionRequest request)
         {
             var subscription = await _subscriptionService.UpdateSubscriptionAsync(id, request);
 
@@ -150,7 +150,7 @@ namespace APITaxi.API.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> DeleteCutPoint([FromRoute]int id)
+        public async Task<IActionResult> DeleteSubscription([FromRoute] int id)
         {
             await _subscriptionService.DeleteSubscriptionAsync(id);
             return Ok();

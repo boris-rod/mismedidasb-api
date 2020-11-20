@@ -255,18 +255,36 @@ namespace MismeAPI.Service.Impls
 
         public async Task HandleSubscriptionsAsync()
         {
-            var userSubscriptions = await _uow.UserSubscriptionRepository.GetAllAsync();
+            var userSubscriptions = await _uow.UserSubscriptionRepository.GetAll()
+                .Include(us => us.Subscription)
+                .ToListAsync();
             var today = DateTime.UtcNow;
+            var tomorrow = today.AddDays(1);
 
             foreach (var userSubscription in userSubscriptions)
             {
-                if (userSubscription.ValidAt.Date < today.Date)
+                var isPlaniSubscription = userSubscription.Subscription != null && userSubscription.Subscription.Product == SubscriptionEnum.VIRTUAL_ASESSOR;
+                if (isPlaniSubscription)
                 {
-                    /*Extend the subscription to all users to prevent loose plany - TODO disable this when the requirement be requested*/
-                    await _subscriptionService.AssignSubscriptionAsync(userSubscription.UserId, SubscriptionEnum.VIRTUAL_ASESSOR);
+                    if (userSubscription.ValidAt.Date < today.Date)
+                    {
+                        /*Extend the subscription to all users to prevent loose plany - TODO disable this when the requirement be requested*/
+                        await _subscriptionService.AssignSubscriptionAsync(userSubscription.UserId, SubscriptionEnum.VIRTUAL_ASESSOR);
+                    }
 
                     // Do not disable subscriptions now.
                     //await _subscriptionService.DisableUserSubscriptionAsync(userSubscription.Id);
+                }
+                else
+                {
+                    if (userSubscription.IsActive && userSubscription.ValidAt.Date == tomorrow.Date)
+                    {
+                        await _subscriptionService.NotifySubscriptionAboutToExpireAsync(userSubscription.Id);
+                    }
+                    else if (userSubscription.IsActive && userSubscription.ValidAt.Date > today.Date)
+                    {
+                        await _subscriptionService.DisableUserSubscriptionAsync(userSubscription.Id);
+                    }
                 }
             }
         }
