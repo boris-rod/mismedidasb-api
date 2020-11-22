@@ -9,7 +9,6 @@ using MismeAPI.Services;
 using PdfRpt.Core.Contracts;
 using PdfRpt.Core.Helper;
 using PdfRpt.FluentInterface;
-using ScottPlot;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -74,35 +73,99 @@ namespace MismeAPI.Service.Impls
         }
 
         private void AddChartToPage(Document pdfDoc,
+            List<EatDish> eats, List<EatCompoundDish> eatsCompoundDish,
                                    float spacingBefore = 5,
                                    float spacingAfter = 5,
                                    float widthPercentage = 100)
         {
-            var plt = new ScottPlot.Plot(600, 400);
+            var gr = eats.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+            var gr1 = eatsCompoundDish.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+            var dict = new Dictionary<int, double>();
+            dict.Add((int)DayOfWeek.Sunday, 0.0);
+            dict.Add((int)DayOfWeek.Monday, 0.0);
+            dict.Add((int)DayOfWeek.Tuesday, 0.0);
+            dict.Add((int)DayOfWeek.Wednesday, 0.0);
+            dict.Add((int)DayOfWeek.Thursday, 0.0);
+            dict.Add((int)DayOfWeek.Friday, 0.0);
+            dict.Add((int)DayOfWeek.Saturday, 0.0);
 
-            // create some sample data
-            double[] xs = { 1, 2, 3, 4, 5, 6, 7 };
-            double[] valuesA = { 1, 2, 3, 2, 1, 2, 1 };
-            double[] valuesB = { 3, 3, 2, 1, 3, 2, 1 };
+            foreach (var group in gr)
+            {
+                var temp = eats.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.Dish.Calories ?? 0.0) * e.Qty);
+                if (gr1.Any(g => g.Key == group.Key))
+                {
+                    temp += eatsCompoundDish.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.CompoundDish.DishCompoundDishes.Sum(d => (d.Dish.Calories ?? 0.0) * d.DishQty)) * e.Qty);
+                }
+                dict[(int)group.Key.DayOfWeek] = Math.Round(temp, 2);
+                temp = 0;
+            }
 
-            // to simulate stacking B on A, shift B up by A
-            double[] valuesB2 = new double[valuesB.Length];
-            for (int i = 0; i < valuesB.Length; i++)
-                valuesB2[i] = valuesA[i] + valuesB[i];
+            var plt = new ScottPlot.Plot(500, 200);
 
-            // plot the bar charts in reverse order (highest first)
-            plt.PlotBar(xs, valuesB2, label: "Series B");
-            plt.PlotBar(xs, valuesA, label: "Series A");
+            string[] labels = new string[7];
+            double[] xs = new double[7];
+            double[] ys = new double[7];
+
+            foreach (var item in dict)
+            {
+                switch (item.Key)
+                {
+                    case 0:
+                        labels[0] = "Domingo";
+                        xs[0] = 0.0;
+                        ys[0] = item.Value;
+                        break;
+
+                    case 1:
+                        labels[1] = "Lunes";
+                        xs[1] = 1.0;
+                        ys[1] = item.Value;
+                        break;
+
+                    case 2:
+                        labels[2] = "Martes";
+                        xs[2] = 2.0;
+                        ys[2] = item.Value;
+                        break;
+
+                    case 3:
+                        labels[3] = "Miércoles";
+                        xs[3] = 3.0;
+                        ys[3] = item.Value;
+                        break;
+
+                    case 4:
+                        labels[4] = "Jueves";
+                        xs[4] = 4.0;
+                        ys[4] = item.Value;
+                        break;
+
+                    case 5:
+                        labels[5] = "Viernes";
+                        xs[5] = 5.0;
+                        ys[5] = item.Value;
+                        break;
+
+                    default:
+                        labels[6] = "Sábado";
+                        xs[6] = 6.0;
+                        ys[6] = item.Value;
+                        break;
+                }
+            }
+
+            plt.PlotBar(xs, ys, showValues: true);
+            plt.XTicks(labels);
 
             // improve the styling
-            plt.Legend(location: legendLocation.upperRight);
-            //plt.Title("Stacked Bar Charts");
+            plt.Legend(enableLegend: true);
+            //plt.Title("Kcal/día", enable: true);
 
             //var currentAssembly = typeof(ReportService).GetTypeInfo().Assembly;
             //var root = Path.GetDirectoryName(currentAssembly.Location);
-            plt.SaveFig("PlotTypes_Bar_Stacked.png");
+            plt.SaveFig("kcalPerDay.png");
 
-            var imageBytes = File.ReadAllBytes("PlotTypes_Bar_Stacked.png");
+            var imageBytes = File.ReadAllBytes("kcalPerDay.png");
             var iTextSharpImage = PdfImageHelper.GetITextSharpImageFromByteArray(imageBytes);
             iTextSharpImage.Alignment = Element.ALIGN_CENTER;
 
@@ -110,18 +173,163 @@ namespace MismeAPI.Service.Impls
             tableImage.HorizontalAlignment = Element.ALIGN_CENTER;
             tableImage.DefaultCell.Border = Rectangle.NO_BORDER;
             tableImage.WidthPercentage = 100;
+            tableImage.SpacingAfter = 60;
+            tableImage.SpacingBefore = 100;
 
             tableImage.AddCell(iTextSharpImage);
+
+            /// kcal per day: STACKED
+            double[] proteins = new double[7];
+            double[] carbo = new double[7];
+            double[] fats = new double[7];
+
+            var dictProt = new Dictionary<int, double>();
+            dictProt.Add((int)DayOfWeek.Sunday, 0.0);
+            dictProt.Add((int)DayOfWeek.Monday, 0.0);
+            dictProt.Add((int)DayOfWeek.Tuesday, 0.0);
+            dictProt.Add((int)DayOfWeek.Wednesday, 0.0);
+            dictProt.Add((int)DayOfWeek.Thursday, 0.0);
+            dictProt.Add((int)DayOfWeek.Friday, 0.0);
+            dictProt.Add((int)DayOfWeek.Saturday, 0.0);
+
+            var dictCarbo = new Dictionary<int, double>();
+            dictCarbo.Add((int)DayOfWeek.Sunday, 0.0);
+            dictCarbo.Add((int)DayOfWeek.Monday, 0.0);
+            dictCarbo.Add((int)DayOfWeek.Tuesday, 0.0);
+            dictCarbo.Add((int)DayOfWeek.Wednesday, 0.0);
+            dictCarbo.Add((int)DayOfWeek.Thursday, 0.0);
+            dictCarbo.Add((int)DayOfWeek.Friday, 0.0);
+            dictCarbo.Add((int)DayOfWeek.Saturday, 0.0);
+
+            var dictFats = new Dictionary<int, double>();
+            dictFats.Add((int)DayOfWeek.Sunday, 0.0);
+            dictFats.Add((int)DayOfWeek.Monday, 0.0);
+            dictFats.Add((int)DayOfWeek.Tuesday, 0.0);
+            dictFats.Add((int)DayOfWeek.Wednesday, 0.0);
+            dictFats.Add((int)DayOfWeek.Thursday, 0.0);
+            dictFats.Add((int)DayOfWeek.Friday, 0.0);
+            dictFats.Add((int)DayOfWeek.Saturday, 0.0);
+
+            foreach (var group in gr)
+            {
+                var temp = eats.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.Dish.Proteins ?? 0.0) * e.Qty);
+                if (gr1.Any(g => g.Key == group.Key))
+                {
+                    temp += eatsCompoundDish.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.CompoundDish.DishCompoundDishes.Sum(d => (d.Dish.Proteins ?? 0.0) * d.DishQty)) * e.Qty);
+                }
+                dictProt[(int)group.Key.DayOfWeek] = Math.Round(temp, 2);
+                temp = 0;
+
+                temp = eats.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.Dish.Carbohydrates ?? 0.0) * e.Qty);
+                if (gr1.Any(g => g.Key == group.Key))
+                {
+                    temp += eatsCompoundDish.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.CompoundDish.DishCompoundDishes.Sum(d => (d.Dish.Carbohydrates ?? 0.0) * d.DishQty)) * e.Qty);
+                }
+                dictCarbo[(int)group.Key.DayOfWeek] = Math.Round(temp, 2);
+                temp = 0;
+
+                temp = eats.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.Dish.Fat ?? 0.0) * e.Qty);
+                if (gr1.Any(g => g.Key == group.Key))
+                {
+                    temp += eatsCompoundDish.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.CompoundDish.DishCompoundDishes.Sum(d => (d.Dish.Fat ?? 0.0) * d.DishQty)) * e.Qty);
+                }
+                dictFats[(int)group.Key.DayOfWeek] = Math.Round(temp, 2);
+                temp = 0;
+            }
+
+            foreach (var item in dictProt)
+            {
+                switch (item.Key)
+                {
+                    case 0:
+                        //labels[0] = "Domingo";
+                        xs[0] = 0.0;
+                        proteins[0] = item.Value;
+                        carbo[0] = dictCarbo[item.Key];
+                        fats[0] = dictFats[item.Key];
+                        break;
+
+                    case 1:
+                        //labels[1] = "Lunes";
+                        xs[1] = 1.0;
+                        proteins[1] = item.Value;
+                        carbo[1] = dictCarbo[item.Key];
+                        fats[1] = dictFats[item.Key];
+                        break;
+
+                    case 2:
+                        //labels[2] = "Martes";
+                        xs[2] = 2.0;
+                        proteins[2] = item.Value;
+                        carbo[2] = dictCarbo[item.Key];
+                        fats[2] = dictFats[item.Key];
+                        break;
+
+                    case 3:
+                        //labels[3] = "Miércoles";
+                        xs[3] = 3.0;
+                        proteins[3] = item.Value;
+                        carbo[3] = dictCarbo[item.Key];
+                        fats[3] = dictFats[item.Key];
+                        break;
+
+                    case 4:
+                        //labels[4] = "Jueves";
+                        xs[4] = 4.0;
+                        proteins[4] = item.Value;
+                        carbo[4] = dictCarbo[item.Key];
+                        fats[4] = dictFats[item.Key];
+                        break;
+
+                    case 5:
+                        //labels[5] = "Viernes";
+                        xs[5] = 5.0;
+                        proteins[5] = item.Value;
+                        carbo[5] = dictCarbo[item.Key];
+                        fats[5] = dictFats[item.Key];
+                        break;
+
+                    default:
+                        //labels[6] = "Sábado";
+                        xs[6] = 6.0;
+                        proteins[6] = item.Value;
+                        carbo[6] = dictCarbo[item.Key];
+                        fats[6] = dictFats[item.Key];
+                        break;
+                }
+            }
+
+            var plt1 = new ScottPlot.Plot(500, 300);
+            plt1.PlotBar(xs, proteins, label: "Proteínas");
+            plt1.PlotBar(xs, carbo, label: "Carbohidratos");
+            plt1.PlotBar(xs, fats, label: "Grasas");
+            plt1.XTicks(labels);
+
+            // improve the styling
+            //plt.Legend(enableLegend: true);
+            plt1.Legend(location: ScottPlot.legendLocation.upperRight);
+            //plt.Title("Kcal/día", enable: true);
+
+            //var currentAssembly = typeof(ReportService).GetTypeInfo().Assembly;
+            //var root = Path.GetDirectoryName(currentAssembly.Location);
+            plt1.SaveFig("kcalPerDayStack.png");
+
+            var imageBytes1 = File.ReadAllBytes("kcalPerDayStack.png");
+            var iTextSharpImage1 = PdfImageHelper.GetITextSharpImageFromByteArray(imageBytes1);
+            iTextSharpImage1.Alignment = Element.ALIGN_CENTER;
 
             var tableImage1 = new PdfPTable(1);
             tableImage1.HorizontalAlignment = Element.ALIGN_CENTER;
             tableImage1.DefaultCell.Border = Rectangle.NO_BORDER;
             tableImage1.WidthPercentage = 100;
 
-            tableImage1.AddCell(iTextSharpImage);
+            tableImage1.AddCell(iTextSharpImage1);
 
             pdfDoc.Add(tableImage);
             pdfDoc.Add(tableImage1);
+
+            File.Delete("kcalPerDay.png");
+            File.Delete("kcalPerDayStack.png");
         }
 
         private List<MacroMicroValues> GetData(List<EatDish> eats, List<EatCompoundDish> compoundEats)
@@ -130,7 +338,7 @@ namespace MismeAPI.Service.Impls
 
             //PROTEINS
             var max = 0.0;
-            var min = 0.0;
+            var min = 1000000000.0;
 
             var total1 = eats.Sum(e => (e.Dish.Proteins ?? 0.0) * e.Qty);
             var total2 = compoundEats.Sum(e => (e.CompoundDish.DishCompoundDishes.Sum(d => (d.Dish.Proteins ?? 0.0) * d.DishQty)) * e.Qty);
@@ -176,7 +384,7 @@ namespace MismeAPI.Service.Impls
             max = 0.0;
             total1 = 0.0;
             total2 = 0.0;
-            min = 0.0;
+            min = 1000000000.0;
             avg1 = 0.0;
             avg2 = 0.0;
 
@@ -220,7 +428,7 @@ namespace MismeAPI.Service.Impls
             max = 0.0;
             total1 = 0.0;
             total2 = 0.0;
-            min = 0.0;
+            min = 1000000000.0;
             avg1 = 0.0;
             avg2 = 0.0;
 
@@ -264,7 +472,7 @@ namespace MismeAPI.Service.Impls
             max = 0.0;
             total1 = 0.0;
             total2 = 0.0;
-            min = 0.0;
+            min = 1000000000.0;
             avg1 = 0.0;
             avg2 = 0.0;
 
@@ -308,7 +516,7 @@ namespace MismeAPI.Service.Impls
             max = 0.0;
             total1 = 0.0;
             total2 = 0.0;
-            min = 0.0;
+            min = 1000000000.0;
             avg1 = 0.0;
             avg2 = 0.0;
 
@@ -352,7 +560,7 @@ namespace MismeAPI.Service.Impls
             max = 0.0;
             total1 = 0.0;
             total2 = 0.0;
-            min = 0.0;
+            min = 1000000000.0;
             avg1 = 0.0;
             avg2 = 0.0;
 
@@ -396,7 +604,7 @@ namespace MismeAPI.Service.Impls
             max = 0.0;
             total1 = 0.0;
             total2 = 0.0;
-            min = 0.0;
+            min = 1000000000.0;
             avg1 = 0.0;
             avg2 = 0.0;
 
@@ -440,7 +648,7 @@ namespace MismeAPI.Service.Impls
             max = 0.0;
             total1 = 0.0;
             total2 = 0.0;
-            min = 0.0;
+            min = 1000000000.0;
             avg1 = 0.0;
             avg2 = 0.0;
 
@@ -484,7 +692,7 @@ namespace MismeAPI.Service.Impls
             max = 0.0;
             total1 = 0.0;
             total2 = 0.0;
-            min = 0.0;
+            min = 1000000000.0;
             avg1 = 0.0;
             avg2 = 0.0;
 
@@ -528,7 +736,7 @@ namespace MismeAPI.Service.Impls
             max = 0.0;
             total1 = 0.0;
             total2 = 0.0;
-            min = 0.0;
+            min = 1000000000.0;
             avg1 = 0.0;
             avg2 = 0.0;
 
@@ -572,7 +780,7 @@ namespace MismeAPI.Service.Impls
             max = 0.0;
             total1 = 0.0;
             total2 = 0.0;
-            min = 0.0;
+            min = 1000000000.0;
             avg1 = 0.0;
             avg2 = 0.0;
 
@@ -616,7 +824,7 @@ namespace MismeAPI.Service.Impls
             max = 0.0;
             total1 = 0.0;
             total2 = 0.0;
-            min = 0.0;
+            min = 1000000000.0;
             avg1 = 0.0;
             avg2 = 0.0;
 
@@ -660,7 +868,7 @@ namespace MismeAPI.Service.Impls
             max = 0.0;
             total1 = 0.0;
             total2 = 0.0;
-            min = 0.0;
+            min = 1000000000.0;
             avg1 = 0.0;
             avg2 = 0.0;
 
@@ -704,7 +912,7 @@ namespace MismeAPI.Service.Impls
             max = 0.0;
             total1 = 0.0;
             total2 = 0.0;
-            min = 0.0;
+            min = 1000000000.0;
             avg1 = 0.0;
             avg2 = 0.0;
 
@@ -748,7 +956,7 @@ namespace MismeAPI.Service.Impls
             max = 0.0;
             total1 = 0.0;
             total2 = 0.0;
-            min = 0.0;
+            min = 1000000000.0;
             avg1 = 0.0;
             avg2 = 0.0;
 
@@ -792,7 +1000,7 @@ namespace MismeAPI.Service.Impls
             max = 0.0;
             total1 = 0.0;
             total2 = 0.0;
-            min = 0.0;
+            min = 1000000000.0;
             avg1 = 0.0;
             avg2 = 0.0;
 
@@ -836,7 +1044,7 @@ namespace MismeAPI.Service.Impls
             max = 0.0;
             total1 = 0.0;
             total2 = 0.0;
-            min = 0.0;
+            min = 1000000000.0;
             avg1 = 0.0;
             avg2 = 0.0;
 
@@ -880,7 +1088,7 @@ namespace MismeAPI.Service.Impls
             max = 0.0;
             total1 = 0.0;
             total2 = 0.0;
-            min = 0.0;
+            min = 1000000000.0;
             avg1 = 0.0;
             avg2 = 0.0;
 
@@ -924,7 +1132,7 @@ namespace MismeAPI.Service.Impls
             max = 0.0;
             total1 = 0.0;
             total2 = 0.0;
-            min = 0.0;
+            min = 1000000000.0;
             avg1 = 0.0;
             avg2 = 0.0;
 
@@ -968,7 +1176,7 @@ namespace MismeAPI.Service.Impls
             max = 0.0;
             total1 = 0.0;
             total2 = 0.0;
-            min = 0.0;
+            min = 1000000000.0;
             avg1 = 0.0;
             avg2 = 0.0;
 
@@ -1012,7 +1220,7 @@ namespace MismeAPI.Service.Impls
             max = 0.0;
             total1 = 0.0;
             total2 = 0.0;
-            min = 0.0;
+            min = 1000000000.0;
             avg1 = 0.0;
             avg2 = 0.0;
 
@@ -1056,7 +1264,7 @@ namespace MismeAPI.Service.Impls
             max = 0.0;
             total1 = 0.0;
             total2 = 0.0;
-            min = 0.0;
+            min = 1000000000.0;
             avg1 = 0.0;
             avg2 = 0.0;
 
@@ -1100,7 +1308,7 @@ namespace MismeAPI.Service.Impls
             max = 0.0;
             total1 = 0.0;
             total2 = 0.0;
-            min = 0.0;
+            min = 1000000000.0;
             avg1 = 0.0;
             avg2 = 0.0;
 
@@ -1144,7 +1352,7 @@ namespace MismeAPI.Service.Impls
             max = 0.0;
             total1 = 0.0;
             total2 = 0.0;
-            min = 0.0;
+            min = 1000000000.0;
             avg1 = 0.0;
             avg2 = 0.0;
 
@@ -1188,7 +1396,7 @@ namespace MismeAPI.Service.Impls
             max = 0.0;
             total1 = 0.0;
             total2 = 0.0;
-            min = 0.0;
+            min = 1000000000.0;
             avg1 = 0.0;
             avg2 = 0.0;
 
@@ -1232,7 +1440,7 @@ namespace MismeAPI.Service.Impls
             max = 0.0;
             total1 = 0.0;
             total2 = 0.0;
-            min = 0.0;
+            min = 1000000000.0;
             avg1 = 0.0;
             avg2 = 0.0;
 
@@ -1282,8 +1490,6 @@ namespace MismeAPI.Service.Impls
             var currentAssembly = typeof(ReportService).GetTypeInfo().Assembly;
             var root = Path.GetDirectoryName(currentAssembly.Location);
             var p = root + "\\imgs\\planifive.png";
-            //var p = root + "\\imgs\\planifive1.png";
-            //var p = root + "\\imgs\\48x48.png";
             return p;
         }
 
@@ -1606,8 +1812,10 @@ namespace MismeAPI.Service.Impls
 
                     args.PdfDoc.Add(tabb);
                     args.PdfDoc.NewPage();
-                    AddChartToPage(args.PdfDoc);
+
+                    AddChartToPage(args.PdfDoc, eatsWeek, eatsWeekCompoundDish);
                     args.PdfDoc.NewPage();
+
                     var macroInfo = new PdfGrid(numColumns: 1)
                     {
                         WidthPercentage = 100,
@@ -1736,6 +1944,37 @@ namespace MismeAPI.Service.Impls
                         count += 1;
                     }
                     args.PdfDoc.Add(tabb);
+
+                    var gr = eatsWeek.GroupBy(e => e.Eat.CreatedAt.Date);
+                    var gr1 = eatsWeekCompoundDish.GroupBy(e => e.Eat.CreatedAt.Date);
+                    var uniqueTimes = new List<DateTime>();
+                    foreach (var group in gr)
+                    {
+                        if (!uniqueTimes.Any(u => u.Date == group.Key.Date))
+                        {
+                            uniqueTimes.Add(group.Key);
+                        }
+                    }
+
+                    if (uniqueTimes.Count != 7)
+                    {
+                        var alert = new PdfGrid(numColumns: 1)
+                        {
+                            WidthPercentage = 100,
+                            SpacingBefore = 70
+                            //SpacingAfter = 30
+                        };
+                        alert.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Nota: Para una mejor interpretación de los datos es aconsejable planificar su alimentación cada día.";
+                                 properties.PdfFont = events.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                 properties.PdfFontStyle = DocumentFontStyle.BoldItalic;
+                             });
+                        args.PdfDoc.Add(alert);
+                    }
                     args.PdfDoc.NewPage();
 
                     var tips = new PdfGrid(numColumns: 1)
@@ -1935,7 +2174,7 @@ namespace MismeAPI.Service.Impls
 
                      events.DocumentClosing(args =>
                      {
-                         AddChartToPage(args.PdfDoc);
+                         //AddChartToPage(args.PdfDoc);
                          //AddChartToPage(args.PdfDoc, width: (int)args.PdfWriter.PageSize.Width - 100, height: 250);
                      });
                  })
