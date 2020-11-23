@@ -1989,40 +1989,991 @@ namespace MismeAPI.Service.Impls
                          (cellData, properties) =>
                          {
                              cellData.Value = "Consejos nutricionales de la semana:";
-
                              properties.PdfFont = events.PdfFont;
                              properties.RunDirection = PdfRunDirection.LeftToRight;
                              properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
                              properties.PaddingBottom = 20;
+                             properties.PdfFontStyle = DocumentFontStyle.Underline;
                          });
+                    if (ProteinsAdviseIsNeeded(info, eatsWeek, eatsWeekCompoundDish))
+                    {
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Proteínas:";
 
-                    tips.AddSimpleRow(
-                         (cellData, properties) =>
-                         {
-                             cellData.Value = "1- Coma mucho dulce.";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                 properties.PdfFontStyle = DocumentFontStyle.Underline;
+                             });
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Incremente el consumo de proteínas. Trate de balancear entre las proteínas de origen animal y vegetal. " +
+                                 "Si combina ambas en el mismo plato aumenta la biodisponibilidad. " +
+                                 "Recuerde que las proteínas de origen animal tienen aminoácidos esenciales que no se incorporan al organismo de otra forma. " +
+                                 "Son una fuente muy importante de aporte de proteínas los lácteos y sus derivados.";
 
-                             properties.PdfFont = args.PdfFont;
-                             properties.RunDirection = PdfRunDirection.LeftToRight;
-                             properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
-                         });
-                    tips.AddSimpleRow(
-                         (cellData, properties) =>
-                         {
-                             cellData.Value = "2- Beba mucha cerveza.";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                 properties.PaddingBottom = 10f;
+                             });
+                    }
 
-                             properties.PdfFont = args.PdfFont;
-                             properties.RunDirection = PdfRunDirection.LeftToRight;
-                             properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
-                         });
-                    tips.AddSimpleRow(
-                         (cellData, properties) =>
-                         {
-                             cellData.Value = "3- No me carezca con la carne.";
+                    if (CarbohidratosMINAdviseIsNeeded(info, eatsWeek, eatsWeekCompoundDish))
+                    {
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Carbohidratos:";
 
-                             properties.PdfFont = args.PdfFont;
-                             properties.RunDirection = PdfRunDirection.LeftToRight;
-                             properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
-                         });
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                 properties.PdfFontStyle = DocumentFontStyle.Underline;
+                             });
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Debe ingerir un mínimo de 130g por día de carbohidratos debido a que es la cantidad mínima recomendada " +
+                                 "para que el cerebro funcione correctamente.";
+
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                             });
+
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Se recomienda que un 75% del total de los carbohidratos ingeridos sean complejos, como por ejemplo almidones " +
+                                 "que se encuentran en cereales, raíces y tubérculos (chivirias, papa), legumbres, frutas ricas en almidón (plátano, calabaza, calabacín, maíz, arvejas o guisantes) " +
+                                 "y un 25 % de carbohidratos simples, preferir frutas crudas.";
+
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                 properties.PaddingBottom = 10f;
+                             });
+                    }
+                    else if (CarbohidratosMAXAdviseIsNeeded(info, eatsWeek, eatsWeekCompoundDish))
+                    {
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Carbohidratos:";
+
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                 properties.PdfFontStyle = DocumentFontStyle.Underline;
+                             });
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Debe disminuir el consumo de carbohidratos diarios pues todo el exceso se almacena en forma de grasa en el organismo.";
+
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                             });
+
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Se recomienda que un 75% del total de los carbohidratos ingeridos sean complejos, como por ejemplo almidones " +
+                                 "que se encuentran en cereales, raíces y tubérculos (chivirias, papa), legumbres, frutas ricas en almidón (plátano, calabaza, calabacín, maíz, arvejas o guisantes) " +
+                                 "y un 25 % de carbohidratos simples, preferir frutas crudas.";
+
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                 properties.PaddingBottom = 10f;
+                             });
+                    }
+                    if (TotalFatsMAXAdviseIsNeeded(info, eatsWeek, eatsWeekCompoundDish))
+                    {
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Grasas totales:";
+
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                 properties.PdfFontStyle = DocumentFontStyle.Underline;
+                             });
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Se recomienda disminuir la cantidad de alimentos que contienen grasa.";
+
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                             });
+
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Se recomienda ingerir menor cantidad de ac. grasos saturados por lo que disminuya o evite la bollería sobre todo industrial, " +
+                                 "comidas de fast food que emplean aceites vegetales solidificados; dulces y manteca de coco, mantecas animales, carnes y derivados, embutidos, etc.";
+
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                             });
+
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Haga un balance adecuado de las grasas que ingiere, los ácidos grasos monoinsaturados como el oleico, está presente de forma " +
+                                 "abundante en los aceites de oliva y de colza y en diversas frutas y frutos secos (aguacate, avellanas, cacahuete, almendras, nueces y otros). " +
+                                 "Es más beneficiosos para su salud que la ingestión de grasas saturadas.";
+
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                             });
+
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Incremente la ingestión de grasas polinsaturadas. La ingestión deseable de ácido linoleico debe proveer como mínimo " +
+                                 "el 5 % de la energía. Es un ac. graso esencial o sea no se fabrica en el organismo humano por lo que hay que tomarlo de los alimentos. " +
+"La fuente dietética principal de ácidos grasos polinsaturados de la serie n-6 (procedente del ácido linoleico) es el consumo de aceites vegetales" +
+"(girasol, soja, maíz y sus derivados no hidrogenados), aunque también se encuentran, en menor cantidad, en otros alimentos como la leche, ciertos frutos secos, " +
+"los aguacates y otros." +
+"Los ácidos grasos polinsaturados de la serie n-3 más importantes en nutrición humana son el ácido eicosapentaenoico y el docosahexaenoico, abundantes en las grasas y aceites procedentes del pescado sobre todo los azules y el α-linolénico " +
+"(presente en diversos alimentos vegetales como los aceites de semilla de soja, semilla de lino, nueces o colza).";
+
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                 properties.PaddingBottom = 10f;
+                             });
+                    }
+                    else if (SaturatedFatsMAXAdviseIsNeeded(info, eatsWeek, eatsWeekCompoundDish))
+                    {
+                        tips.AddSimpleRow(
+                                 (cellData, properties) =>
+                                 {
+                                     cellData.Value = "Ac. grasos saturados:";
+
+                                     properties.PdfFont = args.PdfFont;
+                                     properties.RunDirection = PdfRunDirection.LeftToRight;
+                                     properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                     properties.PdfFontStyle = DocumentFontStyle.Underline;
+                                 });
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Se recomienda ingerir menor cantidad de ac. grasos saturados por lo que disminuya o evite la bollería sobre todo industrial, " +
+                                 "comidas de fast food que emplean aceites vegetales solidificados; dulces y manteca de coco, mantecas animales, carnes y derivados, embutidos, etc.";
+
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                 properties.PaddingBottom = 10f;
+                             });
+                    }
+                    else if (MonoInsaturatedFatsMAXAdviseIsNeeded(info, eatsWeek, eatsWeekCompoundDish))
+                    {
+                        tips.AddSimpleRow(
+                                 (cellData, properties) =>
+                                 {
+                                     cellData.Value = "Ac. grasos monoinsaturados:";
+
+                                     properties.PdfFont = args.PdfFont;
+                                     properties.RunDirection = PdfRunDirection.LeftToRight;
+                                     properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                     properties.PdfFontStyle = DocumentFontStyle.Underline;
+                                 });
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Haga un balance adecuado de las grasas que ingiere, los ácidos grasos monoinsaturados como el oleico, está presente de forma " +
+                                 "abundante en los aceites de oliva y de colza y en diversas frutas y frutos secos (aguacate, avellanas, cacahuete, almendras, nueces y otros). " +
+                                 "Es más beneficiosos para su salud que la ingestión de grasas saturadas.";
+
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                 properties.PaddingBottom = 10f;
+                             });
+                    }
+                    else if (PolyInsaturatedFatsMAXAdviseIsNeeded(info, eatsWeek, eatsWeekCompoundDish))
+                    {
+                        tips.AddSimpleRow(
+                                 (cellData, properties) =>
+                                 {
+                                     cellData.Value = "Ac. grasos polinsaturados:";
+
+                                     properties.PdfFont = args.PdfFont;
+                                     properties.RunDirection = PdfRunDirection.LeftToRight;
+                                     properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                     properties.PdfFontStyle = DocumentFontStyle.Underline;
+                                 });
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Incremente la ingestión de grasas polinsaturadas. La ingestión deseable de ácido linoleico debe proveer como mínimo " +
+                                 "el 5 % de la energía. Es un ac. graso esencial o sea no se fabrica en el organismo humano por lo que hay que tomarlo de los alimentos. " +
+"La fuente dietética principal de ácidos grasos polinsaturados de la serie n-6 (procedente del ácido linoleico) es el consumo de aceites vegetales" +
+"(girasol, soja, maíz y sus derivados no hidrogenados), aunque también se encuentran, en menor cantidad, en otros alimentos como la leche, ciertos frutos secos, " +
+"los aguacates y otros." +
+"Los ácidos grasos polinsaturados de la serie n-3 más importantes en nutrición humana son el ácido eicosapentaenoico y el docosahexaenoico, abundantes en las grasas y aceites procedentes del pescado sobre todo los azules y el α-linolénico " +
+"(presente en diversos alimentos vegetales como los aceites de semilla de soja, semilla de lino, nueces o colza).";
+
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                 properties.PaddingBottom = 10f;
+                             });
+                    }
+
+                    if (CholesterolMAXAdviseIsNeeded(info, eatsWeek, eatsWeekCompoundDish))
+                    {
+                        tips.AddSimpleRow(
+                                 (cellData, properties) =>
+                                 {
+                                     cellData.Value = "Colesterol:";
+
+                                     properties.PdfFont = args.PdfFont;
+                                     properties.RunDirection = PdfRunDirection.LeftToRight;
+                                     properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                     properties.PdfFontStyle = DocumentFontStyle.Underline;
+                                 });
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Debe disminuir la ingesta de colesterol. Algunas de las principales fuentes son carnes, grasas animales, lácteos y derivados y la yema del huevo.";
+
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                 properties.PaddingBottom = 10f;
+                             });
+                    }
+                    if (FiberMINAdviseIsNeeded(info, eatsWeek, eatsWeekCompoundDish))
+                    {
+                        tips.AddSimpleRow(
+                                 (cellData, properties) =>
+                                 {
+                                     cellData.Value = "Fibra:";
+
+                                     properties.PdfFont = args.PdfFont;
+                                     properties.RunDirection = PdfRunDirection.LeftToRight;
+                                     properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                     properties.PdfFontStyle = DocumentFontStyle.Underline;
+                                 });
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Incremente el consumo de fibra dietética que puede encontrar en cereales integrales y raíces, legumbres, verduras (hortalizas) y frutas. " +
+                                 "Debe tomar diariamente al menos seis raciones de derivados de cereales, tres de verduras y dos de fruta para incrementar la fibra.";
+
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                 properties.PaddingBottom = 10f;
+                             });
+                    }
+                    if (AlcoholMAXAdviseIsNeeded(info, eatsWeek, eatsWeekCompoundDish))
+                    {
+                        tips.AddSimpleRow(
+                                 (cellData, properties) =>
+                                 {
+                                     cellData.Value = "Alcohol:";
+
+                                     properties.PdfFont = args.PdfFont;
+                                     properties.RunDirection = PdfRunDirection.LeftToRight;
+                                     properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                     properties.PdfFontStyle = DocumentFontStyle.Underline;
+                                 });
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Disminuya la cantidad de alcohol ingerida, trate de no beber alcohol diariamente.";
+
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                 properties.PaddingBottom = 10f;
+                             });
+                    }
+
+                    if (VitaminAMinAdviseIsNeeded(info, eatsWeek, eatsWeekCompoundDish))
+                    {
+                        tips.AddSimpleRow(
+                                 (cellData, properties) =>
+                                 {
+                                     cellData.Value = "Vitamina A:";
+
+                                     properties.PdfFont = args.PdfFont;
+                                     properties.RunDirection = PdfRunDirection.LeftToRight;
+                                     properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                     properties.PdfFontStyle = DocumentFontStyle.Underline;
+                                 });
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Debe incrementar la ingesta de alimentos.";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                             });
+
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Origen animal: hígado, aceites de pescado, huevo, leche entera y productos lácteos.";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                             });
+
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Origen vegetal: zanahoria, espinaca, lechuga, fruta bomba, mango, calabaza, malanga amarilla, yuca amarilla, boniato amarillo, vegetales de hojas verdes, brócoli, espárragos plátano, maíz, tomate, naranjas, mandarinas guayaba, caqui, fruta de la pasión y melocotón.";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                             });
+
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "NOTA: Evitar exponer estos alimentos a procesos de cocción que pueden destruirla pues es muy sensible a oxidación por luz, calor, aire, acidez y humedad.La freidura es el proceso que más la destruye.Se puede proteger con antioxidantes en combinación por ejemplo ricos en Vitamina C.";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                 properties.PaddingBottom = 10f;
+                             });
+                    }
+
+                    if (VitaminDMinAdviseIsNeeded(info, eatsWeek, eatsWeekCompoundDish))
+                    {
+                        tips.AddSimpleRow(
+                                 (cellData, properties) =>
+                                 {
+                                     cellData.Value = "Vitamina D:";
+
+                                     properties.PdfFont = args.PdfFont;
+                                     properties.RunDirection = PdfRunDirection.LeftToRight;
+                                     properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                     properties.PdfFontStyle = DocumentFontStyle.Underline;
+                                 });
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Debe incrementar la ingesta de alimentos.";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                             });
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Origen animal: aceite de hígado de pescado, pescados grasos(salmón, arenque, anguila), pescado en conserva, yema de huevo, carnes rojas, hígado, mantequilla y queso crema. Una fuente adicional es la luz solar por lo que es recomendable exponerse unos 10 minutos diarios al sol.";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                             });
+
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "NOTA: Evitar exponer estos alimentos al aire y a la luz solar.Tiene relativa estabilidad al calor(hasta 150 ºC). Tolera bien el almacenamiento.";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                 properties.PaddingBottom = 10f;
+                             });
+                    }
+                    if (VitaminEMinAdviseIsNeeded(info, eatsWeek, eatsWeekCompoundDish))
+                    {
+                        tips.AddSimpleRow(
+                                 (cellData, properties) =>
+                                 {
+                                     cellData.Value = "Vitamina E:";
+
+                                     properties.PdfFont = args.PdfFont;
+                                     properties.RunDirection = PdfRunDirection.LeftToRight;
+                                     properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                     properties.PdfFontStyle = DocumentFontStyle.Underline;
+                                 });
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Debe incrementar la ingesta de alimentos.";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                             });
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Aceites vegetales (germen de trigo, oliva, girasol, soya, maíz, maní), mantequilla, huevo entero, arroz integral, harina de maíz, grasa para cocinar y mayonesa, germen de trigo, nueces, pipas, pistachos, cacahuetes y cereales integrales.";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                             });
+
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "NOTA: Es una vitamina muy sensible al calor. Es inestable cuando se expone al aire y la luz, pero estable al tratamiento térmico en ausencia de oxígeno. La vitamina E se destruye cuando ejerce su función antioxidante. Se destruye en aceites rancios.";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                 properties.PaddingBottom = 10f;
+                             });
+                    }
+
+                    if (VitaminKMinAdviseIsNeeded(info, eatsWeek, eatsWeekCompoundDish))
+                    {
+                        tips.AddSimpleRow(
+                                 (cellData, properties) =>
+                                 {
+                                     cellData.Value = "Vitamina K:";
+
+                                     properties.PdfFont = args.PdfFont;
+                                     properties.RunDirection = PdfRunDirection.LeftToRight;
+                                     properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                     properties.PdfFontStyle = DocumentFontStyle.Underline;
+                                 });
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Debe incrementar la ingesta de alimentos.";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                             });
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Origen animal: leche, hígado (especialmente de cerdo).";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                             });
+
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Origen vegetal: en vegetales de color verde intenso, chícharos, judías verdes, aceites de soya, colza y oliva.";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                             });
+
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "NOTA: De forma habitual la síntesis de (menaquinona) se realiza por bacterias intestinales por lo que disminuye su formación con el tratamiento antibiótico oral que erradica flora intestinal." +
+"Es inestable en medio ácido y luz, en el refinado de aceites.Precaución los pacientes en tto con dicumarol y warfarina.";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                 properties.PaddingBottom = 10f;
+                             });
+                    }
+
+                    if (VitaminCMinAdviseIsNeeded(info, eatsWeek, eatsWeekCompoundDish))
+                    {
+                        tips.AddSimpleRow(
+                                 (cellData, properties) =>
+                                 {
+                                     cellData.Value = "Vitamina C:";
+
+                                     properties.PdfFont = args.PdfFont;
+                                     properties.RunDirection = PdfRunDirection.LeftToRight;
+                                     properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                     properties.PdfFontStyle = DocumentFontStyle.Underline;
+                                 });
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Debe incrementar la ingesta de alimentos.";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                             });
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Origen vegetal: Frutas como acerola, guayaba, marañón, cítricos, melón de agua o sandía, melón de Castilla, uva, mango, papaya, fresa, toronja, piña y vegetales como pimiento, col, brócoli, col de Bruselas, col blanca, coliflor, ají pimiento rojo y verde, tomate.";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                             });
+
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "NOTA: Es una vitamina inestable en soluciones neutras y alcalinas y cuando se expone al aire, luz, calor, humedad, a cobre o hierro, perdidas por lixiviación en alimentos expuestos o troceados, pérdidas por tratamientos con aspirina, barbitúricos y antihistamínicos o tabaco La piel de las viandas la protege durante la cocción.";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                 properties.PaddingBottom = 10f;
+                             });
+                    }
+
+                    if (FolatosMinAdviseIsNeeded(info, eatsWeek, eatsWeekCompoundDish))
+                    {
+                        tips.AddSimpleRow(
+                                 (cellData, properties) =>
+                                 {
+                                     cellData.Value = "Folatos:";
+
+                                     properties.PdfFont = args.PdfFont;
+                                     properties.RunDirection = PdfRunDirection.LeftToRight;
+                                     properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                     properties.PdfFontStyle = DocumentFontStyle.Underline;
+                                 });
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Debe incrementar la ingesta de alimentos.";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                             });
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Origen animal: hígado, carnes, huevo entero, ostras, Origen vegetal: leguminosas, cereales integrales, levaduras, vegetales de hojas, viandas como papa, calabaza y boniato, vegetales como quimbombó, berro, nabos, pimientos y tomates, frutas como plátanos, cítricos y melón, nueces y frutos secos.";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                             });
+
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "NOTA: Es inestable en soluciones ácidas y cuando se expone al calor, al aire y a la luz. Pérdida por lixiviación en alimentos expuestos. Pérdida por cocción.";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                 properties.PaddingBottom = 10f;
+                             });
+                    }
+
+                    if (VitaminB1MinAdviseIsNeeded(info, eatsWeek, eatsWeekCompoundDish))
+                    {
+                        tips.AddSimpleRow(
+                                 (cellData, properties) =>
+                                 {
+                                     cellData.Value = "Vitamina B1 (Tiamina):";
+
+                                     properties.PdfFont = args.PdfFont;
+                                     properties.RunDirection = PdfRunDirection.LeftToRight;
+                                     properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                     properties.PdfFontStyle = DocumentFontStyle.Underline;
+                                 });
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Debe incrementar la ingesta de alimentos.";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                             });
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Cereales integrales, levaduras, productos cárnicos (cerdo, hígado, corazón y riñones), legumbres, verduras, viandas y semillas o nueces, leche, frutas y huevos.";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                             });
+
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "NOTA: Inestable en álcalis, aire, luz, se pierde 100% por pulido de cereales, 50% por cocción por lixiviación, por tiaminasas de peces, moluscos y vegetales. La ingesta mantenida de alcohol incrementa las necesidades de esta vitamina.";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                 properties.PaddingBottom = 10f;
+                             });
+                    }
+
+                    if (VitaminB2MinAdviseIsNeeded(info, eatsWeek, eatsWeekCompoundDish))
+                    {
+                        tips.AddSimpleRow(
+                                 (cellData, properties) =>
+                                 {
+                                     cellData.Value = "Vitamina B2 (Riboflavina):";
+
+                                     properties.PdfFont = args.PdfFont;
+                                     properties.RunDirection = PdfRunDirection.LeftToRight;
+                                     properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                     properties.PdfFontStyle = DocumentFontStyle.Underline;
+                                 });
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Debe incrementar la ingesta de alimentos.";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                             });
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Origen animal: productos cárnicos que incluyen aves y pescados, huevos, leche y Origen vegetal: leguminosas, vegetales de hojas (col de brócoli y espinacas), levaduras, cereales no refinados.";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                             });
+
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "NOTA: Muy inestable en álcalis y a la luz solar, artificial y UV. Pérdidas por lixiviación.";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                 properties.PaddingBottom = 10f;
+                             });
+                    }
+
+                    if (NiacinMinAdviseIsNeeded(info, eatsWeek, eatsWeekCompoundDish))
+                    {
+                        tips.AddSimpleRow(
+                                 (cellData, properties) =>
+                                 {
+                                     cellData.Value = "Niacina:";
+
+                                     properties.PdfFont = args.PdfFont;
+                                     properties.RunDirection = PdfRunDirection.LeftToRight;
+                                     properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                     properties.PdfFontStyle = DocumentFontStyle.Underline;
+                                 });
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Debe incrementar la ingesta de alimentos.";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                             });
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Origen animal: las carnes (res, cerdo, pollo) vísceras (hígado), leche y derivados, huevos, embutidos, pescado, Origen vegetal: leguminosas, cereales no refinados, legumbres, semillas (maní), vegetales de hojas verdes, café, té y levaduras.";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                             });
+
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "NOTA: Es bastante estable en medio externo. Pérdidas por lixiviación y refinado de cereales, Incremento de necesidades por agotamiento de reservas en alcoholismo.";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                 properties.PaddingBottom = 10f;
+                             });
+                    }
+
+                    if (VitaminB6MinAdviseIsNeeded(info, eatsWeek, eatsWeekCompoundDish))
+                    {
+                        tips.AddSimpleRow(
+                                 (cellData, properties) =>
+                                 {
+                                     cellData.Value = "Vitamina B6 (Piridoxina):";
+
+                                     properties.PdfFont = args.PdfFont;
+                                     properties.RunDirection = PdfRunDirection.LeftToRight;
+                                     properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                     properties.PdfFontStyle = DocumentFontStyle.Underline;
+                                 });
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Debe incrementar la ingesta de alimentos.";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                             });
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Origen animal: carnes (fresca, cerdo, pollo, embutidos, pescado, vísceras (riñones, hígado), huevos. Origen vegetal: arroz integral, la soya, cebada, productos de trigo entero, maní, nueces y vegetales de color verde.";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                             });
+
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "NOTA: Se pierde por calentamiento o almacenamiento prolongado. Es inestable cuando se expone a la luz y calor por lixiviación.";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                 properties.PaddingBottom = 10f;
+                             });
+                    }
+                    if (VitaminB12MinAdviseIsNeeded(info, eatsWeek, eatsWeekCompoundDish))
+                    {
+                        tips.AddSimpleRow(
+                                 (cellData, properties) =>
+                                 {
+                                     cellData.Value = "Vitamina B12 (Cianocobalamina):";
+
+                                     properties.PdfFont = args.PdfFont;
+                                     properties.RunDirection = PdfRunDirection.LeftToRight;
+                                     properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                     properties.PdfFontStyle = DocumentFontStyle.Underline;
+                                 });
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Debe incrementar la ingesta de alimentos.";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                             });
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Origen animal: carne y productos cárnicos (mariscos, pescados, aves), huevos, vísceras (hígado, riñones y corazón), bivalvos como almejas y ostras, yema de huevo, cangrejos, róbalo, salmón y sardinas, leche en polvo desgrasada y quesos líquidos y fermentados. Algunos microorganismos del colon sintetizan B12.";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                             });
+
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "NOTA: Es inestable al aire y la luz. La leche hervida 2-5 minutos pierde un 30% de vit B12. Leche procesada es una fuente insuficiente de esta vitamina.";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                 properties.PaddingBottom = 10f;
+                             });
+                    }
+
+                    if (SodiumMinAdviseIsNeeded(info, eatsWeek, eatsWeekCompoundDish))
+                    {
+                        tips.AddSimpleRow(
+                                 (cellData, properties) =>
+                                 {
+                                     cellData.Value = "Sodio:";
+
+                                     properties.PdfFont = args.PdfFont;
+                                     properties.RunDirection = PdfRunDirection.LeftToRight;
+                                     properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                     properties.PdfFontStyle = DocumentFontStyle.Underline;
+                                 });
+
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Debe disminuir la ingesta de sodio.";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                             });
+
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Los alimentos que contienen más sodio son aquellos que sufren procesos de salado y curación, como jamones, cecinas, embutidos, chacinas, pescados en salazón y, quesos duros, vegetales en conserva, pan y salsas listas preelaboradas. Los alimentos naturales como el apio, mariscos (ostras y ostiones).";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                 properties.PaddingBottom = 10f;
+                             });
+                    }
+                    if (PotassiumMinAdviseIsNeeded(info, eatsWeek, eatsWeekCompoundDish))
+                    {
+                        tips.AddSimpleRow(
+                                 (cellData, properties) =>
+                                 {
+                                     cellData.Value = "Potasio:";
+
+                                     properties.PdfFont = args.PdfFont;
+                                     properties.RunDirection = PdfRunDirection.LeftToRight;
+                                     properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                     properties.PdfFontStyle = DocumentFontStyle.Underline;
+                                 });
+
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Deben tener precaución con el exceso de potasio las personas con patologías crónicas sobre todo renales.";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                             });
+
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Origen vegetal: vegetales de hoja verde (espinaca, lechuga, acelga), col, tomate, pepino, berenjena, calabaza, zanahoria, rábano, nabo, cebolla, frijoles, chícharo, habichuela, garbanzo, naranja, toronja, plátano fruta, papa, boniato, ñame.";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                             });
+
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Origen animal: leche entera, leche descremada, yogurt.";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                 properties.PaddingBottom = 10f;
+                             });
+                    }
+                    if (CalciumMinAdviseIsNeeded(info, eatsWeek, eatsWeekCompoundDish))
+                    {
+                        tips.AddSimpleRow(
+                                 (cellData, properties) =>
+                                 {
+                                     cellData.Value = "Calcio:";
+
+                                     properties.PdfFont = args.PdfFont;
+                                     properties.RunDirection = PdfRunDirection.LeftToRight;
+                                     properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                     properties.PdfFontStyle = DocumentFontStyle.Underline;
+                                 });
+
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Debe incrementar el consumo de alimentos.";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                             });
+
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Productos lácteos, col, brócoli, semillas de ajonjolí, huesos blandos de peces (sardinas, salmón), huesos de las patas de pollos, alimentos fortificados con calcio. El agua es una fuente variable.";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                 properties.PaddingBottom = 10f;
+                             });
+                    }
+                    if (PhosphorusMinAdviseIsNeeded(info, eatsWeek, eatsWeekCompoundDish))
+                    {
+                        tips.AddSimpleRow(
+                                 (cellData, properties) =>
+                                 {
+                                     cellData.Value = "Fósforo:";
+
+                                     properties.PdfFont = args.PdfFont;
+                                     properties.RunDirection = PdfRunDirection.LeftToRight;
+                                     properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                     properties.PdfFontStyle = DocumentFontStyle.Underline;
+                                 });
+
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Debe incrementar la ingesta de alimentos.";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                             });
+
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Se encuentra en casi todos los alimentos. Los alimentos proteicos y los cereales son ricos en este mineral.";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                 properties.PaddingBottom = 10f;
+                             });
+                    }
+                    if (IronMinAdviseIsNeeded(info, eatsWeek, eatsWeekCompoundDish))
+                    {
+                        tips.AddSimpleRow(
+                                 (cellData, properties) =>
+                                 {
+                                     cellData.Value = "Hierro:";
+
+                                     properties.PdfFont = args.PdfFont;
+                                     properties.RunDirection = PdfRunDirection.LeftToRight;
+                                     properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                     properties.PdfFontStyle = DocumentFontStyle.Underline;
+                                 });
+
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Debe incrementar la ingesta de alimentos.";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                             });
+
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Carnes y derivados que contengan hemo ( carnes rojas), pollo. Son fuentes aceptables los huevos, cereales y vegetales de hoja verde.";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                             });
+
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "NOTA: La ingestión simultánea de 25 a 100 mg de vitamina C puede incrementar en 2-4 veces la absorción del hierro no hemínico.";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                 properties.PaddingBottom = 10f;
+                             });
+                    }
+                    if (ZincMinAdviseIsNeeded(info, eatsWeek, eatsWeekCompoundDish))
+                    {
+                        tips.AddSimpleRow(
+                                 (cellData, properties) =>
+                                 {
+                                     cellData.Value = "Zinc:";
+
+                                     properties.PdfFont = args.PdfFont;
+                                     properties.RunDirection = PdfRunDirection.LeftToRight;
+                                     properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                     properties.PdfFontStyle = DocumentFontStyle.Underline;
+                                 });
+
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Debe incrementar la ingesta de alimentos.";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                             });
+
+                        tips.AddSimpleRow(
+                             (cellData, properties) =>
+                             {
+                                 cellData.Value = "Mariscos, carnes rojas, vísceras, semillas, germen de trigo, carne de aves, cerdo, legumbres, yogurt, huevo, quesos, nueces, vegetales de hojas.";
+                                 properties.PdfFont = args.PdfFont;
+                                 properties.RunDirection = PdfRunDirection.LeftToRight;
+                                 properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                                 properties.PaddingBottom = 10f;
+                             });
+                    }
+
                     args.PdfDoc.Add(tips);
 
                     var bye = new PdfGrid(numColumns: 1)
@@ -2092,6 +3043,676 @@ namespace MismeAPI.Service.Impls
             })
 
             .GenerateAsByteArray();
+        }
+
+        private bool ZincMinAdviseIsNeeded((int age, int weight, int height, int sex, DateTime? HealthMeasuresLastUpdate, DateTime? ValueMeasuresLastUpdate, DateTime? WellnessMeasuresLastUpdate, DateTime? LastPlanedEat) info, List<EatDish> eats, List<EatCompoundDish> eatsCompoundDish)
+        {
+            var gr = eats.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+            var gr1 = eatsCompoundDish.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+
+            foreach (var group in gr)
+            {
+                var zinc = eats.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.Dish.Zinc ?? 0.0) * e.Qty);
+                if (gr1.Any(g => g.Key == group.Key))
+                {
+                    zinc += eatsCompoundDish.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.CompoundDish.DishCompoundDishes.Sum(d => (d.Dish.Zinc ?? 0.0) * d.DishQty)) * e.Qty);
+                }
+
+                // masculino
+                if (info.sex == 1 && zinc < 14)
+                {
+                    return true;
+                }
+                //femenino
+                else
+                {
+                    if (zinc < 10)
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        private bool IronMinAdviseIsNeeded((int age, int weight, int height, int sex, DateTime? HealthMeasuresLastUpdate, DateTime? ValueMeasuresLastUpdate, DateTime? WellnessMeasuresLastUpdate, DateTime? LastPlanedEat) info, List<EatDish> eats, List<EatCompoundDish> eatsCompoundDish)
+        {
+            var gr = eats.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+            var gr1 = eatsCompoundDish.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+
+            foreach (var group in gr)
+            {
+                var iron = eats.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.Dish.Iron ?? 0.0) * e.Qty);
+                if (gr1.Any(g => g.Key == group.Key))
+                {
+                    iron += eatsCompoundDish.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.CompoundDish.DishCompoundDishes.Sum(d => (d.Dish.Iron ?? 0.0) * d.DishQty)) * e.Qty);
+                }
+
+                // masculino
+                if (info.sex == 1 && iron < 14)
+                {
+                    return true;
+                }
+                //femenino
+                else
+                {
+                    if (info.age < 60 && iron < 20)
+                    {
+                        return true;
+                    }
+                    else if (iron < 12)
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        private bool PhosphorusMinAdviseIsNeeded((int age, int weight, int height, int sex, DateTime? HealthMeasuresLastUpdate, DateTime? ValueMeasuresLastUpdate, DateTime? WellnessMeasuresLastUpdate, DateTime? LastPlanedEat) info, List<EatDish> eats, List<EatCompoundDish> eatsCompoundDish)
+        {
+            var gr = eats.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+            var gr1 = eatsCompoundDish.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+
+            foreach (var group in gr)
+            {
+                var phos = eats.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.Dish.Phosphorus ?? 0.0) * e.Qty);
+                if (gr1.Any(g => g.Key == group.Key))
+                {
+                    phos += eatsCompoundDish.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.CompoundDish.DishCompoundDishes.Sum(d => (d.Dish.Phosphorus ?? 0.0) * d.DishQty)) * e.Qty);
+                }
+
+                if (phos < 800)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private bool CalciumMinAdviseIsNeeded((int age, int weight, int height, int sex, DateTime? HealthMeasuresLastUpdate, DateTime? ValueMeasuresLastUpdate, DateTime? WellnessMeasuresLastUpdate, DateTime? LastPlanedEat) info, List<EatDish> eats, List<EatCompoundDish> eatsCompoundDish)
+        {
+            var gr = eats.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+            var gr1 = eatsCompoundDish.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+
+            foreach (var group in gr)
+            {
+                var calcium = eats.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.Dish.Calcium ?? 0.0) * e.Qty);
+                if (gr1.Any(g => g.Key == group.Key))
+                {
+                    calcium += eatsCompoundDish.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.CompoundDish.DishCompoundDishes.Sum(d => (d.Dish.Calcium ?? 0.0) * d.DishQty)) * e.Qty);
+                }
+
+                if (calcium < 800)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private bool PotassiumMinAdviseIsNeeded((int age, int weight, int height, int sex, DateTime? HealthMeasuresLastUpdate, DateTime? ValueMeasuresLastUpdate, DateTime? WellnessMeasuresLastUpdate, DateTime? LastPlanedEat) info, List<EatDish> eats, List<EatCompoundDish> eatsCompoundDish)
+        {
+            var gr = eats.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+            var gr1 = eatsCompoundDish.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+
+            foreach (var group in gr)
+            {
+                var potassium = eats.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.Dish.Potassium ?? 0.0) * e.Qty);
+                if (gr1.Any(g => g.Key == group.Key))
+                {
+                    potassium += eatsCompoundDish.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.CompoundDish.DishCompoundDishes.Sum(d => (d.Dish.Potassium ?? 0.0) * d.DishQty)) * e.Qty);
+                }
+
+                if (potassium > 3500)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private bool SodiumMinAdviseIsNeeded((int age, int weight, int height, int sex, DateTime? HealthMeasuresLastUpdate, DateTime? ValueMeasuresLastUpdate, DateTime? WellnessMeasuresLastUpdate, DateTime? LastPlanedEat) info, List<EatDish> eats, List<EatCompoundDish> eatsCompoundDish)
+        {
+            var gr = eats.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+            var gr1 = eatsCompoundDish.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+
+            foreach (var group in gr)
+            {
+                var sodium = eats.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.Dish.Sodium ?? 0.0) * e.Qty);
+                if (gr1.Any(g => g.Key == group.Key))
+                {
+                    sodium += eatsCompoundDish.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.CompoundDish.DishCompoundDishes.Sum(d => (d.Dish.Sodium ?? 0.0) * d.DishQty)) * e.Qty);
+                }
+
+                if (sodium > 2300)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private bool VitaminB12MinAdviseIsNeeded((int age, int weight, int height, int sex, DateTime? HealthMeasuresLastUpdate, DateTime? ValueMeasuresLastUpdate, DateTime? WellnessMeasuresLastUpdate, DateTime? LastPlanedEat) info, List<EatDish> eats, List<EatCompoundDish> eatsCompoundDish)
+        {
+            var gr = eats.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+            var gr1 = eatsCompoundDish.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+
+            foreach (var group in gr)
+            {
+                var vitaminB12 = eats.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.Dish.VitaminB12 ?? 0.0) * e.Qty);
+                if (gr1.Any(g => g.Key == group.Key))
+                {
+                    vitaminB12 += eatsCompoundDish.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.CompoundDish.DishCompoundDishes.Sum(d => (d.Dish.VitaminB12 ?? 0.0) * d.DishQty)) * e.Qty);
+                }
+
+                if (vitaminB12 < 2.4)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private bool VitaminB6MinAdviseIsNeeded((int age, int weight, int height, int sex, DateTime? HealthMeasuresLastUpdate, DateTime? ValueMeasuresLastUpdate, DateTime? WellnessMeasuresLastUpdate, DateTime? LastPlanedEat) info, List<EatDish> eats, List<EatCompoundDish> eatsCompoundDish)
+        {
+            var gr = eats.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+            var gr1 = eatsCompoundDish.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+
+            foreach (var group in gr)
+            {
+                var vitaminB6 = eats.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.Dish.VitaminB6 ?? 0.0) * e.Qty);
+                var proteins = eats.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.Dish.Proteins ?? 0.0) * e.Qty);
+                if (gr1.Any(g => g.Key == group.Key))
+                {
+                    vitaminB6 += eatsCompoundDish.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.CompoundDish.DishCompoundDishes.Sum(d => (d.Dish.VitaminB6 ?? 0.0) * d.DishQty)) * e.Qty);
+                    proteins += eatsCompoundDish.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.CompoundDish.DishCompoundDishes.Sum(d => (d.Dish.Proteins ?? 0.0) * d.DishQty)) * e.Qty);
+                }
+
+                if (vitaminB6 < (proteins * 0.02))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private bool NiacinMinAdviseIsNeeded((int age, int weight, int height, int sex, DateTime? HealthMeasuresLastUpdate, DateTime? ValueMeasuresLastUpdate, DateTime? WellnessMeasuresLastUpdate, DateTime? LastPlanedEat) info, List<EatDish> eats, List<EatCompoundDish> eatsCompoundDish)
+        {
+            var gr = eats.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+            var gr1 = eatsCompoundDish.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+
+            foreach (var group in gr)
+            {
+                var niacin = eats.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.Dish.VitaminB3Niacin ?? 0.0) * e.Qty);
+                if (gr1.Any(g => g.Key == group.Key))
+                {
+                    niacin += eatsCompoundDish.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.CompoundDish.DishCompoundDishes.Sum(d => (d.Dish.VitaminB3Niacin ?? 0.0) * d.DishQty)) * e.Qty);
+                }
+
+                // femenino
+                if (niacin < 7)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private bool VitaminB2MinAdviseIsNeeded((int age, int weight, int height, int sex, DateTime? HealthMeasuresLastUpdate, DateTime? ValueMeasuresLastUpdate, DateTime? WellnessMeasuresLastUpdate, DateTime? LastPlanedEat) info, List<EatDish> eats, List<EatCompoundDish> eatsCompoundDish)
+        {
+            var gr = eats.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+            var gr1 = eatsCompoundDish.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+
+            foreach (var group in gr)
+            {
+                var vitaminB2 = eats.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.Dish.VitaminB2Riboflavin ?? 0.0) * e.Qty);
+                if (gr1.Any(g => g.Key == group.Key))
+                {
+                    vitaminB2 += eatsCompoundDish.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.CompoundDish.DishCompoundDishes.Sum(d => (d.Dish.VitaminB2Riboflavin ?? 0.0) * d.DishQty)) * e.Qty);
+                }
+
+                // femenino
+                if (vitaminB2 < 1.2)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private bool VitaminB1MinAdviseIsNeeded((int age, int weight, int height, int sex, DateTime? HealthMeasuresLastUpdate, DateTime? ValueMeasuresLastUpdate, DateTime? WellnessMeasuresLastUpdate, DateTime? LastPlanedEat) info, List<EatDish> eats, List<EatCompoundDish> eatsCompoundDish)
+        {
+            var gr = eats.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+            var gr1 = eatsCompoundDish.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+
+            foreach (var group in gr)
+            {
+                var vitaminB1 = eats.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.Dish.VitaminB1Thiamin ?? 0.0) * e.Qty);
+                if (gr1.Any(g => g.Key == group.Key))
+                {
+                    vitaminB1 += eatsCompoundDish.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.CompoundDish.DishCompoundDishes.Sum(d => (d.Dish.VitaminB1Thiamin ?? 0.0) * d.DishQty)) * e.Qty);
+                }
+
+                // femenino
+                if (vitaminB1 < 1)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private bool FolatosMinAdviseIsNeeded((int age, int weight, int height, int sex, DateTime? HealthMeasuresLastUpdate, DateTime? ValueMeasuresLastUpdate, DateTime? WellnessMeasuresLastUpdate, DateTime? LastPlanedEat) info, List<EatDish> eats, List<EatCompoundDish> eatsCompoundDish)
+        {
+            var gr = eats.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+            var gr1 = eatsCompoundDish.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+
+            foreach (var group in gr)
+            {
+                var folatos = eats.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.Dish.VitaminB9Folate ?? 0.0) * e.Qty);
+                if (gr1.Any(g => g.Key == group.Key))
+                {
+                    folatos += eatsCompoundDish.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.CompoundDish.DishCompoundDishes.Sum(d => (d.Dish.VitaminB9Folate ?? 0.0) * d.DishQty)) * e.Qty);
+                }
+
+                // femenino
+                if (folatos < 400)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private bool VitaminCMinAdviseIsNeeded((int age, int weight, int height, int sex, DateTime? HealthMeasuresLastUpdate, DateTime? ValueMeasuresLastUpdate, DateTime? WellnessMeasuresLastUpdate, DateTime? LastPlanedEat) info, List<EatDish> eats, List<EatCompoundDish> eatsCompoundDish)
+        {
+            var gr = eats.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+            var gr1 = eatsCompoundDish.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+
+            foreach (var group in gr)
+            {
+                var vitaminC = eats.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.Dish.VitaminC ?? 0.0) * e.Qty);
+                if (gr1.Any(g => g.Key == group.Key))
+                {
+                    vitaminC += eatsCompoundDish.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.CompoundDish.DishCompoundDishes.Sum(d => (d.Dish.VitaminC ?? 0.0) * d.DishQty)) * e.Qty);
+                }
+
+                // femenino
+                if (info.sex != 1 && vitaminC < 75)
+                {
+                    return true;
+                }
+                else if (info.sex == 1 && vitaminC < 90)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private bool VitaminKMinAdviseIsNeeded((int age, int weight, int height, int sex, DateTime? HealthMeasuresLastUpdate, DateTime? ValueMeasuresLastUpdate, DateTime? WellnessMeasuresLastUpdate, DateTime? LastPlanedEat) info, List<EatDish> eats, List<EatCompoundDish> eatsCompoundDish)
+        {
+            var gr = eats.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+            var gr1 = eatsCompoundDish.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+
+            foreach (var group in gr)
+            {
+                var vitaminK = eats.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.Dish.VitaminK ?? 0.0) * e.Qty);
+                if (gr1.Any(g => g.Key == group.Key))
+                {
+                    vitaminK += eatsCompoundDish.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.CompoundDish.DishCompoundDishes.Sum(d => (d.Dish.VitaminK ?? 0.0) * d.DishQty)) * e.Qty);
+                }
+
+                // femenino
+                if (info.sex != 1 && vitaminK < 55)
+                {
+                    return true;
+                }
+                else if (info.sex == 1 && vitaminK < 120)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private bool VitaminEMinAdviseIsNeeded((int age, int weight, int height, int sex, DateTime? HealthMeasuresLastUpdate, DateTime? ValueMeasuresLastUpdate, DateTime? WellnessMeasuresLastUpdate, DateTime? LastPlanedEat) info, List<EatDish> eats, List<EatCompoundDish> eatsCompoundDish)
+        {
+            var gr = eats.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+            var gr1 = eatsCompoundDish.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+
+            foreach (var group in gr)
+            {
+                var vitaminE = eats.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.Dish.VitaminE ?? 0.0) * e.Qty);
+                if (gr1.Any(g => g.Key == group.Key))
+                {
+                    vitaminE += eatsCompoundDish.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.CompoundDish.DishCompoundDishes.Sum(d => (d.Dish.VitaminE ?? 0.0) * d.DishQty)) * e.Qty);
+                }
+
+                if (vitaminE < 15)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private bool VitaminDMinAdviseIsNeeded((int age, int weight, int height, int sex, DateTime? HealthMeasuresLastUpdate, DateTime? ValueMeasuresLastUpdate, DateTime? WellnessMeasuresLastUpdate, DateTime? LastPlanedEat) info, List<EatDish> eats, List<EatCompoundDish> eatsCompoundDish)
+        {
+            var gr = eats.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+            var gr1 = eatsCompoundDish.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+
+            foreach (var group in gr)
+            {
+                var vitaminD = eats.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.Dish.VitaminD ?? 0.0) * e.Qty);
+                if (gr1.Any(g => g.Key == group.Key))
+                {
+                    vitaminD += eatsCompoundDish.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.CompoundDish.DishCompoundDishes.Sum(d => (d.Dish.VitaminD ?? 0.0) * d.DishQty)) * e.Qty);
+                }
+
+                if (info.age < 50 && vitaminD < 5)
+                {
+                    return true;
+                }
+                else if (info.age > 50 && info.age < 65 && vitaminD < 10)
+                {
+                    return true;
+                }
+                else if (info.age > 65 && vitaminD < 15)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private bool VitaminAMinAdviseIsNeeded((int age, int weight, int height, int sex, DateTime? HealthMeasuresLastUpdate, DateTime? ValueMeasuresLastUpdate, DateTime? WellnessMeasuresLastUpdate, DateTime? LastPlanedEat) info, List<EatDish> eats, List<EatCompoundDish> eatsCompoundDish)
+        {
+            var gr = eats.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+            var gr1 = eatsCompoundDish.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+
+            foreach (var group in gr)
+            {
+                var vitaminA = eats.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.Dish.VitaminA ?? 0.0) * e.Qty);
+                if (gr1.Any(g => g.Key == group.Key))
+                {
+                    vitaminA += eatsCompoundDish.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.CompoundDish.DishCompoundDishes.Sum(d => (d.Dish.VitaminA ?? 0.0) * d.DishQty)) * e.Qty);
+                }
+
+                //femenino
+                if (info.sex != 1 && vitaminA < 500)
+                {
+                    return true;
+                }
+                //masculino
+                else
+                {
+                    if (vitaminA < 600)
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        private bool AlcoholMAXAdviseIsNeeded((int age, int weight, int height, int sex, DateTime? HealthMeasuresLastUpdate, DateTime? ValueMeasuresLastUpdate, DateTime? WellnessMeasuresLastUpdate, DateTime? LastPlanedEat) info, List<EatDish> eats, List<EatCompoundDish> eatsCompoundDish)
+        {
+            var gr = eats.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+            var gr1 = eatsCompoundDish.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+
+            foreach (var group in gr)
+            {
+                var alcohol = eats.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.Dish.Alcohol ?? 0.0) * e.Qty);
+                if (gr1.Any(g => g.Key == group.Key))
+                {
+                    alcohol += eatsCompoundDish.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.CompoundDish.DishCompoundDishes.Sum(d => (d.Dish.Alcohol ?? 0.0) * d.DishQty)) * e.Qty);
+                }
+
+                var ube = alcohol / 13;
+                //femenino
+                if (info.sex != 1)
+                {
+                    if (ube > 2)
+                    {
+                        return true;
+                    }
+                }
+                //masculino
+                else
+                {
+                    if (ube > 4)
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        private bool FiberMINAdviseIsNeeded((int age, int weight, int height, int sex, DateTime? HealthMeasuresLastUpdate, DateTime? ValueMeasuresLastUpdate, DateTime? WellnessMeasuresLastUpdate, DateTime? LastPlanedEat) info, List<EatDish> eats, List<EatCompoundDish> eatsCompoundDish)
+        {
+            var gr = eats.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+            var gr1 = eatsCompoundDish.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+
+            foreach (var group in gr)
+            {
+                var fiber = eats.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.Dish.Fiber ?? 0.0) * e.Qty);
+                if (gr1.Any(g => g.Key == group.Key))
+                {
+                    fiber += eatsCompoundDish.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.CompoundDish.DishCompoundDishes.Sum(d => (d.Dish.Fiber ?? 0.0) * d.DishQty)) * e.Qty);
+                }
+
+                //femenino
+                if (info.sex != 1)
+                {
+                    if (info.age < 50 && fiber < 25)
+                    {
+                        return true;
+                    }
+                    else if (info.age >= 50 && fiber < 21)
+                    {
+                        return true;
+                    }
+                }
+                //masculino
+                else
+                {
+                    if (info.age < 50 && fiber < 38)
+                    {
+                        return true;
+                    }
+                    else if (info.age >= 50 && fiber < 30)
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        private bool CholesterolMAXAdviseIsNeeded((int age, int weight, int height, int sex, DateTime? HealthMeasuresLastUpdate, DateTime? ValueMeasuresLastUpdate, DateTime? WellnessMeasuresLastUpdate, DateTime? LastPlanedEat) info, List<EatDish> eats, List<EatCompoundDish> eatsCompoundDish)
+        {
+            var gr = eats.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+            var gr1 = eatsCompoundDish.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+
+            foreach (var group in gr)
+            {
+                var cholesterol = eats.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.Dish.Cholesterol ?? 0.0) * e.Qty);
+                if (gr1.Any(g => g.Key == group.Key))
+                {
+                    cholesterol += eatsCompoundDish.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.CompoundDish.DishCompoundDishes.Sum(d => (d.Dish.Cholesterol ?? 0.0) * d.DishQty)) * e.Qty);
+                }
+
+                if (cholesterol > 300)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private bool PolyInsaturatedFatsMAXAdviseIsNeeded((int age, int weight, int height, int sex, DateTime? HealthMeasuresLastUpdate, DateTime? ValueMeasuresLastUpdate, DateTime? WellnessMeasuresLastUpdate, DateTime? LastPlanedEat) info, List<EatDish> eats, List<EatCompoundDish> eatsCompoundDish)
+        {
+            var gr = eats.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+            var gr1 = eatsCompoundDish.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+
+            foreach (var group in gr)
+            {
+                var fats = eats.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.Dish.PolyUnsaturatedFat ?? 0.0) * e.Qty);
+                var calories = eats.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.Dish.Calories ?? 0.0) * e.Qty);
+                if (gr1.Any(g => g.Key == group.Key))
+                {
+                    fats += eatsCompoundDish.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.CompoundDish.DishCompoundDishes.Sum(d => (d.Dish.PolyUnsaturatedFat ?? 0.0) * d.DishQty)) * e.Qty);
+                    calories += eatsCompoundDish.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.CompoundDish.DishCompoundDishes.Sum(d => (d.Dish.Calories ?? 0.0) * d.DishQty)) * e.Qty);
+                }
+
+                if (fats / calories > 0.07)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private bool MonoInsaturatedFatsMAXAdviseIsNeeded((int age, int weight, int height, int sex, DateTime? HealthMeasuresLastUpdate, DateTime? ValueMeasuresLastUpdate, DateTime? WellnessMeasuresLastUpdate, DateTime? LastPlanedEat) info, List<EatDish> eats, List<EatCompoundDish> eatsCompoundDish)
+        {
+            var gr = eats.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+            var gr1 = eatsCompoundDish.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+
+            foreach (var group in gr)
+            {
+                var fats = eats.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.Dish.MonoUnsaturatedFat ?? 0.0) * e.Qty);
+                var calories = eats.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.Dish.Calories ?? 0.0) * e.Qty);
+                if (gr1.Any(g => g.Key == group.Key))
+                {
+                    fats += eatsCompoundDish.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.CompoundDish.DishCompoundDishes.Sum(d => (d.Dish.MonoUnsaturatedFat ?? 0.0) * d.DishQty)) * e.Qty);
+                    calories += eatsCompoundDish.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.CompoundDish.DishCompoundDishes.Sum(d => (d.Dish.Calories ?? 0.0) * d.DishQty)) * e.Qty);
+                }
+
+                if (fats / calories > 0.15)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private bool SaturatedFatsMAXAdviseIsNeeded((int age, int weight, int height, int sex, DateTime? HealthMeasuresLastUpdate, DateTime? ValueMeasuresLastUpdate, DateTime? WellnessMeasuresLastUpdate, DateTime? LastPlanedEat) info, List<EatDish> eats, List<EatCompoundDish> eatsCompoundDish)
+        {
+            var gr = eats.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+            var gr1 = eatsCompoundDish.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+
+            foreach (var group in gr)
+            {
+                var fats = eats.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.Dish.SaturatedFat ?? 0.0) * e.Qty);
+                var calories = eats.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.Dish.Calories ?? 0.0) * e.Qty);
+                if (gr1.Any(g => g.Key == group.Key))
+                {
+                    fats += eatsCompoundDish.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.CompoundDish.DishCompoundDishes.Sum(d => (d.Dish.SaturatedFat ?? 0.0) * d.DishQty)) * e.Qty);
+                    calories += eatsCompoundDish.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.CompoundDish.DishCompoundDishes.Sum(d => (d.Dish.Calories ?? 0.0) * d.DishQty)) * e.Qty);
+                }
+
+                if (fats / calories > 0.10)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private bool TotalFatsMAXAdviseIsNeeded((int age, int weight, int height, int sex, DateTime? HealthMeasuresLastUpdate, DateTime? ValueMeasuresLastUpdate, DateTime? WellnessMeasuresLastUpdate, DateTime? LastPlanedEat) info, List<EatDish> eats, List<EatCompoundDish> eatsCompoundDish)
+        {
+            var gr = eats.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+            var gr1 = eatsCompoundDish.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+
+            foreach (var group in gr)
+            {
+                var fats = eats.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.Dish.Fat ?? 0.0) * e.Qty);
+                var calories = eats.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.Dish.Calories ?? 0.0) * e.Qty);
+                if (gr1.Any(g => g.Key == group.Key))
+                {
+                    fats += eatsCompoundDish.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.CompoundDish.DishCompoundDishes.Sum(d => (d.Dish.Fat ?? 0.0) * d.DishQty)) * e.Qty);
+                    calories += eatsCompoundDish.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.CompoundDish.DishCompoundDishes.Sum(d => (d.Dish.Calories ?? 0.0) * d.DishQty)) * e.Qty);
+                }
+
+                if (fats / calories > 0.35)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private bool CarbohidratosMAXAdviseIsNeeded((int age, int weight, int height, int sex, DateTime? HealthMeasuresLastUpdate, DateTime? ValueMeasuresLastUpdate, DateTime? WellnessMeasuresLastUpdate, DateTime? LastPlanedEat) info, List<EatDish> eats, List<EatCompoundDish> eatsCompoundDish)
+        {
+            var gr = eats.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+            var gr1 = eatsCompoundDish.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+
+            foreach (var group in gr)
+            {
+                var carbos = eats.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.Dish.Carbohydrates ?? 0.0) * e.Qty);
+                var calories = eats.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.Dish.Calories ?? 0.0) * e.Qty);
+                if (gr1.Any(g => g.Key == group.Key))
+                {
+                    carbos += eatsCompoundDish.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.CompoundDish.DishCompoundDishes.Sum(d => (d.Dish.Carbohydrates ?? 0.0) * d.DishQty)) * e.Qty);
+                    calories += eatsCompoundDish.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.CompoundDish.DishCompoundDishes.Sum(d => (d.Dish.Calories ?? 0.0) * d.DishQty)) * e.Qty);
+                }
+
+                if (carbos / calories > 0.70)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool CarbohidratosMINAdviseIsNeeded((int age, int weight, int height, int sex, DateTime? HealthMeasuresLastUpdate, DateTime? ValueMeasuresLastUpdate, DateTime? WellnessMeasuresLastUpdate, DateTime? LastPlanedEat) info, List<EatDish> eats, List<EatCompoundDish> eatsCompoundDish)
+        {
+            var gr = eats.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+            var gr1 = eatsCompoundDish.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+
+            foreach (var group in gr)
+            {
+                var carbos = eats.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.Dish.Carbohydrates ?? 0.0) * e.Qty);
+                if (gr1.Any(g => g.Key == group.Key))
+                {
+                    carbos += eatsCompoundDish.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.CompoundDish.DishCompoundDishes.Sum(d => (d.Dish.Carbohydrates ?? 0.0) * d.DishQty)) * e.Qty);
+                }
+
+                if (carbos < 130)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool ProteinsAdviseIsNeeded((int age, int weight, int height, int sex, DateTime? HealthMeasuresLastUpdate, DateTime? ValueMeasuresLastUpdate, DateTime? WellnessMeasuresLastUpdate, DateTime? LastPlanedEat) info, List<EatDish> eats, List<EatCompoundDish> eatsCompoundDish)
+        {
+            var gr = eats.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+            var gr1 = eatsCompoundDish.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+
+            foreach (var group in gr)
+            {
+                var proteins = eats.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.Dish.Proteins ?? 0.0) * e.Qty);
+                var calories = eats.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.Dish.Calories ?? 0.0) * e.Qty);
+                if (gr1.Any(g => g.Key == group.Key))
+                {
+                    proteins += eatsCompoundDish.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.CompoundDish.DishCompoundDishes.Sum(d => (d.Dish.Proteins ?? 0.0) * d.DishQty)) * e.Qty);
+                    calories += eatsCompoundDish.Where(e => e.Eat.CreatedAt.Date == group.Key).Sum(e => (e.CompoundDish.DishCompoundDishes.Sum(d => (d.Dish.Calories ?? 0.0) * d.DishQty)) * e.Qty);
+                }
+
+                if (proteins / calories < 0.12)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private string GetCurrentWeekRangeString()
