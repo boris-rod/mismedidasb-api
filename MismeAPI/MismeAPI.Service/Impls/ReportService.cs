@@ -159,7 +159,7 @@ namespace MismeAPI.Service.Impls
 
             // improve the styling
             plt.Legend(enableLegend: true);
-            //plt.Title("Kcal/día", enable: true);
+            plt.Title("Total kcal/día", enable: true);
 
             //var currentAssembly = typeof(ReportService).GetTypeInfo().Assembly;
             //var root = Path.GetDirectoryName(currentAssembly.Location);
@@ -239,76 +239,153 @@ namespace MismeAPI.Service.Impls
 
             foreach (var item in dictProt)
             {
+                var tot = Math.Round(item.Value + dictCarbo[item.Key] + dictFats[item.Key], 2);
+                //var current = 0.0;
                 switch (item.Key)
                 {
                     case 0:
                         //labels[0] = "Domingo";
                         xs[0] = 0.0;
-                        proteins[0] = item.Value;
-                        carbo[0] = dictCarbo[item.Key];
-                        fats[0] = dictFats[item.Key];
+
+                        //proteins[0] = Math.Round(item.Value * 100 / tot, 2);
+                        //carbo[0] = Math.Round(dictCarbo[item.Key] * 100 / tot, 2);
+                        //fats[0] = Math.Round(dictFats[item.Key] * 100 / tot, 2);
+
+                        proteins[0] = item.Value / tot;
+                        carbo[0] = dictCarbo[item.Key] / tot;
+                        fats[0] = dictFats[item.Key] / tot;
+                        //current = fats[0] + carbo[0] + proteins[0];
+                        //if (current < 100.0)
+                        //{
+                        //    var temp = 100.0 - current;
+                        //    fats[0] = fats[0] + temp;
+                        //}
+
                         break;
 
                     case 1:
                         //labels[1] = "Lunes";
                         xs[1] = 1.0;
-                        proteins[1] = item.Value;
-                        carbo[1] = dictCarbo[item.Key];
-                        fats[1] = dictFats[item.Key];
+                        //proteins[1] = Math.Round(item.Value * 100 / tot, 2);
+                        //carbo[1] = Math.Round(dictCarbo[item.Key] * 100 / tot, 2);
+                        //fats[1] = Math.Round(dictFats[item.Key] * 100 / tot, 2);
+
+                        proteins[1] = item.Value / tot;
+                        carbo[1] = dictCarbo[item.Key] / tot;
+                        fats[1] = dictFats[item.Key] / tot;
+                        //current = fats[1] + carbo[1] + proteins[1];
+                        //if (current < 100.0)
+                        //{
+                        //    var temp = 100.0 - current;
+                        //    fats[1] = fats[1] + temp;
+                        //}
                         break;
 
                     case 2:
                         //labels[2] = "Martes";
                         xs[2] = 2.0;
-                        proteins[2] = item.Value;
-                        carbo[2] = dictCarbo[item.Key];
-                        fats[2] = dictFats[item.Key];
+                        //proteins[2] = Math.Round(item.Value * 100 / tot, 2);
+                        //carbo[2] = Math.Round(dictCarbo[item.Key] * 100 / tot, 2);
+                        //fats[2] = Math.Round(dictFats[item.Key] * 100 / tot, 2);
+
+                        proteins[2] = item.Value / tot;
+                        carbo[2] = dictCarbo[item.Key] / tot;
+                        fats[2] = dictFats[item.Key] / tot;
+                        //current = fats[2] + carbo[2] + proteins[2];
+                        //if (current < 100.0)
+                        //{
+                        //    var temp = 100.0 - current;
+                        //    fats[2] = fats[2] + temp;
+                        //}
                         break;
 
                     case 3:
                         //labels[3] = "Miércoles";
                         xs[3] = 3.0;
-                        proteins[3] = item.Value;
-                        carbo[3] = dictCarbo[item.Key];
-                        fats[3] = dictFats[item.Key];
+                        //proteins[3] = Math.Round(item.Value * 100 / tot, 2);
+                        //carbo[3] = Math.Round(dictCarbo[item.Key] * 100 / tot, 2);
+                        //fats[3] = Math.Round(dictFats[item.Key] * 100 / tot, 2);
+
+                        proteins[3] = item.Value / tot;
+                        carbo[3] = dictCarbo[item.Key] / tot;
+                        fats[3] = dictFats[item.Key] / tot;
+                        //current = fats[3] + carbo[3] + proteins[3];
+                        //if (current < 100.0)
+                        //{
+                        //    var temp = 100.0 - current;
+                        //    fats[3] = fats[3] + temp;
+                        //}
                         break;
 
                     case 4:
                         //labels[4] = "Jueves";
                         xs[4] = 4.0;
-                        proteins[4] = item.Value;
-                        carbo[4] = dictCarbo[item.Key];
-                        fats[4] = dictFats[item.Key];
+                        //proteins[4] = Math.Round(item.Value * 100 / tot, 2);
+                        //carbo[4] = Math.Round(dictCarbo[item.Key] * 100 / tot, 2);
+                        //fats[4] = Math.Round(dictFats[item.Key] * 100 / tot, 2);
+
+                        proteins[4] = item.Value / tot;
+                        carbo[4] = dictCarbo[item.Key] / tot;
+                        fats[4] = dictFats[item.Key] / tot;
+                        //current = fats[4] + carbo[4] + proteins[4];
+                        //if (current < 100.0)
+                        //{
+                        //    var temp = 100.0 - current;
+                        //    fats[4] = fats[4] + temp;
+                        //}
                         break;
 
                     case 5:
                         //labels[5] = "Viernes";
                         xs[5] = 5.0;
-                        proteins[5] = item.Value;
-                        carbo[5] = dictCarbo[item.Key];
-                        fats[5] = dictFats[item.Key];
+                        //proteins[5] = Math.Round(item.Value * 100 / tot, 2);
+                        //carbo[5] = Math.Round(dictCarbo[item.Key] * 100 / tot, 2);
+                        //fats[5] = Math.Round(dictFats[item.Key] * 100 / tot, 2);
+
+                        proteins[5] = item.Value / tot;
+                        carbo[5] = dictCarbo[item.Key] / tot;
+                        fats[5] = dictFats[item.Key] / tot;
+                        //current = fats[5] + carbo[5] + proteins[5];
+                        //if (current < 100.0)
+                        //{
+                        //    var temp = 100.0 - current;
+                        //    fats[5] = fats[5] + temp;
+                        //}
                         break;
 
                     default:
                         //labels[6] = "Sábado";
                         xs[6] = 6.0;
-                        proteins[6] = item.Value;
-                        carbo[6] = dictCarbo[item.Key];
-                        fats[6] = dictFats[item.Key];
+                        //proteins[6] = Math.Round(item.Value * 100 / tot, 2);
+                        //carbo[6] = Math.Round(dictCarbo[item.Key] * 100 / tot, 2);
+                        //fats[6] = Math.Round(dictFats[item.Key] * 100 / tot, 2);
+
+                        proteins[6] = item.Value / tot;
+                        carbo[6] = dictCarbo[item.Key] / tot;
+                        fats[6] = dictFats[item.Key] / tot;
+                        //current = fats[6] + carbo[6] + proteins[6];
+                        //if (current < 100.0)
+                        //{
+                        //    var temp = 100.0 - current;
+                        //    fats[6] = fats[6] + temp;
+                        //}
                         break;
                 }
             }
 
-            var plt1 = new ScottPlot.Plot(500, 300);
-            plt1.PlotBar(xs, proteins, label: "Proteínas");
-            plt1.PlotBar(xs, carbo, label: "Carbohidratos");
-            plt1.PlotBar(xs, fats, label: "Grasas");
+            var plt1 = new ScottPlot.Plot(500, 400);
+
+            plt1.PlotBar(xs, proteins, label: "Proteínas", barWidth: .2, xOffset: -.3);
+            plt1.PlotBar(xs, carbo, label: "Carbohidratos", barWidth: .2, xOffset: .0);
+            plt1.PlotBar(xs, fats, label: "Grasas", barWidth: .2, xOffset: .3);
+
             plt1.XTicks(labels);
+            plt1.Ticks(numericFormatStringY: "P1");
 
             // improve the styling
             //plt.Legend(enableLegend: true);
             plt1.Legend(location: ScottPlot.legendLocation.upperRight);
-            //plt.Title("Kcal/día", enable: true);
+            plt1.Title("Aportes en % a las kcal/día", enable: true);
 
             //var currentAssembly = typeof(ReportService).GetTypeInfo().Assembly;
             //var root = Path.GetDirectoryName(currentAssembly.Location);
