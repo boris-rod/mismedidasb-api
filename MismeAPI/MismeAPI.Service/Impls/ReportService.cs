@@ -245,57 +245,57 @@ namespace MismeAPI.Service.Impls
                     case 0:
                         //labels[0] = "Domingo";
                         xs[0] = 0.0;
-                        proteins[0] = item.Value / tot;
-                        carbo[0] = dictCarbo[item.Key] / tot;
-                        fats[0] = dictFats[item.Key] / tot;
+                        proteins[0] = tot > 0 ? item.Value / tot : 0.0;
+                        carbo[0] = tot > 0 ? dictCarbo[item.Key] / tot : 0.0;
+                        fats[0] = tot > 0 ? dictFats[item.Key] / tot : 0.0;
                         break;
 
                     case 1:
                         //labels[1] = "Lunes";
                         xs[1] = 1.0;
-                        proteins[1] = item.Value / tot;
-                        carbo[1] = dictCarbo[item.Key] / tot;
-                        fats[1] = dictFats[item.Key] / tot;
+                        proteins[1] = tot > 0 ? item.Value / tot : 0.0;
+                        carbo[1] = tot > 0 ? dictCarbo[item.Key] / tot : 0.0;
+                        fats[1] = tot > 0 ? dictFats[item.Key] / tot : 0.0;
                         break;
 
                     case 2:
                         //labels[2] = "Martes";
                         xs[2] = 2.0;
-                        proteins[2] = item.Value / tot;
-                        carbo[2] = dictCarbo[item.Key] / tot;
-                        fats[2] = dictFats[item.Key] / tot;
+                        proteins[2] = tot > 0 ? item.Value / tot : 0.0;
+                        carbo[2] = tot > 0 ? dictCarbo[item.Key] / tot : 0.0;
+                        fats[2] = tot > 0 ? dictFats[item.Key] / tot : 0.0;
                         break;
 
                     case 3:
                         //labels[3] = "Miércoles";
                         xs[3] = 3.0;
-                        proteins[3] = item.Value / tot;
-                        carbo[3] = dictCarbo[item.Key] / tot;
-                        fats[3] = dictFats[item.Key] / tot;
+                        proteins[3] = tot > 0 ? item.Value / tot : 0.0;
+                        carbo[3] = tot > 0 ? dictCarbo[item.Key] / tot : 0.0;
+                        fats[3] = tot > 0 ? dictFats[item.Key] / tot : 0.0;
                         break;
 
                     case 4:
                         //labels[4] = "Jueves";
                         xs[4] = 4.0;
-                        proteins[4] = item.Value / tot;
-                        carbo[4] = dictCarbo[item.Key] / tot;
-                        fats[4] = dictFats[item.Key] / tot;
+                        proteins[4] = tot > 0 ? item.Value / tot : 0.0;
+                        carbo[4] = tot > 0 ? dictCarbo[item.Key] / tot : 0.0;
+                        fats[4] = tot > 0 ? dictFats[item.Key] / tot : 0.0;
                         break;
 
                     case 5:
                         //labels[5] = "Viernes";
                         xs[5] = 5.0;
-                        proteins[5] = item.Value / tot;
-                        carbo[5] = dictCarbo[item.Key] / tot;
-                        fats[5] = dictFats[item.Key] / tot;
+                        proteins[5] = tot > 0 ? item.Value / tot : 0.0;
+                        carbo[5] = tot > 0 ? dictCarbo[item.Key] / tot : 0.0;
+                        fats[5] = tot > 0 ? dictFats[item.Key] / tot : 0.0;
                         break;
 
                     default:
                         //labels[6] = "Sábado";
                         xs[6] = 6.0;
-                        proteins[6] = item.Value / tot;
-                        carbo[6] = dictCarbo[item.Key] / tot;
-                        fats[6] = dictFats[item.Key] / tot;
+                        proteins[6] = tot > 0 ? item.Value / tot : 0.0;
+                        carbo[6] = tot > 0 ? dictCarbo[item.Key] / tot : 0.0;
+                        fats[6] = tot > 0 ? dictFats[item.Key] / tot : 0.0;
                         break;
                 }
             }
@@ -372,8 +372,8 @@ namespace MismeAPI.Service.Impls
                 }
             }
 
-            var avg1 = total1 / groups1.Count();
-            var avg2 = total2 / groups2.Count();
+            var avg1 = groups1.Count() > 0 ? total1 / groups1.Count() : 0.0;
+            var avg2 = groups2.Count() > 0 ? total2 / groups2.Count() : 0.0;
 
             list.Add(new MacroMicroValues
             {
@@ -417,8 +417,8 @@ namespace MismeAPI.Service.Impls
                 }
             }
 
-            avg1 = total1 / groups1.Count();
-            avg2 = total2 / groups2.Count();
+            avg1 = groups1.Count() > 0 ? total1 / groups1.Count() : 0.0;
+            avg2 = groups2.Count() > 0 ? total2 / groups2.Count() : 0.0;
 
             list.Add(new MacroMicroValues
             {
@@ -461,8 +461,8 @@ namespace MismeAPI.Service.Impls
                 }
             }
 
-            avg1 = total1 / groups1.Count();
-            avg2 = total2 / groups2.Count();
+            avg1 = groups1.Count() > 0 ? total1 / groups1.Count() : 0.0;
+            avg2 = groups2.Count() > 0 ? total2 / groups2.Count() : 0.0;
 
             list.Add(new MacroMicroValues
             {
@@ -505,8 +505,8 @@ namespace MismeAPI.Service.Impls
                 }
             }
 
-            avg1 = total1 / groups1.Count();
-            avg2 = total2 / groups2.Count();
+            avg1 = groups1.Count() > 0 ? total1 / groups1.Count() : 0.0;
+            avg2 = groups2.Count() > 0 ? total2 / groups2.Count() : 0.0;
 
             list.Add(new MacroMicroValues
             {
@@ -549,8 +549,8 @@ namespace MismeAPI.Service.Impls
                 }
             }
 
-            avg1 = total1 / groups1.Count();
-            avg2 = total2 / groups2.Count();
+            avg1 = groups1.Count() > 0 ? total1 / groups1.Count() : 0.0;
+            avg2 = groups2.Count() > 0 ? total2 / groups2.Count() : 0.0;
 
             list.Add(new MacroMicroValues
             {
@@ -593,8 +593,8 @@ namespace MismeAPI.Service.Impls
                 }
             }
 
-            avg1 = total1 / groups1.Count();
-            avg2 = total2 / groups2.Count();
+            avg1 = groups1.Count() > 0 ? total1 / groups1.Count() : 0.0;
+            avg2 = groups2.Count() > 0 ? total2 / groups2.Count() : 0.0;
 
             list.Add(new MacroMicroValues
             {
@@ -637,8 +637,8 @@ namespace MismeAPI.Service.Impls
                 }
             }
 
-            avg1 = total1 / groups1.Count();
-            avg2 = total2 / groups2.Count();
+            avg1 = groups1.Count() > 0 ? total1 / groups1.Count() : 0.0;
+            avg2 = groups2.Count() > 0 ? total2 / groups2.Count() : 0.0;
 
             list.Add(new MacroMicroValues
             {
@@ -681,8 +681,8 @@ namespace MismeAPI.Service.Impls
                 }
             }
 
-            avg1 = total1 / groups1.Count();
-            avg2 = total2 / groups2.Count();
+            avg1 = groups1.Count() > 0 ? total1 / groups1.Count() : 0.0;
+            avg2 = groups2.Count() > 0 ? total2 / groups2.Count() : 0.0;
 
             list.Add(new MacroMicroValues
             {
@@ -725,8 +725,8 @@ namespace MismeAPI.Service.Impls
                 }
             }
 
-            avg1 = total1 / groups1.Count();
-            avg2 = total2 / groups2.Count();
+            avg1 = groups1.Count() > 0 ? total1 / groups1.Count() : 0.0;
+            avg2 = groups2.Count() > 0 ? total2 / groups2.Count() : 0.0;
 
             list.Add(new MacroMicroValues
             {
@@ -769,8 +769,8 @@ namespace MismeAPI.Service.Impls
                 }
             }
 
-            avg1 = total1 / groups1.Count();
-            avg2 = total2 / groups2.Count();
+            avg1 = groups1.Count() > 0 ? total1 / groups1.Count() : 0.0;
+            avg2 = groups2.Count() > 0 ? total2 / groups2.Count() : 0.0;
 
             list.Add(new MacroMicroValues
             {
@@ -813,8 +813,8 @@ namespace MismeAPI.Service.Impls
                 }
             }
 
-            avg1 = total1 / groups1.Count();
-            avg2 = total2 / groups2.Count();
+            avg1 = groups1.Count() > 0 ? total1 / groups1.Count() : 0.0;
+            avg2 = groups2.Count() > 0 ? total2 / groups2.Count() : 0.0;
 
             list.Add(new MacroMicroValues
             {
@@ -857,8 +857,8 @@ namespace MismeAPI.Service.Impls
                 }
             }
 
-            avg1 = total1 / groups1.Count();
-            avg2 = total2 / groups2.Count();
+            avg1 = groups1.Count() > 0 ? total1 / groups1.Count() : 0.0;
+            avg2 = groups2.Count() > 0 ? total2 / groups2.Count() : 0.0;
 
             list.Add(new MacroMicroValues
             {
@@ -901,8 +901,8 @@ namespace MismeAPI.Service.Impls
                 }
             }
 
-            avg1 = total1 / groups1.Count();
-            avg2 = total2 / groups2.Count();
+            avg1 = groups1.Count() > 0 ? total1 / groups1.Count() : 0.0;
+            avg2 = groups2.Count() > 0 ? total2 / groups2.Count() : 0.0;
 
             list.Add(new MacroMicroValues
             {
@@ -945,8 +945,8 @@ namespace MismeAPI.Service.Impls
                 }
             }
 
-            avg1 = total1 / groups1.Count();
-            avg2 = total2 / groups2.Count();
+            avg1 = groups1.Count() > 0 ? total1 / groups1.Count() : 0.0;
+            avg2 = groups2.Count() > 0 ? total2 / groups2.Count() : 0.0;
 
             list.Add(new MacroMicroValues
             {
@@ -989,8 +989,8 @@ namespace MismeAPI.Service.Impls
                 }
             }
 
-            avg1 = total1 / groups1.Count();
-            avg2 = total2 / groups2.Count();
+            avg1 = groups1.Count() > 0 ? total1 / groups1.Count() : 0.0;
+            avg2 = groups2.Count() > 0 ? total2 / groups2.Count() : 0.0;
 
             list.Add(new MacroMicroValues
             {
@@ -1033,8 +1033,8 @@ namespace MismeAPI.Service.Impls
                 }
             }
 
-            avg1 = total1 / groups1.Count();
-            avg2 = total2 / groups2.Count();
+            avg1 = groups1.Count() > 0 ? total1 / groups1.Count() : 0.0;
+            avg2 = groups2.Count() > 0 ? total2 / groups2.Count() : 0.0;
 
             list.Add(new MacroMicroValues
             {
@@ -1077,8 +1077,8 @@ namespace MismeAPI.Service.Impls
                 }
             }
 
-            avg1 = total1 / groups1.Count();
-            avg2 = total2 / groups2.Count();
+            avg1 = groups1.Count() > 0 ? total1 / groups1.Count() : 0.0;
+            avg2 = groups2.Count() > 0 ? total2 / groups2.Count() : 0.0;
 
             list.Add(new MacroMicroValues
             {
@@ -1121,8 +1121,8 @@ namespace MismeAPI.Service.Impls
                 }
             }
 
-            avg1 = total1 / groups1.Count();
-            avg2 = total2 / groups2.Count();
+            avg1 = groups1.Count() > 0 ? total1 / groups1.Count() : 0.0;
+            avg2 = groups2.Count() > 0 ? total2 / groups2.Count() : 0.0;
 
             list.Add(new MacroMicroValues
             {
@@ -1165,8 +1165,8 @@ namespace MismeAPI.Service.Impls
                 }
             }
 
-            avg1 = total1 / groups1.Count();
-            avg2 = total2 / groups2.Count();
+            avg1 = groups1.Count() > 0 ? total1 / groups1.Count() : 0.0;
+            avg2 = groups2.Count() > 0 ? total2 / groups2.Count() : 0.0;
 
             list.Add(new MacroMicroValues
             {
@@ -1209,8 +1209,8 @@ namespace MismeAPI.Service.Impls
                 }
             }
 
-            avg1 = total1 / groups1.Count();
-            avg2 = total2 / groups2.Count();
+            avg1 = groups1.Count() > 0 ? total1 / groups1.Count() : 0.0;
+            avg2 = groups2.Count() > 0 ? total2 / groups2.Count() : 0.0;
 
             list.Add(new MacroMicroValues
             {
@@ -1253,8 +1253,8 @@ namespace MismeAPI.Service.Impls
                 }
             }
 
-            avg1 = total1 / groups1.Count();
-            avg2 = total2 / groups2.Count();
+            avg1 = groups1.Count() > 0 ? total1 / groups1.Count() : 0.0;
+            avg2 = groups2.Count() > 0 ? total2 / groups2.Count() : 0.0;
 
             list.Add(new MacroMicroValues
             {
@@ -1297,8 +1297,8 @@ namespace MismeAPI.Service.Impls
                 }
             }
 
-            avg1 = total1 / groups1.Count();
-            avg2 = total2 / groups2.Count();
+            avg1 = groups1.Count() > 0 ? total1 / groups1.Count() : 0.0;
+            avg2 = groups2.Count() > 0 ? total2 / groups2.Count() : 0.0;
 
             list.Add(new MacroMicroValues
             {
@@ -1341,8 +1341,8 @@ namespace MismeAPI.Service.Impls
                 }
             }
 
-            avg1 = total1 / groups1.Count();
-            avg2 = total2 / groups2.Count();
+            avg1 = groups1.Count() > 0 ? total1 / groups1.Count() : 0.0;
+            avg2 = groups2.Count() > 0 ? total2 / groups2.Count() : 0.0;
 
             list.Add(new MacroMicroValues
             {
@@ -1385,8 +1385,8 @@ namespace MismeAPI.Service.Impls
                 }
             }
 
-            avg1 = total1 / groups1.Count();
-            avg2 = total2 / groups2.Count();
+            avg1 = groups1.Count() > 0 ? total1 / groups1.Count() : 0.0;
+            avg2 = groups2.Count() > 0 ? total2 / groups2.Count() : 0.0;
 
             list.Add(new MacroMicroValues
             {
@@ -1429,8 +1429,8 @@ namespace MismeAPI.Service.Impls
                 }
             }
 
-            avg1 = total1 / groups1.Count();
-            avg2 = total2 / groups2.Count();
+            avg1 = groups1.Count() > 0 ? total1 / groups1.Count() : 0.0;
+            avg2 = groups2.Count() > 0 ? total2 / groups2.Count() : 0.0;
 
             list.Add(new MacroMicroValues
             {
@@ -1473,8 +1473,8 @@ namespace MismeAPI.Service.Impls
                 }
             }
 
-            avg1 = total1 / groups1.Count();
-            avg2 = total2 / groups2.Count();
+            avg1 = groups1.Count() > 0 ? total1 / groups1.Count() : 0.0;
+            avg2 = groups2.Count() > 0 ? total2 / groups2.Count() : 0.0;
 
             list.Add(new MacroMicroValues
             {
@@ -1506,8 +1506,8 @@ namespace MismeAPI.Service.Impls
             //var firstDay = currentWeekDates.ElementAt(0);
             //var lastDay = currentWeekDates.ElementAt(6);
 
-            var firstDay = DateTime.Parse("Oct 25, 2020");
-            var lastDay = DateTime.Parse("Oct 31, 2020");
+            var firstDay = DateTime.Parse("Nov 15, 2020");
+            var lastDay = DateTime.Parse("Nov 21, 2020");
 
             var eatsWeek = await _uow.EatDishRepository.GetAll().Where(ed => ed.Eat.CreatedAt.Date >= firstDay.Date &&
                     ed.Eat.CreatedAt.Date <= lastDay.Date &&

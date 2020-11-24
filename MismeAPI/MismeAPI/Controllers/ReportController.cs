@@ -25,7 +25,7 @@ namespace MismeAPI
         public async Task<IActionResult> GetReport()
         {
             //hardcoded now
-            var userId = 116;
+            var userId = 297;
             await _reportService.GetNutritionalReport(userId);
             return Ok();
         }

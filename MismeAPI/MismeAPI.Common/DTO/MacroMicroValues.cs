@@ -4,79 +4,79 @@ namespace MismeAPI.Common.DTO
 {
     public enum MacroMicroType
     {
-        [Description("Proteínas")]
+        [Description("Proteínas (g)")]
         PROTEINS,
 
-        [Description("Carbohidratos")]
+        [Description("Carbohidratos (g)")]
         CARBOHIDRATES,
 
-        [Description("Grasas")]
+        [Description("Grasas (g)")]
         FAT,
 
-        [Description("Ac grasos saturados")]
+        [Description("Ac grasos saturados (g)")]
         FAT_ACID_SATURATE,
 
-        [Description("Ac grasos monoinsaturados")]
+        [Description("Ac grasos monoinsaturados (g)")]
         FAT_ACID_MONOINSATURATE,
 
-        [Description("Ac grasos polinsaturados")]
+        [Description("Ac grasos polinsaturados (g)")]
         FAT_ACID_POLYINSATURATE,
 
-        [Description("Colesterol")]
+        [Description("Colesterol (mg)")]
         CHOLESTEROL,
 
-        [Description("Vitamina A")]
+        [Description("Vitamina A (mcg)")]
         VITAMINA,
 
-        [Description("Tiamina")]
+        [Description("Tiamina (mg)")]
         TIAMIN,
 
-        [Description("Riboflavina")]
+        [Description("Riboflavina (mg)")]
         RIBOFLAVIN,
 
-        [Description("Niacina")]
+        [Description("Niacina (mg)")]
         NIACIN,
 
-        [Description("Vitamina B6")]
+        [Description("Vitamina B6 (mg)")]
         VITAMIN_B6,
 
-        [Description("Folatos")]
+        [Description("Folatos (mcg)")]
         FOLATE,
 
-        [Description("Vitamina B12")]
+        [Description("Vitamina B12 (mcg)")]
         VITAMIN_B12,
 
-        [Description("Vitamina C")]
+        [Description("Vitamina C (mg)")]
         VITAMIN_C,
 
-        [Description("Vitamina D")]
+        [Description("Vitamina D (mcg)")]
         VITAMIN_D,
 
-        [Description("Vitamina E")]
+        [Description("Vitamina E (mg)")]
         VITAMIN_E,
 
-        [Description("Vitamina K")]
+        [Description("Vitamina K (mcg)")]
         VITAMIN_K,
 
-        [Description("Calcio")]
+        [Description("Calcio (mg)")]
         CALCIUM,
 
-        [Description("Fósforo")]
+        [Description("Fósforo (mg)")]
         PHOSPHORUS,
 
-        [Description("Hierro")]
+        [Description("Hierro (mg)")]
         IRON,
 
-        [Description("Zinc")]
+        [Description("Zinc (mg)")]
         ZINC,
 
-        [Description("Potasio")]
+        [Description("Potasio (mg)")]
         POTASSIUM,
 
-        [Description("Sodio")]
+        [Description("Sodio (mg)")]
         SODIUM,
 
-        [Description("Fibra")]
+        [Description("Fibra (g)")]
         FIBER,
 
         [Description("Alcohol")]
