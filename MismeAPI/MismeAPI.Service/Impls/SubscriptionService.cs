@@ -235,7 +235,7 @@ namespace MismeAPI.Service.Impls
 
         public async Task<IEnumerable<UserSubscription>> BuySubscriptionPackageAsync(int loggedUser)
         {
-            var bulkSubscriptions = new List<SubscriptionEnum> { SubscriptionEnum.VIRTUAL_ASESSOR, SubscriptionEnum.FOOD_REPORT, SubscriptionEnum.WELLNESS_REPORT };
+            var bulkSubscriptions = new List<SubscriptionEnum> { SubscriptionEnum.VIRTUAL_ASESSOR, SubscriptionEnum.FOOD_REPORT, SubscriptionEnum.NUTRITION_REPORT };
             var unitPrice = 2500;
 
             var user = await _userService.GetUserAsync(loggedUser);
@@ -351,8 +351,8 @@ namespace MismeAPI.Service.Impls
 
             var subscriptionReques3 = new CreateSubscriptionRequest
             {
-                Name = "Reporte de Salud",
-                Product = (int)SubscriptionEnum.WELLNESS_REPORT,
+                Name = "Reporte de Nutricion",
+                Product = (int)SubscriptionEnum.NUTRITION_REPORT,
                 ValueCoins = 1000,
                 IsActive = true
             };
@@ -367,7 +367,7 @@ namespace MismeAPI.Service.Impls
             if (subscription2 == null)
                 await CreateSubscriptionAsync(subscriptionReques2);
 
-            var subscription3 = subscriptions.Where(c => c.Product == SubscriptionEnum.WELLNESS_REPORT);
+            var subscription3 = subscriptions.Where(c => c.Product == SubscriptionEnum.NUTRITION_REPORT);
             if (subscription3 == null)
                 await CreateSubscriptionAsync(subscriptionReques3);
 
