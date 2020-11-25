@@ -6,6 +6,6 @@ namespace MismeAPI.Data.Entities.Enums
 {
     public enum SubscriptionEnum
     {
-        VIRTUAL_ASESSOR, FOOD_REPORT, WELLNESS_REPORT
+        VIRTUAL_ASESSOR, FOOD_REPORT, NUTRITION_REPORT
     }
 }
