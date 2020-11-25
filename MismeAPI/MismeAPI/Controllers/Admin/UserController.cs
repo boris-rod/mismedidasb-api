@@ -24,13 +24,15 @@ namespace MismeAPI.Controllers.Admin
         private readonly IAccountService _accountService;
         private readonly IMapper _mapper;
         private readonly IPollService _pollService;
+        private readonly INotificationService _notificationService;
 
-        public UserController(IUserService userService, IMapper mapper, IAccountService accountService, IPollService pollService)
+        public UserController(IUserService userService, IMapper mapper, IAccountService accountService, IPollService pollService, INotificationService notificationService)
         {
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _accountService = accountService ?? throw new ArgumentNullException(nameof(accountService));
             _pollService = pollService ?? throw new ArgumentNullException(nameof(pollService));
+            _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
         }
 
         /// <summary>
@@ -83,6 +85,23 @@ namespace MismeAPI.Controllers.Admin
             });
 
             return Ok(new ApiOkResponse(mapped));
+        }
+
+        /// <summary>
+        /// TEST
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("{id}/send-notification")]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        public async Task<IActionResult> Test(int id)
+        {
+            var user = await _userService.GetUserDevicesAsync(id);
+            var title = "Participa en el Grupo PlaniFive";
+            var body = "Ver mas detalles";
+            var externalUrl = "https://metriri.com/blog/te-invitamos-a-participar-en-el-grupo-planifive";
+            await _notificationService.SendFirebaseNotificationAsync(title, body, user.Devices, externalUrl);
+
+            return Ok();
         }
     }
 }

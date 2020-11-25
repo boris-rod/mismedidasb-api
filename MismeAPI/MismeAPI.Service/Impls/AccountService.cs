@@ -921,7 +921,7 @@ namespace MismeAPI.Services.Impls
             user.ActivatedAt = DateTime.UtcNow;
 
             await _uow.UserRepository.UpdateAsync(user, user.Id);
-            await _subscriptionService.GetOrInitPlaniSubscriptionAsync(user);
+            await _subscriptionService.GetOrInitSubscriptionAsync(user, SubscriptionEnum.VIRTUAL_ASESSOR);
 
             await _uow.CommitAsync();
 

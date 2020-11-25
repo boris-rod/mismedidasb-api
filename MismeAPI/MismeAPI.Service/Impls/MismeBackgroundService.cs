@@ -21,16 +21,18 @@ namespace MismeAPI.Service.Impls
         private readonly IUserStatisticsService _userStatisticsService;
         private readonly IRewardHelper _rewardHelper;
         private readonly ISubscriptionService _subscriptionService;
+        private readonly INotificationService _notificationService;
         private readonly List<int> STREAK_REWARDS = new List<int> { 7, 30, 60, 90, 120 };
 
         public MismeBackgroundService(IUnitOfWork uow, IConfiguration config, IUserStatisticsService userStatisticsService,
-            IRewardHelper rewardHelper, ISubscriptionService subscriptionService)
+            IRewardHelper rewardHelper, ISubscriptionService subscriptionService, INotificationService notificationService)
         {
             _uow = uow ?? throw new ArgumentNullException(nameof(uow));
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _userStatisticsService = userStatisticsService ?? throw new ArgumentNullException(nameof(userStatisticsService));
             _rewardHelper = rewardHelper ?? throw new ArgumentNullException(nameof(rewardHelper));
             _subscriptionService = subscriptionService ?? throw new ArgumentNullException(nameof(subscriptionService));
+            _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
         }
 
         public async Task CleanExpiredTokensAsync()
@@ -255,18 +257,57 @@ namespace MismeAPI.Service.Impls
 
         public async Task HandleSubscriptionsAsync()
         {
-            var userSubscriptions = await _uow.UserSubscriptionRepository.GetAllAsync();
+            var userSubscriptions = await _uow.UserSubscriptionRepository.GetAll()
+                .Include(us => us.Subscription)
+                .ToListAsync();
             var today = DateTime.UtcNow;
+            var tomorrow = today.AddDays(1);
 
             foreach (var userSubscription in userSubscriptions)
             {
-                if (userSubscription.ValidAt.Date < today.Date)
+                var isPlaniSubscription = userSubscription.Subscription != null && userSubscription.Subscription.Product == SubscriptionEnum.VIRTUAL_ASESSOR;
+                if (isPlaniSubscription)
                 {
-                    /*Extend the subscription to all users to prevent loose plany - TODO disable this when the requirement be requested*/
-                    await _subscriptionService.AssignSubscriptionAsync(userSubscription.UserId, SubscriptionEnum.VIRTUAL_ASESSOR);
+                    if (userSubscription.ValidAt.Date < today.Date)
+                    {
+                        /*Extend the subscription to all users to prevent loose plany - TODO disable this when the requirement be requested*/
+                        await _subscriptionService.AssignSubscriptionAsync(userSubscription.UserId, SubscriptionEnum.VIRTUAL_ASESSOR);
+                    }
 
                     // Do not disable subscriptions now.
                     //await _subscriptionService.DisableUserSubscriptionAsync(userSubscription.Id);
+                }
+                else
+                {
+                    if (userSubscription.IsActive && userSubscription.ValidAt.Date == tomorrow.Date)
+                    {
+                        await _subscriptionService.NotifySubscriptionAboutToExpireAsync(userSubscription.Id);
+                    }
+                    else if (userSubscription.IsActive && userSubscription.ValidAt.Date > today.Date)
+                    {
+                        await _subscriptionService.DisableUserSubscriptionAsync(userSubscription.Id);
+                    }
+                }
+            }
+        }
+
+        public async Task SendPlanifyEventNotificationAsync()
+        {
+            var users = await _uow.UserRepository.GetAll()
+                .Include(u => u.Devices)
+                .Include(u => u.UserSettings)
+                    .ThenInclude(s => s.Setting)
+                .ToListAsync();
+
+            foreach (var user in users)
+            {
+                if (user.Devices != null)
+                {
+                    // TODO: Internationalization on this msgs.
+                    var title = "Participa en el Grupo PlaniFive";
+                    var body = "Ver mas detalles";
+                    var externalUrl = "https://metriri.com/blog/te-invitamos-a-participar-en-el-grupo-planifive";
+                    await _notificationService.SendFirebaseNotificationAsync(title, body, user.Devices, externalUrl);
                 }
             }
         }

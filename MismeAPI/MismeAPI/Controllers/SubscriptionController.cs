@@ -132,7 +132,7 @@ namespace APITaxi.API.Controllers
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
-        public async Task<IActionResult> Update([FromRoute]int id, UpdateSubscriptionRequest request)
+        public async Task<IActionResult> Update([FromRoute] int id, UpdateSubscriptionRequest request)
         {
             var subscription = await _subscriptionService.UpdateSubscriptionAsync(id, request);
 
@@ -150,7 +150,7 @@ namespace APITaxi.API.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> DeleteCutPoint([FromRoute]int id)
+        public async Task<IActionResult> DeleteSubscription([FromRoute] int id)
         {
             await _subscriptionService.DeleteSubscriptionAsync(id);
             return Ok();
@@ -193,6 +193,25 @@ namespace APITaxi.API.Controllers
             var loggedUser = User.GetUserIdFromToken();
 
             var userSubscription = await _subscriptionService.BuySubscriptionAsync(loggedUser, id);
+            var mapped = _mapper.Map<UserSubscriptionResponse>(userSubscription);
+
+            return Created("", new ApiOkResponse(mapped));
+        }
+
+        /// <summary>
+        /// Bulk subscription buy. Offer to adquire Plani and Health-Food reports at once
+        /// </summary>
+        /// <returns>subscriptions of the current user</returns>
+        [HttpPost]
+        [Route("buy-offer-one")]
+        [Authorize]
+        [ProducesResponseType(typeof(UserSubscriptionResponse), (int)HttpStatusCode.Created)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> BulkBuySubscriptions(int id)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+
+            var userSubscription = await _subscriptionService.BuySubscriptionPackageAsync(loggedUser);
             var mapped = _mapper.Map<UserSubscriptionResponse>(userSubscription);
 
             return Created("", new ApiOkResponse(mapped));

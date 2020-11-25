@@ -84,10 +84,15 @@ namespace MismeAPI.Service.Impls
             }
         }
 
-        public async Task SendFirebaseNotificationAsync(string title, string body, IEnumerable<Device> devices)
+        public async Task SendFirebaseNotificationAsync(string title, string body, IEnumerable<Device> devices, string externalUrl = "")
         {
             var serverKey = _config["Firebase:ServerKey"];
             var senderId = _config["Firebase:SenderId"];
+
+            var data = new Dictionary<string, string>()
+            {
+                { "externalUrl", externalUrl}
+            };
 
             foreach (var device in devices)
             {
@@ -100,6 +105,7 @@ namespace MismeAPI.Service.Impls
                             Title = title,
                             Body = body,
                         },
+                        Data = data,
                         Token = device.Token
                     };
 

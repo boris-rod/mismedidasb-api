@@ -14,6 +14,6 @@ namespace MismeAPI.Service
 
         Task NotifyDrinWaterReminderAsync(int userId);
 
-        Task SendFirebaseNotificationAsync(string title, string body, IEnumerable<Device> devices);
+        Task SendFirebaseNotificationAsync(string title, string body, IEnumerable<Device> devices, string externalUrl = "");
     }
 }
