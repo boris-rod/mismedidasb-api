@@ -56,6 +56,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="imgs\planifive.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Templates\SendInvitation.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
