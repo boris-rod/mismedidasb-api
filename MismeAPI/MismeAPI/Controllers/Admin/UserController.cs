@@ -2,13 +2,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MismeAPI.BasicResponses;
-using MismeAPI.Common.DTO.Request;
 using MismeAPI.Common.DTO.Response;
 using MismeAPI.Common.DTO.Response.User;
 using MismeAPI.Service;
 using MismeAPI.Services;
 using MismeAPI.Utils;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Net;
