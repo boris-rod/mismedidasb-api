@@ -32,12 +32,39 @@ namespace MismeAPI.Service.Impls
             _pollService = pollService ?? throw new ArgumentNullException(nameof(pollService));
         }
 
-        public Task GetFeedReportAsync()
+        public async Task GetFeedReportAsync(int userId)
         {
-            throw new NotImplementedException();
+            var result = await _accountService.GetUserProfileUseAsync(userId);
+
+            var cover = await GetFeedCoverContent(result.user);
+            var contents = new List<MemoryStream>();
+            contents.Add(new MemoryStream(cover));
+
+            using (var mergedFileStream = new MemoryStream())
+            {
+                new MergePdfDocuments
+                {
+                    DocumentMetadata =
+                     new DocumentMetadata
+                     {
+                         Author = "PlaniFive",
+                         Application = "PlaniFive",
+                         Keywords = "PlaniFive, Alimentacion, Reporte",
+                         Title = "Reporte Alimentacion",
+                         Subject = "Reporte Alimentacion"
+                     },
+                    InputFileStreams = contents.ToArray(),
+                    OutputFileStream = mergedFileStream,
+                    AttachmentsBookmarkLabel = "Attachment(s) "
+                }.PerformMerge();
+
+                var mergedFileContentBytes = mergedFileStream.ToArray();
+
+                File.WriteAllBytes("D:\\ReporteAlimentacion.pdf", mergedFileContentBytes);
+            }
         }
 
-        public async Task GetNutritionalReport(int userId)
+        public async Task GetNutritionalReportAsync(int userId)
         {
             var result = await _accountService.GetUserProfileUseAsync(userId);
 
@@ -70,6 +97,203 @@ namespace MismeAPI.Service.Impls
 
                 File.WriteAllBytes("D:\\ReporteNutricion.pdf", mergedFileContentBytes);
             }
+        }
+
+        private void FeedAddChartToFirstPage(Document pdfDoc, List<EatDish> eats, List<EatCompoundDish> eatsCompoundDish)
+        {
+            //ideal dish
+
+            var plt = new ScottPlot.Plot(500, 300);
+
+            double[] values = { 50, 25, 25 };
+            string[] labelsIdeal = { "Frutas/vegetales", "Protéicos", "Otros" };
+
+            plt.PlotPie(values, labelsIdeal, explodedChart: true, showPercentages: true, showLabels: false);
+            plt.Grid(false);
+            plt.Frame(false);
+            plt.Ticks(false, false);
+            plt.Legend(location: ScottPlot.legendLocation.upperRight, fontSize: 10f);
+
+            plt.Title("Plato saludable ideal", enable: true);
+
+            plt.SaveFig("idealDish.png");
+
+            var imageBytes = File.ReadAllBytes("idealDish.png");
+            var iTextSharpImage = PdfImageHelper.GetITextSharpImageFromByteArray(imageBytes);
+            iTextSharpImage.Alignment = Element.ALIGN_CENTER;
+
+            var tableImage = new PdfPTable(1);
+            tableImage.HorizontalAlignment = Element.ALIGN_CENTER;
+            tableImage.DefaultCell.Border = Rectangle.NO_BORDER;
+            tableImage.WidthPercentage = 100;
+
+            tableImage.AddCell(iTextSharpImage);
+
+            pdfDoc.Add(tableImage);
+
+            //feeds per day
+            var gr = eats.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+            //var gr1 = eatsCompoundDish.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+
+            /// kcal per day: STACKED
+            double[] xs = new double[7];
+            double[] fruits = new double[7];
+            double[] proteics = new double[7];
+            double[] calorics = new double[7];
+            string[] labels = new string[7];
+
+            var dictProteics = new Dictionary<int, double>();
+            dictProteics.Add((int)DayOfWeek.Sunday, 0.0);
+            dictProteics.Add((int)DayOfWeek.Monday, 0.0);
+            dictProteics.Add((int)DayOfWeek.Tuesday, 0.0);
+            dictProteics.Add((int)DayOfWeek.Wednesday, 0.0);
+            dictProteics.Add((int)DayOfWeek.Thursday, 0.0);
+            dictProteics.Add((int)DayOfWeek.Friday, 0.0);
+            dictProteics.Add((int)DayOfWeek.Saturday, 0.0);
+
+            var dictFruits = new Dictionary<int, double>();
+            dictFruits.Add((int)DayOfWeek.Sunday, 0.0);
+            dictFruits.Add((int)DayOfWeek.Monday, 0.0);
+            dictFruits.Add((int)DayOfWeek.Tuesday, 0.0);
+            dictFruits.Add((int)DayOfWeek.Wednesday, 0.0);
+            dictFruits.Add((int)DayOfWeek.Thursday, 0.0);
+            dictFruits.Add((int)DayOfWeek.Friday, 0.0);
+            dictFruits.Add((int)DayOfWeek.Saturday, 0.0);
+
+            var dictCalorics = new Dictionary<int, double>();
+            dictCalorics.Add((int)DayOfWeek.Sunday, 0.0);
+            dictCalorics.Add((int)DayOfWeek.Monday, 0.0);
+            dictCalorics.Add((int)DayOfWeek.Tuesday, 0.0);
+            dictCalorics.Add((int)DayOfWeek.Wednesday, 0.0);
+            dictCalorics.Add((int)DayOfWeek.Thursday, 0.0);
+            dictCalorics.Add((int)DayOfWeek.Friday, 0.0);
+            dictCalorics.Add((int)DayOfWeek.Saturday, 0.0);
+
+            foreach (var group in gr)
+            {
+                var temp = eats.Where(e => e.Eat.CreatedAt.Date == group.Key);
+                var prote = 0.0;
+                var calor = 0.0;
+                var fruitss = 0.0;
+                var dayTotals = 0.0;
+                foreach (var item in temp)
+                {
+                    dayTotals += (item.Dish.NetWeight ?? 0.0) * item.Qty;
+
+                    if (item.Dish.IsCaloric)
+                    {
+                        calor += (item.Dish.NetWeight ?? 0.0) * item.Qty;
+                    }
+                    else if (item.Dish.IsProteic)
+                    {
+                        prote += (item.Dish.NetWeight ?? 0.0) * item.Qty;
+                    }
+                    else
+                    {
+                        fruitss += (item.Dish.NetWeight ?? 0.0) * item.Qty;
+                    }
+                }
+
+                dictCalorics[(int)group.Key.DayOfWeek] = dayTotals > 0 ? Math.Round(calor / dayTotals, 2) : 0.0;
+                dictProteics[(int)group.Key.DayOfWeek] = dayTotals > 0 ? Math.Round(prote / dayTotals, 2) : 0.0;
+                dictFruits[(int)group.Key.DayOfWeek] = dayTotals > 0 ? Math.Round(fruitss / dayTotals, 2) : 0.0;
+            }
+
+            foreach (var item in dictCalorics)
+            {
+                switch (item.Key)
+                {
+                    case 0:
+                        labels[0] = "Dom";
+                        xs[0] = 0.0;
+                        calorics[0] = item.Value;
+                        proteics[0] = dictProteics[item.Key];
+                        fruits[0] = dictFruits[item.Key];
+                        break;
+
+                    case 1:
+                        labels[1] = "Lun";
+                        xs[1] = 1.0;
+                        calorics[1] = item.Value;
+                        proteics[1] = dictProteics[item.Key];
+                        fruits[1] = dictFruits[item.Key];
+                        break;
+
+                    case 2:
+                        labels[2] = "Mar";
+                        xs[2] = 2.0;
+                        calorics[2] = item.Value;
+                        proteics[2] = dictProteics[item.Key];
+                        fruits[2] = dictFruits[item.Key];
+                        break;
+
+                    case 3:
+                        labels[3] = "Mié";
+                        xs[3] = 3.0;
+                        calorics[3] = item.Value;
+                        proteics[3] = dictProteics[item.Key];
+                        fruits[3] = dictFruits[item.Key];
+                        break;
+
+                    case 4:
+                        labels[4] = "Jue";
+                        xs[4] = 4.0;
+                        calorics[4] = item.Value;
+                        proteics[4] = dictProteics[item.Key];
+                        fruits[4] = dictFruits[item.Key];
+                        break;
+
+                    case 5:
+                        labels[5] = "Vie";
+                        xs[5] = 5.0;
+                        calorics[5] = item.Value;
+                        proteics[5] = dictProteics[item.Key];
+                        fruits[5] = dictFruits[item.Key];
+                        break;
+
+                    default:
+                        labels[6] = "Sáb";
+                        xs[6] = 6.0;
+                        calorics[6] = item.Value;
+                        proteics[6] = dictProteics[item.Key];
+                        fruits[6] = dictFruits[item.Key];
+                        break;
+                }
+            }
+
+            var plt1 = new ScottPlot.Plot(500, 400);
+
+            plt1.PlotBar(xs, fruits, label: "Frutas/vegetales", barWidth: .2, xOffset: -.3);
+            plt1.PlotBar(xs, proteics, label: "Protéicos", barWidth: .2, xOffset: -.0);
+            plt1.PlotBar(xs, calorics, label: "Calóricos", barWidth: .2, xOffset: .3);
+
+            plt1.XTicks(labels);
+            plt1.Ticks(numericFormatStringY: "P1");
+
+            // improve the styling
+            //plt.Legend(enableLegend: true);
+            plt1.Legend(location: ScottPlot.legendLocation.upperRight, fontSize: 10f);
+            plt1.Title("Distribución de alimentos", enable: true);
+
+            //var currentAssembly = typeof(ReportService).GetTypeInfo().Assembly;
+            //var root = Path.GetDirectoryName(currentAssembly.Location);
+            plt1.SaveFig("feedsDistribution.png");
+
+            var imageBytes1 = File.ReadAllBytes("feedsDistribution.png");
+            var iTextSharpImage1 = PdfImageHelper.GetITextSharpImageFromByteArray(imageBytes1);
+            iTextSharpImage1.Alignment = Element.ALIGN_CENTER;
+
+            var tableImage1 = new PdfPTable(1);
+            tableImage1.HorizontalAlignment = Element.ALIGN_CENTER;
+            tableImage1.DefaultCell.Border = Rectangle.NO_BORDER;
+            tableImage1.WidthPercentage = 100;
+
+            tableImage1.AddCell(iTextSharpImage1);
+
+            pdfDoc.Add(tableImage1);
+
+            File.Delete("feedsDistribution.png");
+            File.Delete("idealDish.png");
         }
 
         private void AddChartToPage(Document pdfDoc,
@@ -158,7 +382,7 @@ namespace MismeAPI.Service.Impls
             plt.XTicks(labels);
 
             // improve the styling
-            plt.Legend(enableLegend: true);
+            plt.Legend(enableLegend: true, fontSize: 10f);
             plt.Title("Total kcal/día", enable: true);
 
             //var currentAssembly = typeof(ReportService).GetTypeInfo().Assembly;
@@ -311,7 +535,7 @@ namespace MismeAPI.Service.Impls
 
             // improve the styling
             //plt.Legend(enableLegend: true);
-            plt1.Legend(location: ScottPlot.legendLocation.upperRight);
+            plt1.Legend(location: ScottPlot.legendLocation.upperRight, fontSize: 10f);
             plt1.Title("Aportes en % a las kcal/día", enable: true);
 
             //var currentAssembly = typeof(ReportService).GetTypeInfo().Assembly;
@@ -334,6 +558,198 @@ namespace MismeAPI.Service.Impls
 
             File.Delete("kcalPerDay.png");
             File.Delete("kcalPerDayStack.png");
+        }
+
+        private List<FeedReport> GetFeedData((int age, int weight, int height, int sex, DateTime? HealthMeasuresLastUpdate, DateTime? ValueMeasuresLastUpdate, DateTime? WellnessMeasuresLastUpdate, DateTime? LastPlanedEat) info, List<EatDish> eats, List<EatCompoundDish> eatsCompoundDish)
+        {
+            var group1 = eats.GroupBy(e => e.Eat.CreatedAt);
+            //var g2 = eatsCompoundDish.GroupBy(e => e.Eat.CreatedAt);
+
+            var list = new List<FeedReport>();
+
+            var drinkTotal = 0.0;
+            var drinkKcalTotal = 0.0;
+
+            var fruitsTotal = 0.0;
+            var fruitsKcalTotal = 0.0;
+
+            var fatsTotal = 0.0;
+            var fatsKcalTotal = 0.0;
+
+            var milksTotal = 0.0;
+            var milksKcalTotal = 0.0;
+
+            var composedTotal = 0.0;
+            var composedKcalTotal = 0.0;
+
+            var candiesTotal = 0.0;
+            var candiesKcalTotal = 0.0;
+
+            var proteinAnimalTotal = 0.0;
+            var proteinAnimalKcalTotal = 0.0;
+
+            var proteinVegetableTotal = 0.0;
+            var proteinVegetableKcalTotal = 0.0;
+
+            var soupTotal = 0.0;
+            var soupKcalTotal = 0.0;
+
+            var vegetablesTotal = 0.0;
+            var vegetablesKcalTotal = 0.0;
+            foreach (var eat in eats)
+            {
+                if (eat.Dish.DishTags.Any(dt => dt.Tag.Name == "Bebidas"))
+                {
+                    drinkTotal += eat.Dish.NetWeight ?? 0.0;
+                    drinkKcalTotal += eat.Dish.Calories ?? 0.0;
+                }
+                else if (eat.Dish.DishTags.Any(dt => dt.Tag.Name == "Frutas"))
+                {
+                    fruitsTotal += eat.Dish.NetWeight ?? 0.0;
+                    fruitsKcalTotal += eat.Dish.Calories ?? 0.0;
+                }
+                else if (eat.Dish.DishTags.Any(dt => dt.Tag.Name == "Grasas/aderezos/salsas"))
+                {
+                    fatsTotal += eat.Dish.NetWeight ?? 0.0;
+                    fatsKcalTotal += eat.Dish.Calories ?? 0.0;
+                }
+                else if (eat.Dish.DishTags.Any(dt => dt.Tag.Name == "Lácteos y derivados"))
+                {
+                    milksTotal += eat.Dish.NetWeight ?? 0.0;
+                    milksKcalTotal += eat.Dish.Calories ?? 0.0;
+                }
+                else if (eat.Dish.DishTags.Any(dt => dt.Tag.Name == "Platos combinados"))
+                {
+                    composedTotal += eat.Dish.NetWeight ?? 0.0;
+                    composedKcalTotal += eat.Dish.Calories ?? 0.0;
+                }
+                else if (eat.Dish.DishTags.Any(dt => dt.Tag.Name == "Postre/dulces/complementos"))
+                {
+                    candiesTotal += eat.Dish.NetWeight ?? 0.0;
+                    candiesKcalTotal += eat.Dish.Calories ?? 0.0;
+                }
+                else if (eat.Dish.DishTags.Any(dt => dt.Tag.Name == "Proteína animal"))
+                {
+                    proteinAnimalTotal += eat.Dish.NetWeight ?? 0.0;
+                    proteinAnimalKcalTotal += eat.Dish.Calories ?? 0.0;
+                }
+                else if (eat.Dish.DishTags.Any(dt => dt.Tag.Name == "Proteína vegetal"))
+                {
+                    proteinVegetableTotal += eat.Dish.NetWeight ?? 0.0;
+                    proteinVegetableKcalTotal += eat.Dish.Calories ?? 0.0;
+                }
+                else if (eat.Dish.DishTags.Any(dt => dt.Tag.Name == "Sopas/cereales/tubérculos"))
+                {
+                    soupTotal += eat.Dish.NetWeight ?? 0.0;
+                    soupKcalTotal += eat.Dish.Calories ?? 0.0;
+                }
+                else if (eat.Dish.DishTags.Any(dt => dt.Tag.Name == "Vegetales y verduras"))
+                {
+                    vegetablesTotal += eat.Dish.NetWeight ?? 0.0;
+                    vegetablesKcalTotal += eat.Dish.Calories ?? 0.0;
+                }
+            }
+            list.Add(new FeedReport
+            {
+                Group = FeedGoupType.DRINKS,
+                GroupName = FeedGoupType.DRINKS.GetDescription(),
+                Total = Math.Round(drinkTotal, 2),
+                Kcal = Math.Round(drinkKcalTotal, 2),
+                Avg = group1.Count() > 0 ? Math.Round(drinkTotal / group1.Count(), 2) : 0.0,
+                AvgKcal = group1.Count() > 0 ? Math.Round(drinkKcalTotal / group1.Count(), 2) : 0.0,
+            });
+
+            list.Add(new FeedReport
+            {
+                Group = FeedGoupType.ANIMAL_PROTEIN,
+                GroupName = FeedGoupType.ANIMAL_PROTEIN.GetDescription(),
+                Total = Math.Round(proteinAnimalTotal, 2),
+                Kcal = Math.Round(proteinAnimalKcalTotal, 2),
+                Avg = group1.Count() > 0 ? Math.Round(proteinAnimalTotal / group1.Count(), 2) : 0.0,
+                AvgKcal = group1.Count() > 0 ? Math.Round(proteinAnimalKcalTotal / group1.Count(), 2) : 0.0,
+            });
+
+            list.Add(new FeedReport
+            {
+                Group = FeedGoupType.CANDIES,
+                GroupName = FeedGoupType.CANDIES.GetDescription(),
+                Total = Math.Round(candiesTotal, 2),
+                Kcal = Math.Round(candiesKcalTotal, 2),
+                Avg = group1.Count() > 0 ? Math.Round(candiesTotal / group1.Count(), 2) : 0.0,
+                AvgKcal = group1.Count() > 0 ? Math.Round(candiesKcalTotal / group1.Count(), 2) : 0.0,
+            });
+
+            list.Add(new FeedReport
+            {
+                Group = FeedGoupType.COMPOSE_DISH,
+                GroupName = FeedGoupType.COMPOSE_DISH.GetDescription(),
+                Total = Math.Round(composedTotal, 2),
+                Kcal = Math.Round(composedKcalTotal, 2),
+                Avg = group1.Count() > 0 ? Math.Round(composedTotal / group1.Count(), 2) : 0.0,
+                AvgKcal = group1.Count() > 0 ? Math.Round(composedKcalTotal / group1.Count(), 2) : 0.0,
+            });
+
+            list.Add(new FeedReport
+            {
+                Group = FeedGoupType.FATS,
+                GroupName = FeedGoupType.FATS.GetDescription(),
+                Total = Math.Round(fatsTotal, 2),
+                Kcal = Math.Round(fatsKcalTotal, 2),
+                Avg = group1.Count() > 0 ? Math.Round(fatsTotal / group1.Count(), 2) : 0.0,
+                AvgKcal = group1.Count() > 0 ? Math.Round(fatsKcalTotal / group1.Count(), 2) : 0.0,
+            });
+
+            list.Add(new FeedReport
+            {
+                Group = FeedGoupType.FRUITS,
+                GroupName = FeedGoupType.FRUITS.GetDescription(),
+                Total = Math.Round(fruitsTotal, 2),
+                Kcal = Math.Round(fruitsKcalTotal, 2),
+                Avg = group1.Count() > 0 ? Math.Round(fruitsTotal / group1.Count(), 2) : 0.0,
+                AvgKcal = group1.Count() > 0 ? Math.Round(fruitsKcalTotal / group1.Count(), 2) : 0.0,
+            });
+
+            list.Add(new FeedReport
+            {
+                Group = FeedGoupType.LACTEOS,
+                GroupName = FeedGoupType.LACTEOS.GetDescription(),
+                Total = Math.Round(milksTotal, 2),
+                Kcal = Math.Round(milksKcalTotal, 2),
+                Avg = group1.Count() > 0 ? Math.Round(milksTotal / group1.Count(), 2) : 0.0,
+                AvgKcal = group1.Count() > 0 ? Math.Round(milksKcalTotal / group1.Count(), 2) : 0.0,
+            });
+
+            list.Add(new FeedReport
+            {
+                Group = FeedGoupType.SOUPS,
+                GroupName = FeedGoupType.SOUPS.GetDescription(),
+                Total = Math.Round(soupTotal, 2),
+                Kcal = Math.Round(soupKcalTotal, 2),
+                Avg = group1.Count() > 0 ? Math.Round(soupTotal / group1.Count(), 2) : 0.0,
+                AvgKcal = group1.Count() > 0 ? Math.Round(soupKcalTotal / group1.Count(), 2) : 0.0,
+            });
+
+            list.Add(new FeedReport
+            {
+                Group = FeedGoupType.VEGETABLES,
+                GroupName = FeedGoupType.VEGETABLES.GetDescription(),
+                Total = Math.Round(vegetablesTotal, 2),
+                Kcal = Math.Round(vegetablesKcalTotal, 2),
+                Avg = group1.Count() > 0 ? Math.Round(vegetablesTotal / group1.Count(), 2) : 0.0,
+                AvgKcal = group1.Count() > 0 ? Math.Round(vegetablesKcalTotal / group1.Count(), 2) : 0.0,
+            });
+
+            list.Add(new FeedReport
+            {
+                Group = FeedGoupType.VEGETABLE_PROTEIN,
+                GroupName = FeedGoupType.VEGETABLE_PROTEIN.GetDescription(),
+                Total = Math.Round(proteinVegetableTotal, 2),
+                Kcal = Math.Round(proteinVegetableKcalTotal, 2),
+                Avg = group1.Count() > 0 ? Math.Round(proteinVegetableTotal / group1.Count(), 2) : 0.0,
+                AvgKcal = group1.Count() > 0 ? Math.Round(proteinVegetableKcalTotal / group1.Count(), 2) : 0.0,
+            });
+
+            return list;
         }
 
         private List<MacroMicroValues> GetData(List<EatDish> eats, List<EatCompoundDish> compoundEats)
@@ -1495,6 +1911,528 @@ namespace MismeAPI.Service.Impls
             var root = Path.GetDirectoryName(currentAssembly.Location);
             var p = root + "\\imgs\\planifive.png";
             return p;
+        }
+
+        private async Task<byte[]> GetFeedCoverContent(User user)
+        {
+            var info = await _pollService.GetUserPollsInfoAsync(user.Id);
+            var currentWeekString = GetCurrentWeekRangeString();
+            var currentWeekDates = GetCurrentWeekRangeDates();
+            //var firstDay = currentWeekDates.ElementAt(0);
+            //var lastDay = currentWeekDates.ElementAt(6);
+
+            var firstDay = DateTime.Parse("Nov 15, 2020");
+            var lastDay = DateTime.Parse("Nov 21, 2020");
+
+            var eatsWeek = await _uow.EatDishRepository.GetAll().Where(ed => ed.Eat.CreatedAt.Date >= firstDay.Date &&
+                    ed.Eat.CreatedAt.Date <= lastDay.Date &&
+                    ed.Eat.UserId == user.Id)
+                .Include(ed => ed.Dish)
+                    .ThenInclude(ed => ed.DishTags)
+                        .ThenInclude(ed => ed.Tag)
+                .Include(ed => ed.Eat)
+                .ToListAsync();
+            var eatsWeekCompoundDish = await _uow.EatCompoundDishRepository.GetAll().Where(ed => ed.Eat.CreatedAt.Date >= firstDay.Date &&
+                    ed.Eat.CreatedAt.Date <= lastDay.Date &&
+                    ed.Eat.UserId == user.Id)
+                .Include(ed => ed.CompoundDish)
+                    .ThenInclude(c => c.DishCompoundDishes)
+                        .ThenInclude(d => d.Dish)
+                            .ThenInclude(d => d.DishTags)
+                                .ThenInclude(d => d.Tag)
+                .Include(ed => ed.Eat)
+                .ToListAsync();
+
+            var data = GetFeedData(info, eatsWeek, eatsWeekCompoundDish);
+
+            return new PdfReport().DocumentPreferences(doc =>
+            {
+                doc.RunDirection(PdfRunDirection.LeftToRight);
+                doc.Orientation(PageOrientation.Portrait);
+                doc.PageSize(PdfPageSize.A4);
+                doc.DocumentMetadata(new DocumentMetadata { Author = "PlaniFive", Application = "PlaniFive", Keywords = "Informe, Alimenticio, PlaniFive", Subject = "Informe Nutricional", Title = "Informe Alimenticio" });
+                doc.Compression(new CompressionSettings
+                {
+                    EnableCompression = true,
+                    EnableFullCompression = true
+                });
+            })
+            .DefaultFonts(fonts =>
+            {
+                fonts.Size(10);
+                fonts.Color(System.Drawing.Color.Black);
+            })
+            .PagesHeader(header =>
+            {
+            })
+            .PagesFooter(footer =>
+            {
+            })
+            .MainTableTemplate(t => t.BasicTemplate(BasicTemplate.ProfessionalTemplate))
+            .MainTablePreferences(table =>
+            {
+                table.ColumnsWidthsType(TableColumnWidthType.Relative);
+                table.GroupsPreferences(new GroupsPreferences
+                {
+                    GroupType = GroupType.HideGroupingColumns,
+                    RepeatHeaderRowPerGroup = false,
+                    ShowOneGroupPerPage = false,
+                    SpacingBeforeAllGroupsSummary = 0f,
+                    NewGroupAvailableSpacingThreshold = 150,
+                    SpacingAfterAllGroupsSummary = 0f,
+                    ShowAllGroupsSummaryRow = false, // its default value is true,
+                });
+                table.SpacingAfter(0f);
+                table.SpacingBefore(0f);
+            })
+            .MainTableDataSource(dataSource =>
+            {
+                dataSource.StronglyTypedList(data);
+            })
+            .MainTableColumns(columns =>
+            {
+                columns.AddColumn(column =>
+                {
+                    column.PropertyName<FeedReport>(x => x.GroupName);
+                    column.CellsHorizontalAlignment(PdfRpt.Core.Contracts.HorizontalAlignment.Center);
+                    column.IsVisible(true);
+                    column.Order(1);
+                    column.Width(2);
+                    column.HeaderCell("Grupo de alimentos");
+                    column.CalculatedField(
+                    list =>
+                    {
+                        if (list == null) return string.Empty;
+                        return list.GetValueOf<FeedReport>(x => x.GroupName);
+                    });
+                });
+
+                columns.AddColumn(column =>
+                {
+                    column.PropertyName<FeedReport>(x => x.Total);
+
+                    column.CellsHorizontalAlignment(PdfRpt.Core.Contracts.HorizontalAlignment.Center);
+                    column.IsVisible(true);
+                    column.Order(2);
+                    column.Width(2);
+                    column.HeaderCell("Cantidad total (g netos aproximados)");
+                    column.CalculatedField(
+                     list =>
+                     {
+                         if (list == null) return string.Empty;
+                         var rounded = double.Parse(list.GetValueOf<FeedReport>(x => x.Total).ToString());
+                         return Math.Round(rounded, 2);
+                     });
+                });
+                columns.AddColumn(column =>
+                {
+                    column.PropertyName<FeedReport>(x => x.Avg);
+
+                    column.CellsHorizontalAlignment(PdfRpt.Core.Contracts.HorizontalAlignment.Center);
+                    column.IsVisible(true);
+                    column.Order(3);
+                    column.Width(2);
+                    column.HeaderCell("Promedio Diario");
+                    column.CalculatedField(
+                     list =>
+                     {
+                         if (list == null) return string.Empty;
+                         var rounded = double.Parse(list.GetValueOf<FeedReport>(x => x.Avg).ToString());
+                         return Math.Round(rounded, 2);
+                     });
+                });
+                columns.AddColumn(column =>
+                {
+                    column.PropertyName<FeedReport>(x => x.Kcal);
+
+                    column.CellsHorizontalAlignment(PdfRpt.Core.Contracts.HorizontalAlignment.Center);
+                    column.IsVisible(true);
+                    column.Order(4);
+                    column.Width(2);
+                    column.HeaderCell("Aporte en Kcal total");
+                    column.CalculatedField(
+                     list =>
+                     {
+                         if (list == null) return string.Empty;
+                         var rounded = double.Parse(list.GetValueOf<FeedReport>(x => x.Kcal).ToString());
+                         return Math.Round(rounded, 2);
+                     });
+                });
+                columns.AddColumn(column =>
+                {
+                    column.PropertyName<FeedReport>(x => x.AvgKcal);
+
+                    column.CellsHorizontalAlignment(PdfRpt.Core.Contracts.HorizontalAlignment.Center);
+                    column.IsVisible(true);
+                    column.Order(5);
+                    column.Width(2);
+                    column.HeaderCell("Aporte en Kcal promedio diario");
+                    column.CalculatedField(
+                     list =>
+                     {
+                         if (list == null) return string.Empty;
+                         var rounded = double.Parse(list.GetValueOf<FeedReport>(x => x.AvgKcal).ToString());
+                         return Math.Round(rounded, 2);
+                     });
+                });
+            })
+            .MainTableEvents(events =>
+            {
+                events.DataSourceIsEmpty(message: "There is no data available to display.");
+                events.DocumentClosing(args =>
+                {
+                });
+
+                events.MainTableCreated(args =>
+                {
+                    var marginTop = new PdfGrid(numColumns: 1)
+                    {
+                        WidthPercentage = 100
+                    };
+                    marginTop.AddSimpleRow(
+                         (cellData, properties) =>
+                         {
+                             cellData.Value = "PlaniFive Premium - Informe Alimenticio";
+
+                             properties.PdfFont = events.PdfFont;
+                             properties.RunDirection = PdfRunDirection.LeftToRight;
+                             properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Center;
+                         });
+                    marginTop.AddSimpleRow(
+                         (cellData, properties) =>
+                         {
+                             //cellData.Value = "Semana de: Oct 10 - Oct 17";
+                             cellData.Value = "Semana de: " + currentWeekString;
+
+                             properties.PdfFont = events.PdfFont;
+                             properties.RunDirection = PdfRunDirection.LeftToRight;
+                             properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Center;
+                         });
+                    var tabTemp = marginTop.AddBorderToTable(borderColor: BaseColor.White, spacingBefore: 5f);
+                    tabTemp.SpacingAfter = 5f;
+                    args.PdfDoc.Add(tabTemp);
+
+                    // image and title table
+                    PdfPTable tableImage = new PdfPTable(1);
+                    tableImage.SpacingBefore = 50f;
+                    tableImage.HorizontalAlignment = Element.ALIGN_CENTER;
+                    tableImage.DefaultCell.Border = iTextSharp.text.Rectangle.NO_BORDER;
+
+                    Image img = Image.GetInstance(GetImage());
+                    img.ScaleAbsolute(200f, 200f);
+
+                    var cell = new PdfPCell(img);
+                    cell.HorizontalAlignment = Element.ALIGN_CENTER;
+                    cell.Border = Cell.NO_BORDER;
+                    tableImage.AddCell(cell);
+                    tableImage.SpacingAfter = 50f;
+                    args.PdfDoc.Add(tableImage);
+
+                    Table tabb = new Table(2, 6);
+                    tabb.Alignment = 1;
+                    tabb.DefaultHorizontalAlignment = 1;
+                    //tabb.Padding = 5.0f;
+                    tabb.Border = iTextSharp.text.Rectangle.NO_BORDER;
+                    tabb.DefaultCellBorder = Rectangle.NO_BORDER;
+                    tabb.Width = 60;
+
+                    int[] columnWidths = { 13, 21 };
+                    tabb.SetWidths(columnWidths);
+
+                    Font fontTitle = FontFactory.GetFont("Arial", 10, Font.BOLD, BaseColor.Black);
+                    Paragraph name = new Paragraph("Usuario:", fontTitle);
+                    Paragraph age = new Paragraph("Edad:", fontTitle);
+                    Paragraph gender = new Paragraph("Sexo:", fontTitle);
+                    Paragraph height = new Paragraph("Talla:", fontTitle);
+                    Paragraph weight = new Paragraph("Peso:", fontTitle);
+                    Paragraph imc = new Paragraph("IMC:", fontTitle);
+
+                    Cell cellName = new Cell(name);
+                    cellName.VerticalAlignment = Element.ALIGN_LEFT;
+                    cellName.HorizontalAlignment = Element.ALIGN_MIDDLE;
+
+                    Cell cellAge = new Cell(age);
+                    cellAge.VerticalAlignment = Element.ALIGN_LEFT;
+                    cellAge.HorizontalAlignment = Element.ALIGN_MIDDLE;
+
+                    Cell cellGender = new Cell(gender);
+                    cellGender.VerticalAlignment = Element.ALIGN_LEFT;
+                    cellGender.HorizontalAlignment = Element.ALIGN_MIDDLE;
+
+                    Cell cellHeight = new Cell(height);
+                    cellHeight.VerticalAlignment = Element.ALIGN_LEFT;
+                    cellHeight.HorizontalAlignment = Element.ALIGN_MIDDLE;
+
+                    Cell cellWeight = new Cell(weight);
+                    cellWeight.VerticalAlignment = Element.ALIGN_LEFT;
+                    cellWeight.HorizontalAlignment = Element.ALIGN_MIDDLE;
+
+                    Cell cellImc = new Cell(imc);
+                    cellImc.VerticalAlignment = Element.ALIGN_LEFT;
+                    cellImc.HorizontalAlignment = Element.ALIGN_MIDDLE;
+
+                    tabb.AddCell(cellName, 0, 0);
+                    tabb.AddCell(cellAge, 1, 0);
+                    tabb.AddCell(cellGender, 2, 0);
+                    tabb.AddCell(cellHeight, 3, 0);
+                    tabb.AddCell(cellWeight, 4, 0);
+                    tabb.AddCell(cellImc, 5, 0);
+
+                    Font fontHeaderColumTwo = FontFactory.GetFont("Arial", 10, Font.NORMAL, BaseColor.Black);
+
+                    Paragraph phName = new Paragraph(user.Username, fontHeaderColumTwo);
+                    Paragraph phAge = new Paragraph(info.age.ToString(), fontHeaderColumTwo);
+                    Paragraph phGender = new Paragraph(info.sex == 1 ? "Masculino" : "Femenino", fontHeaderColumTwo);
+                    Paragraph phHeight = new Paragraph(info.height.ToString(), fontHeaderColumTwo);
+                    Paragraph phWeight = new Paragraph(info.weight.ToString(), fontHeaderColumTwo);
+                    Paragraph phImc = new Paragraph(Math.Round(user.CurrentImc, 2).ToString(), fontHeaderColumTwo);
+
+                    Cell cellValueName = new Cell(phName);
+                    cellValueName.VerticalAlignment = Element.ALIGN_RIGHT;
+                    cellValueName.HorizontalAlignment = Element.ALIGN_RIGHT;
+
+                    Cell cellValueAge = new Cell(phAge);
+                    cellValueAge.VerticalAlignment = Element.ALIGN_RIGHT;
+                    cellValueAge.HorizontalAlignment = Element.ALIGN_RIGHT;
+
+                    Cell cellValueGender = new Cell(phGender);
+                    cellValueGender.VerticalAlignment = Element.ALIGN_RIGHT;
+                    cellValueGender.HorizontalAlignment = Element.ALIGN_RIGHT;
+
+                    Cell cellValueHeight = new Cell(phHeight);
+                    cellValueHeight.VerticalAlignment = Element.ALIGN_RIGHT;
+                    cellValueHeight.HorizontalAlignment = Element.ALIGN_RIGHT;
+
+                    Cell cellValueWeight = new Cell(phWeight);
+                    cellValueWeight.VerticalAlignment = Element.ALIGN_RIGHT;
+                    cellValueWeight.HorizontalAlignment = Element.ALIGN_RIGHT;
+
+                    Cell cellValueImc = new Cell(phImc);
+                    cellValueImc.VerticalAlignment = Element.ALIGN_RIGHT;
+                    cellValueImc.HorizontalAlignment = Element.ALIGN_RIGHT;
+
+                    tabb.AddCell(cellValueName, 0, 1);
+                    tabb.AddCell(cellValueAge, 1, 1);
+                    tabb.AddCell(cellValueGender, 2, 1);
+                    tabb.AddCell(cellValueHeight, 3, 1);
+                    tabb.AddCell(cellValueWeight, 4, 1);
+                    tabb.AddCell(cellValueImc, 5, 1);
+
+                    args.PdfDoc.Add(tabb);
+                    args.PdfDoc.NewPage();
+
+                    FeedAddChartToFirstPage(args.PdfDoc, eatsWeek, eatsWeekCompoundDish);
+                    args.PdfDoc.NewPage();
+
+                    var macroInfo = new PdfGrid(numColumns: 1)
+                    {
+                        WidthPercentage = 100,
+                        SpacingAfter = 20
+                    };
+                    macroInfo.AddSimpleRow(
+                         (cellData, properties) =>
+                         {
+                             cellData.Value = "Ha ingerido usted de forma aproximada según lo reportado en nuestra App las siguientes proporciones por grupos de alimentos:";
+
+                             properties.PdfFont = events.PdfFont;
+                             properties.RunDirection = PdfRunDirection.LeftToRight;
+                             properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                             properties.PaddingBottom = 10;
+                         });
+                    args.PdfDoc.Add(macroInfo);
+                });
+
+                events.MainTableAdded(args =>
+                {
+                    //Show Data after the content table.
+                    //var macroInfo = new PdfGrid(numColumns: 1)
+                    //{
+                    //    WidthPercentage = 100,
+                    //    SpacingBefore = 70,
+                    //    SpacingAfter = 30
+                    //};
+                    //macroInfo.AddSimpleRow(
+                    //     (cellData, properties) =>
+                    //     {
+                    //         cellData.Value = "Ha ingerido usted de forma aproximada según lo reportado en nuestra App los siguientes micronutrientes:";
+
+                    //         properties.PdfFont = events.PdfFont;
+                    //         properties.RunDirection = PdfRunDirection.LeftToRight;
+                    //         properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                    //     });
+                    //args.PdfDoc.Add(macroInfo);
+
+                    //var tabb = new PdfGrid(5)
+                    //{
+                    //    WidthPercentage = 100
+                    //};
+                    //tabb.AddSimpleRow((cellData, cellProperties) =>
+                    //{
+                    //    cellData.Value = "Micronutriente";
+                    //    cellProperties.PdfFontStyle = DocumentFontStyle.Bold;
+                    //    cellProperties.PdfFont = args.PdfFont;
+                    //    cellProperties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Center;
+                    //    cellProperties.BackgroundColor = new BaseColor(System.Drawing.ColorTranslator.FromHtml("#5D7B9D").ToArgb());
+                    //    cellProperties.FontColor = BaseColor.White;
+                    //}, (cellData, cellProperties) =>
+                    //{
+                    //    cellData.Value = "Cantidad Total";
+                    //    cellProperties.PdfFontStyle = DocumentFontStyle.Bold;
+                    //    cellProperties.PdfFont = args.PdfFont;
+                    //    cellProperties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Center;
+                    //    cellProperties.BackgroundColor = new BaseColor(System.Drawing.ColorTranslator.FromHtml("#5D7B9D").ToArgb());
+                    //    cellProperties.FontColor = BaseColor.White;
+                    //}, (cellData, cellProperties) =>
+                    //{
+                    //    cellData.Value = "Promedio Diario";
+                    //    cellProperties.PdfFontStyle = DocumentFontStyle.Bold;
+                    //    cellProperties.PdfFont = args.PdfFont;
+                    //    cellProperties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Center;
+                    //    cellProperties.BackgroundColor = new BaseColor(System.Drawing.ColorTranslator.FromHtml("#5D7B9D").ToArgb());
+                    //    cellProperties.FontColor = BaseColor.White;
+                    //}, (cellData, cellProperties) =>
+                    //{
+                    //    cellData.Value = "Extremo Superior";
+                    //    cellProperties.PdfFontStyle = DocumentFontStyle.Bold;
+                    //    cellProperties.PdfFont = args.PdfFont;
+                    //    cellProperties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Center;
+                    //    cellProperties.BackgroundColor = new BaseColor(System.Drawing.ColorTranslator.FromHtml("#5D7B9D").ToArgb());
+                    //    cellProperties.FontColor = BaseColor.White;
+                    //}, (cellData, cellProperties) =>
+                    //{
+                    //    cellData.Value = "Extremo Inferior";
+                    //    cellProperties.PdfFont = args.PdfFont;
+                    //    cellProperties.PdfFontStyle = DocumentFontStyle.Bold;
+                    //    cellProperties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Center;
+                    //    cellProperties.BackgroundColor = new BaseColor(System.Drawing.ColorTranslator.FromHtml("#5D7B9D").ToArgb());
+                    //    cellProperties.FontColor = BaseColor.White;
+                    //}
+
+                    // );
+
+                    //var count = 0;
+                    //foreach (var item in dataMicro)
+                    //{
+                    //    tabb.AddSimpleRow((cellData, cellProperties) =>
+                    //    {
+                    //        cellData.Value = item.TypeString;
+                    //        cellProperties.PdfFont = args.PdfFont;
+                    //        cellProperties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Center;
+                    //        cellProperties.BackgroundColor = count % 2 == 0 ? new BaseColor(System.Drawing.Color.White.ToArgb()) : new BaseColor(System.Drawing.ColorTranslator.FromHtml("#F7F6F3").ToArgb());
+                    //        cellProperties.FontColor = count % 2 == 0 ? new BaseColor(System.Drawing.ColorTranslator.FromHtml("#284775").ToArgb()) : new BaseColor(System.Drawing.ColorTranslator.FromHtml("#333333").ToArgb());
+                    //    }, (cellData, cellProperties) =>
+                    //    {
+                    //        cellData.Value = Math.Round(item.Total, 2).ToString();
+                    //        cellProperties.PdfFont = args.PdfFont;
+                    //        cellProperties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Center;
+                    //        cellProperties.BackgroundColor = count % 2 == 0 ? new BaseColor(System.Drawing.Color.White.ToArgb()) : new BaseColor(System.Drawing.ColorTranslator.FromHtml("#F7F6F3").ToArgb());
+                    //        cellProperties.FontColor = count % 2 == 0 ? new BaseColor(System.Drawing.ColorTranslator.FromHtml("#284775").ToArgb()) : new BaseColor(System.Drawing.ColorTranslator.FromHtml("#333333").ToArgb());
+                    //    }, (cellData, cellProperties) =>
+                    //    {
+                    //        cellData.Value = Math.Round(item.Avg, 2).ToString();
+                    //        cellProperties.PdfFont = args.PdfFont;
+                    //        cellProperties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Center;
+                    //        cellProperties.BackgroundColor = count % 2 == 0 ? new BaseColor(System.Drawing.Color.White.ToArgb()) : new BaseColor(System.Drawing.ColorTranslator.FromHtml("#F7F6F3").ToArgb());
+                    //        cellProperties.FontColor = count % 2 == 0 ? new BaseColor(System.Drawing.ColorTranslator.FromHtml("#284775").ToArgb()) : new BaseColor(System.Drawing.ColorTranslator.FromHtml("#333333").ToArgb());
+                    //    }, (cellData, cellProperties) =>
+                    //    {
+                    //        cellData.Value = Math.Round(item.Max, 2).ToString();
+                    //        cellProperties.PdfFont = args.PdfFont;
+                    //        cellProperties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Center;
+                    //        cellProperties.BackgroundColor = count % 2 == 0 ? new BaseColor(System.Drawing.Color.White.ToArgb()) : new BaseColor(System.Drawing.ColorTranslator.FromHtml("#F7F6F3").ToArgb());
+                    //        cellProperties.FontColor = count % 2 == 0 ? new BaseColor(System.Drawing.ColorTranslator.FromHtml("#284775").ToArgb()) : new BaseColor(System.Drawing.ColorTranslator.FromHtml("#333333").ToArgb());
+                    //    }, (cellData, cellProperties) =>
+                    //    {
+                    //        cellData.Value = Math.Round(item.Min, 2).ToString();
+                    //        cellProperties.PdfFont = args.PdfFont;
+                    //        cellProperties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Center;
+                    //        cellProperties.BackgroundColor = count % 2 == 0 ? new BaseColor(System.Drawing.Color.White.ToArgb()) : new BaseColor(System.Drawing.ColorTranslator.FromHtml("#F7F6F3").ToArgb());
+                    //        cellProperties.FontColor = count % 2 == 0 ? new BaseColor(System.Drawing.ColorTranslator.FromHtml("#284775").ToArgb()) : new BaseColor(System.Drawing.ColorTranslator.FromHtml("#333333").ToArgb());
+                    //    });
+                    //    count += 1;
+                    //}
+                    //args.PdfDoc.Add(tabb);
+
+                    var gr = eatsWeek.GroupBy(e => e.Eat.CreatedAt.Date);
+                    var gr1 = eatsWeekCompoundDish.GroupBy(e => e.Eat.CreatedAt.Date);
+                    var uniqueTimes = new List<DateTime>();
+                    foreach (var group in gr)
+                    {
+                        if (!uniqueTimes.Any(u => u.Date == group.Key.Date))
+                        {
+                            uniqueTimes.Add(group.Key);
+                        }
+                    }
+
+                    args.PdfDoc.NewPage();
+
+                    var bye = new PdfGrid(numColumns: 1)
+                    {
+                        WidthPercentage = 100,
+                        SpacingBefore = 200
+                    };
+                    bye.AddSimpleRow(
+                        (cellData, properties) =>
+                        {
+                            cellData.Value = "Dra. Saira R. Rivas Suárez";
+
+                            properties.PdfFont = args.PdfFont;
+                            properties.RunDirection = PdfRunDirection.LeftToRight;
+                            properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Center;
+                            properties.PdfFontStyle = DocumentFontStyle.Bold;
+                        });
+
+                    args.PdfDoc.Add(bye);
+                    var bye1 = new PdfGrid(numColumns: 1)
+                    {
+                        WidthPercentage = 100,
+                        SpacingBefore = 200
+                    };
+
+                    bye1.AddSimpleRow(
+                        (cellData, properties) =>
+                        {
+                            cellData.Value = "Nota: Este informe no constituye un documento clínico.";
+
+                            properties.PdfFont = events.PdfFont;
+                            properties.RunDirection = PdfRunDirection.LeftToRight;
+                            properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Center;
+                            properties.PdfFontStyle = DocumentFontStyle.Bold;
+                            properties.FontColor = BaseColor.Red;
+                        });
+
+                    args.PdfDoc.Add(bye1);
+                });
+
+                events.ShouldSkipRow(args =>
+                {
+                    return false;
+                });
+
+                var pageNumber = 0;
+                events.ShouldSkipHeader(args =>
+                {
+                    pageNumber++;
+                    if (pageNumber == 2)
+                    {
+                        return true; // don't render this header row.
+                    }
+
+                    return false;
+                });
+
+                events.ShouldSkipFooter(args =>
+                {
+                    if (pageNumber == 2)
+                    {
+                        return true; // don't render this footer row.
+                    }
+
+                    return false;
+                });
+            })
+
+            .GenerateAsByteArray();
         }
 
         private async Task<byte[]> GetCoverContent(User user)

@@ -79,7 +79,7 @@ namespace MismeAPI.Common.DTO
         [Description("Fibra (g)")]
         FIBER,
 
-        [Description("Alcohol")]
+        [Description("Alcohol (g)")]
         ALCOHOL
     }
 

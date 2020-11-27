@@ -26,7 +26,19 @@ namespace MismeAPI
         {
             //hardcoded now
             var userId = 297;
-            await _reportService.GetNutritionalReport(userId);
+            await _reportService.GetNutritionalReportAsync(userId);
+            return Ok();
+        }
+
+        /// <summary>
+        /// Get feed report.
+        /// </summary>
+        [HttpPost("feed-report")]
+        public async Task<IActionResult> GetFeedReport()
+        {
+            //hardcoded now
+            var userId = 297;
+            await _reportService.GetFeedReportAsync(userId);
             return Ok();
         }
     }
