@@ -99,8 +99,106 @@ namespace MismeAPI.Service.Impls
             }
         }
 
+        private void FeedAddOtherChartToFirstPage(Document pdfDoc, List<EatDish> eats, List<EatCompoundDish> eatsCompoundDish)
+        {
+            Table tabb = new Table(2, 1);
+            tabb.Border = Rectangle.NO_BORDER;
+
+            var fiber = 0.0;
+            var fats = 0.0;
+            var carbos = 0.0;
+            var proteins = 0.0;
+            foreach (var eat in eats)
+            {
+                if (eat.Dish.DishTags.Any(dt => dt.Tag.Name == "Platos combinados"))
+                {
+                    fiber += eat.Dish.Fiber ?? 0.0 * eat.Qty;
+                    fats += eat.Dish.Fat ?? 0.0 * eat.Qty;
+                    proteins += eat.Dish.Proteins ?? 0.0 * eat.Qty;
+                    carbos += eat.Dish.Carbohydrates ?? 0.0 * eat.Qty;
+                }
+            }
+
+            double[] xs = { 0.0, 1.0, 2.0, 3.0 };
+            double[] ys = { Math.Round(fiber, 2), Math.Round(fats, 2), Math.Round(carbos, 2), Math.Round(proteins, 2) };
+            string[] labels = { "Fibras", "Grasas", "Carbohidratos", "Proteinas" };
+            // make the bar plot
+            var plt = new ScottPlot.Plot(500, 300);
+            plt.PlotBar(xs, ys, horizontal: true, showValues: true);
+            plt.YTicks(xs, labels);
+            plt.Title("Platos combinados (semana)", enable: true);
+
+            plt.SaveFig("combinedDish.png");
+
+            var imageBytes = File.ReadAllBytes("combinedDish.png");
+            var iTextSharpImage = PdfImageHelper.GetITextSharpImageFromByteArray(imageBytes);
+            iTextSharpImage.Alignment = Element.ALIGN_CENTER;
+
+            //var tableImage = new PdfPTable(1);
+            //tableImage.HorizontalAlignment = Element.ALIGN_CENTER;
+            //tableImage.DefaultCell.Border = Rectangle.NO_BORDER;
+            //tableImage.WidthPercentage = 45;
+
+            //tableImage.AddCell(iTextSharpImage);
+
+            var cell = new Cell();
+            cell.Border = Rectangle.NO_BORDER;
+            cell.Add(iTextSharpImage);
+            tabb.AddCell(cell, 0, 0);
+
+            //pdfDoc.Add(tableImage);
+
+            fats = 0.0;
+            carbos = 0.0;
+            proteins = 0.0;
+            var alcohol = 0.0;
+            foreach (var eat in eats)
+            {
+                if (eat.Dish.DishTags.Any(dt => dt.Tag.Name == "Bebidas"))
+                {
+                    alcohol += eat.Dish.Alcohol ?? 0.0 * eat.Qty;
+                    fats += eat.Dish.Fat ?? 0.0 * eat.Qty;
+                    proteins += eat.Dish.Proteins ?? 0.0 * eat.Qty;
+                    carbos += eat.Dish.Carbohydrates ?? 0.0 * eat.Qty;
+                }
+            }
+            double[] xs1 = { 0.0, 1.0, 2.0, 3.0 };
+            double[] ys1 = { Math.Round(fiber, 2), Math.Round(fats, 2), Math.Round(carbos, 2), Math.Round(proteins, 2) };
+            string[] labels1 = { "Alcohol", "Grasas", "Carbohidratos", "Proteinas" };
+
+            var plt1 = new ScottPlot.Plot(500, 300);
+            plt1.PlotBar(xs1, ys1, horizontal: true, showValues: true);
+            plt1.YTicks(xs1, labels1);
+            plt1.Title("Bebidas (semana)", enable: true);
+
+            plt1.SaveFig("drinks.png");
+
+            var imageBytes1 = File.ReadAllBytes("drinks.png");
+            var iTextSharpImage1 = PdfImageHelper.GetITextSharpImageFromByteArray(imageBytes1);
+            iTextSharpImage1.Alignment = Element.ALIGN_CENTER;
+
+            //var tableImage1 = new PdfPTable(1);
+            //tableImage1.HorizontalAlignment = Element.ALIGN_CENTER;
+            //tableImage1.DefaultCell.Border = Rectangle.NO_BORDER;
+            //tableImage1.WidthPercentage = 50;
+
+            //tableImage1.AddCell(iTextSharpImage1);
+
+            var cell1 = new Cell();
+            cell1.Add(iTextSharpImage1);
+            cell1.Border = Rectangle.NO_BORDER;
+            tabb.AddCell(cell1, 0, 1);
+            //pdfDoc.Add(tableImage1);
+            pdfDoc.Add(tabb);
+            File.Delete("combinedDish.png");
+            File.Delete("drinks.png");
+        }
+
         private void FeedAddChartToFirstPage(Document pdfDoc, List<EatDish> eats, List<EatCompoundDish> eatsCompoundDish)
         {
+            Table tabb = new Table(2, 1);
+            tabb.Border = Rectangle.NO_BORDER;
+
             //ideal dish
 
             var plt = new ScottPlot.Plot(500, 300);
@@ -122,14 +220,19 @@ namespace MismeAPI.Service.Impls
             var iTextSharpImage = PdfImageHelper.GetITextSharpImageFromByteArray(imageBytes);
             iTextSharpImage.Alignment = Element.ALIGN_CENTER;
 
-            var tableImage = new PdfPTable(1);
-            tableImage.HorizontalAlignment = Element.ALIGN_CENTER;
-            tableImage.DefaultCell.Border = Rectangle.NO_BORDER;
-            tableImage.WidthPercentage = 100;
+            //var tableImage = new PdfPTable(1);
+            //tableImage.HorizontalAlignment = Element.ALIGN_CENTER;
+            //tableImage.DefaultCell.Border = Rectangle.NO_BORDER;
+            //tableImage.WidthPercentage = 100;
 
-            tableImage.AddCell(iTextSharpImage);
+            //tableImage.AddCell(iTextSharpImage);
 
-            pdfDoc.Add(tableImage);
+            var cell1 = new Cell();
+            cell1.Add(iTextSharpImage);
+            cell1.Border = Rectangle.NO_BORDER;
+            tabb.AddCell(cell1, 0, 0);
+
+            //pdfDoc.Add(tableImage);
 
             //feeds per day
             var gr = eats.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
@@ -283,14 +386,19 @@ namespace MismeAPI.Service.Impls
             var iTextSharpImage1 = PdfImageHelper.GetITextSharpImageFromByteArray(imageBytes1);
             iTextSharpImage1.Alignment = Element.ALIGN_CENTER;
 
-            var tableImage1 = new PdfPTable(1);
-            tableImage1.HorizontalAlignment = Element.ALIGN_CENTER;
-            tableImage1.DefaultCell.Border = Rectangle.NO_BORDER;
-            tableImage1.WidthPercentage = 100;
+            //var tableImage1 = new PdfPTable(1);
+            //tableImage1.HorizontalAlignment = Element.ALIGN_CENTER;
+            //tableImage1.DefaultCell.Border = Rectangle.NO_BORDER;
+            //tableImage1.WidthPercentage = 100;
 
-            tableImage1.AddCell(iTextSharpImage1);
+            //tableImage1.AddCell(iTextSharpImage1);
 
-            pdfDoc.Add(tableImage1);
+            var cell = new Cell();
+            cell.Add(iTextSharpImage1);
+            cell.Border = Rectangle.NO_BORDER;
+            tabb.AddCell(cell, 0, 1);
+            //pdfDoc.Add(tableImage1);
+            pdfDoc.Add(tabb);
 
             File.Delete("feedsDistribution.png");
             File.Delete("idealDish.png");
@@ -302,6 +410,9 @@ namespace MismeAPI.Service.Impls
                                    float spacingAfter = 5,
                                    float widthPercentage = 100)
         {
+            Table tabb = new Table(2, 1);
+            tabb.Border = Rectangle.NO_BORDER;
+
             var gr = eats.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
             var gr1 = eatsCompoundDish.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
             var dict = new Dictionary<int, double>();
@@ -324,7 +435,7 @@ namespace MismeAPI.Service.Impls
                 temp = 0;
             }
 
-            var plt = new ScottPlot.Plot(500, 200);
+            var plt = new ScottPlot.Plot(500, 400);
 
             string[] labels = new string[7];
             double[] xs = new double[7];
@@ -393,14 +504,19 @@ namespace MismeAPI.Service.Impls
             var iTextSharpImage = PdfImageHelper.GetITextSharpImageFromByteArray(imageBytes);
             iTextSharpImage.Alignment = Element.ALIGN_CENTER;
 
-            var tableImage = new PdfPTable(1);
-            tableImage.HorizontalAlignment = Element.ALIGN_CENTER;
-            tableImage.DefaultCell.Border = Rectangle.NO_BORDER;
-            tableImage.WidthPercentage = 100;
-            tableImage.SpacingAfter = 60;
-            tableImage.SpacingBefore = 100;
+            //var tableImage = new PdfPTable(1);
+            //tableImage.HorizontalAlignment = Element.ALIGN_CENTER;
+            //tableImage.DefaultCell.Border = Rectangle.NO_BORDER;
+            //tableImage.WidthPercentage = 100;
+            //tableImage.SpacingAfter = 60;
+            //tableImage.SpacingBefore = 100;
 
-            tableImage.AddCell(iTextSharpImage);
+            //tableImage.AddCell(iTextSharpImage);
+
+            var cell = new Cell();
+            cell.Add(iTextSharpImage);
+            cell.Border = Rectangle.NO_BORDER;
+            tabb.AddCell(cell, 0, 0);
 
             /// kcal per day: STACKED
             double[] proteins = new double[7];
@@ -546,15 +662,21 @@ namespace MismeAPI.Service.Impls
             var iTextSharpImage1 = PdfImageHelper.GetITextSharpImageFromByteArray(imageBytes1);
             iTextSharpImage1.Alignment = Element.ALIGN_CENTER;
 
-            var tableImage1 = new PdfPTable(1);
-            tableImage1.HorizontalAlignment = Element.ALIGN_CENTER;
-            tableImage1.DefaultCell.Border = Rectangle.NO_BORDER;
-            tableImage1.WidthPercentage = 100;
+            //var tableImage1 = new PdfPTable(1);
+            //tableImage1.HorizontalAlignment = Element.ALIGN_CENTER;
+            //tableImage1.DefaultCell.Border = Rectangle.NO_BORDER;
+            //tableImage1.WidthPercentage = 100;
 
-            tableImage1.AddCell(iTextSharpImage1);
+            //tableImage1.AddCell(iTextSharpImage1);
 
-            pdfDoc.Add(tableImage);
-            pdfDoc.Add(tableImage1);
+            var cell1 = new Cell();
+            cell1.Add(iTextSharpImage1);
+            cell1.Border = Rectangle.NO_BORDER;
+            tabb.AddCell(cell1, 0, 1);
+
+            //pdfDoc.Add(tableImage);
+            //pdfDoc.Add(tableImage1);
+            pdfDoc.Add(tabb);
 
             File.Delete("kcalPerDay.png");
             File.Delete("kcalPerDayStack.png");
@@ -2222,12 +2344,12 @@ namespace MismeAPI.Service.Impls
                     args.PdfDoc.NewPage();
 
                     FeedAddChartToFirstPage(args.PdfDoc, eatsWeek, eatsWeekCompoundDish);
-                    args.PdfDoc.NewPage();
+                    //args.PdfDoc.NewPage();
 
                     var macroInfo = new PdfGrid(numColumns: 1)
                     {
                         WidthPercentage = 100,
-                        SpacingAfter = 20
+                        SpacingBefore = 20
                     };
                     macroInfo.AddSimpleRow(
                          (cellData, properties) =>
@@ -2244,114 +2366,26 @@ namespace MismeAPI.Service.Impls
 
                 events.MainTableAdded(args =>
                 {
+                    var spacing = new PdfGrid(numColumns: 1)
+                    {
+                        WidthPercentage = 100,
+                        SpacingAfter = 40
+                    };
+
+                    spacing.AddSimpleRow(
+                         (cellData, properties) =>
+                         {
+                             cellData.Value = "";
+
+                             properties.PdfFont = events.PdfFont;
+                             properties.RunDirection = PdfRunDirection.LeftToRight;
+                             properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
+                         });
+                    args.PdfDoc.Add(spacing);
+                    //args.PdfDoc.NewPage();
                     //Show Data after the content table.
-                    //var macroInfo = new PdfGrid(numColumns: 1)
-                    //{
-                    //    WidthPercentage = 100,
-                    //    SpacingBefore = 70,
-                    //    SpacingAfter = 30
-                    //};
-                    //macroInfo.AddSimpleRow(
-                    //     (cellData, properties) =>
-                    //     {
-                    //         cellData.Value = "Ha ingerido usted de forma aproximada según lo reportado en nuestra App los siguientes micronutrientes:";
-
-                    //         properties.PdfFont = events.PdfFont;
-                    //         properties.RunDirection = PdfRunDirection.LeftToRight;
-                    //         properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
-                    //     });
-                    //args.PdfDoc.Add(macroInfo);
-
-                    //var tabb = new PdfGrid(5)
-                    //{
-                    //    WidthPercentage = 100
-                    //};
-                    //tabb.AddSimpleRow((cellData, cellProperties) =>
-                    //{
-                    //    cellData.Value = "Micronutriente";
-                    //    cellProperties.PdfFontStyle = DocumentFontStyle.Bold;
-                    //    cellProperties.PdfFont = args.PdfFont;
-                    //    cellProperties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Center;
-                    //    cellProperties.BackgroundColor = new BaseColor(System.Drawing.ColorTranslator.FromHtml("#5D7B9D").ToArgb());
-                    //    cellProperties.FontColor = BaseColor.White;
-                    //}, (cellData, cellProperties) =>
-                    //{
-                    //    cellData.Value = "Cantidad Total";
-                    //    cellProperties.PdfFontStyle = DocumentFontStyle.Bold;
-                    //    cellProperties.PdfFont = args.PdfFont;
-                    //    cellProperties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Center;
-                    //    cellProperties.BackgroundColor = new BaseColor(System.Drawing.ColorTranslator.FromHtml("#5D7B9D").ToArgb());
-                    //    cellProperties.FontColor = BaseColor.White;
-                    //}, (cellData, cellProperties) =>
-                    //{
-                    //    cellData.Value = "Promedio Diario";
-                    //    cellProperties.PdfFontStyle = DocumentFontStyle.Bold;
-                    //    cellProperties.PdfFont = args.PdfFont;
-                    //    cellProperties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Center;
-                    //    cellProperties.BackgroundColor = new BaseColor(System.Drawing.ColorTranslator.FromHtml("#5D7B9D").ToArgb());
-                    //    cellProperties.FontColor = BaseColor.White;
-                    //}, (cellData, cellProperties) =>
-                    //{
-                    //    cellData.Value = "Extremo Superior";
-                    //    cellProperties.PdfFontStyle = DocumentFontStyle.Bold;
-                    //    cellProperties.PdfFont = args.PdfFont;
-                    //    cellProperties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Center;
-                    //    cellProperties.BackgroundColor = new BaseColor(System.Drawing.ColorTranslator.FromHtml("#5D7B9D").ToArgb());
-                    //    cellProperties.FontColor = BaseColor.White;
-                    //}, (cellData, cellProperties) =>
-                    //{
-                    //    cellData.Value = "Extremo Inferior";
-                    //    cellProperties.PdfFont = args.PdfFont;
-                    //    cellProperties.PdfFontStyle = DocumentFontStyle.Bold;
-                    //    cellProperties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Center;
-                    //    cellProperties.BackgroundColor = new BaseColor(System.Drawing.ColorTranslator.FromHtml("#5D7B9D").ToArgb());
-                    //    cellProperties.FontColor = BaseColor.White;
-                    //}
-
-                    // );
-
-                    //var count = 0;
-                    //foreach (var item in dataMicro)
-                    //{
-                    //    tabb.AddSimpleRow((cellData, cellProperties) =>
-                    //    {
-                    //        cellData.Value = item.TypeString;
-                    //        cellProperties.PdfFont = args.PdfFont;
-                    //        cellProperties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Center;
-                    //        cellProperties.BackgroundColor = count % 2 == 0 ? new BaseColor(System.Drawing.Color.White.ToArgb()) : new BaseColor(System.Drawing.ColorTranslator.FromHtml("#F7F6F3").ToArgb());
-                    //        cellProperties.FontColor = count % 2 == 0 ? new BaseColor(System.Drawing.ColorTranslator.FromHtml("#284775").ToArgb()) : new BaseColor(System.Drawing.ColorTranslator.FromHtml("#333333").ToArgb());
-                    //    }, (cellData, cellProperties) =>
-                    //    {
-                    //        cellData.Value = Math.Round(item.Total, 2).ToString();
-                    //        cellProperties.PdfFont = args.PdfFont;
-                    //        cellProperties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Center;
-                    //        cellProperties.BackgroundColor = count % 2 == 0 ? new BaseColor(System.Drawing.Color.White.ToArgb()) : new BaseColor(System.Drawing.ColorTranslator.FromHtml("#F7F6F3").ToArgb());
-                    //        cellProperties.FontColor = count % 2 == 0 ? new BaseColor(System.Drawing.ColorTranslator.FromHtml("#284775").ToArgb()) : new BaseColor(System.Drawing.ColorTranslator.FromHtml("#333333").ToArgb());
-                    //    }, (cellData, cellProperties) =>
-                    //    {
-                    //        cellData.Value = Math.Round(item.Avg, 2).ToString();
-                    //        cellProperties.PdfFont = args.PdfFont;
-                    //        cellProperties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Center;
-                    //        cellProperties.BackgroundColor = count % 2 == 0 ? new BaseColor(System.Drawing.Color.White.ToArgb()) : new BaseColor(System.Drawing.ColorTranslator.FromHtml("#F7F6F3").ToArgb());
-                    //        cellProperties.FontColor = count % 2 == 0 ? new BaseColor(System.Drawing.ColorTranslator.FromHtml("#284775").ToArgb()) : new BaseColor(System.Drawing.ColorTranslator.FromHtml("#333333").ToArgb());
-                    //    }, (cellData, cellProperties) =>
-                    //    {
-                    //        cellData.Value = Math.Round(item.Max, 2).ToString();
-                    //        cellProperties.PdfFont = args.PdfFont;
-                    //        cellProperties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Center;
-                    //        cellProperties.BackgroundColor = count % 2 == 0 ? new BaseColor(System.Drawing.Color.White.ToArgb()) : new BaseColor(System.Drawing.ColorTranslator.FromHtml("#F7F6F3").ToArgb());
-                    //        cellProperties.FontColor = count % 2 == 0 ? new BaseColor(System.Drawing.ColorTranslator.FromHtml("#284775").ToArgb()) : new BaseColor(System.Drawing.ColorTranslator.FromHtml("#333333").ToArgb());
-                    //    }, (cellData, cellProperties) =>
-                    //    {
-                    //        cellData.Value = Math.Round(item.Min, 2).ToString();
-                    //        cellProperties.PdfFont = args.PdfFont;
-                    //        cellProperties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Center;
-                    //        cellProperties.BackgroundColor = count % 2 == 0 ? new BaseColor(System.Drawing.Color.White.ToArgb()) : new BaseColor(System.Drawing.ColorTranslator.FromHtml("#F7F6F3").ToArgb());
-                    //        cellProperties.FontColor = count % 2 == 0 ? new BaseColor(System.Drawing.ColorTranslator.FromHtml("#284775").ToArgb()) : new BaseColor(System.Drawing.ColorTranslator.FromHtml("#333333").ToArgb());
-                    //    });
-                    //    count += 1;
-                    //}
-                    //args.PdfDoc.Add(tabb);
+                    FeedAddOtherChartToFirstPage(args.PdfDoc, eatsWeek, eatsWeekCompoundDish);
+                    args.PdfDoc.NewPage();
 
                     var gr = eatsWeek.GroupBy(e => e.Eat.CreatedAt.Date);
                     var gr1 = eatsWeekCompoundDish.GroupBy(e => e.Eat.CreatedAt.Date);
@@ -2756,12 +2790,12 @@ namespace MismeAPI.Service.Impls
                     args.PdfDoc.NewPage();
 
                     AddChartToPage(args.PdfDoc, eatsWeek, eatsWeekCompoundDish);
-                    args.PdfDoc.NewPage();
+                    //args.PdfDoc.NewPage();
 
                     var macroInfo = new PdfGrid(numColumns: 1)
                     {
                         WidthPercentage = 100,
-                        SpacingAfter = 20
+                        SpacingBefore = 20
                     };
                     macroInfo.AddSimpleRow(
                          (cellData, properties) =>
@@ -2771,7 +2805,7 @@ namespace MismeAPI.Service.Impls
                              properties.PdfFont = events.PdfFont;
                              properties.RunDirection = PdfRunDirection.LeftToRight;
                              properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Left;
-                             properties.PaddingBottom = 10;
+                             //properties.PaddingBottom = 10;
                          });
                     args.PdfDoc.Add(macroInfo);
                 });
@@ -2782,8 +2816,7 @@ namespace MismeAPI.Service.Impls
                     var macroInfo = new PdfGrid(numColumns: 1)
                     {
                         WidthPercentage = 100,
-                        SpacingBefore = 70,
-                        SpacingAfter = 30
+                        SpacingBefore = 20
                     };
                     macroInfo.AddSimpleRow(
                          (cellData, properties) =>
