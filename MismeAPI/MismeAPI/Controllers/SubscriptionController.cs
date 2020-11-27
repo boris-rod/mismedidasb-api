@@ -90,7 +90,7 @@ namespace APITaxi.API.Controllers
         }
 
         /// <summary>
-        /// Create a subscription
+        /// Create a subscription. Only an admin can do this operation.
         /// </summary>
         /// <param name="request">Subscription object</param>
         /// <returns>User with subscription object</returns>
@@ -108,7 +108,7 @@ namespace APITaxi.API.Controllers
         }
 
         /// <summary>
-        /// Update a subscription
+        /// Update a subscription. Only an admin can do this operation.
         /// </summary>
         /// <param name="id">Subscription id</param>
         /// <param name="request">Subscription object</param>
@@ -144,7 +144,7 @@ namespace APITaxi.API.Controllers
         }
 
         /// <summary>
-        /// Assign subscription to an user
+        /// Assign subscription to an user. Only an admin can do this operation.
         /// </summary>
         /// <param name="userId">User who wich the admin will add a subscription</param>
         /// <param name="subscription">Subscription to assign to this user</param>
@@ -192,14 +192,14 @@ namespace APITaxi.API.Controllers
         [HttpPost]
         [Route("buy-offer-one")]
         [Authorize]
-        [ProducesResponseType(typeof(UserSubscriptionResponse), (int)HttpStatusCode.Created)]
+        [ProducesResponseType(typeof(IEnumerable<UserSubscriptionResponse>), (int)HttpStatusCode.Created)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
         public async Task<IActionResult> BulkBuySubscriptions()
         {
             var loggedUser = User.GetUserIdFromToken();
 
             var userSubscription = await _subscriptionService.BuySubscriptionPackageAsync(loggedUser);
-            var mapped = _mapper.Map<UserSubscriptionResponse>(userSubscription);
+            var mapped = _mapper.Map<IEnumerable<UserSubscriptionResponse>>(userSubscription);
 
             return Created("", new ApiOkResponse(mapped));
         }
