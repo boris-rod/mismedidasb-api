@@ -129,6 +129,8 @@ namespace MismeAPI
             recurringJobs.AddOrUpdate<IMismeBackgroundService>("HandleSubscriptions", (e) => e.HandleSubscriptionsAsync(), "0 12 * * *", TimeZoneInfo.Utc);
             recurringJobs.AddOrUpdate<IMismeBackgroundService>("SendPlanifyEventNotificationAsync", (e) => e.SendPlanifyEventNotificationAsync(), "0 12 ? * 3,6", TimeZoneInfo.Utc);
 
+            recurringJobs.AddOrUpdate<IReportService>("SendReportsAsync", (e) => e.SendReportsAsync(), "0 7 * * 0", TimeZoneInfo.Utc);
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

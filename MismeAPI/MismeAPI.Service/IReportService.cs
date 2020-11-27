@@ -7,5 +7,7 @@ namespace MismeAPI.Service
         Task GetNutritionalReportAsync(int userId);
 
         Task GetFeedReportAsync(int userId);
+
+        Task SendReportsAsync();
     }
 }

@@ -24,12 +24,14 @@ namespace MismeAPI.Service.Impls
         private readonly IUnitOfWork _uow;
         private readonly IAccountService _accountService;
         private readonly IPollService _pollService;
+        private readonly IEmailService _emailService;
 
-        public ReportService(IUnitOfWork uow, IAccountService accountService, IPollService pollService)
+        public ReportService(IUnitOfWork uow, IAccountService accountService, IPollService pollService, IEmailService emailService)
         {
             _uow = uow ?? throw new ArgumentNullException(nameof(uow));
             _accountService = accountService ?? throw new ArgumentNullException(nameof(accountService));
             _pollService = pollService ?? throw new ArgumentNullException(nameof(pollService));
+            _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
         }
 
         public async Task GetFeedReportAsync(int userId)
@@ -60,7 +62,26 @@ namespace MismeAPI.Service.Impls
 
                 var mergedFileContentBytes = mergedFileStream.ToArray();
 
-                File.WriteAllBytes("D:\\ReporteAlimentacion.pdf", mergedFileContentBytes);
+                var fileName = "Reporte Alimentacion.pdf";
+
+                File.WriteAllBytes(fileName, mergedFileContentBytes);
+
+                var emails = new List<string>();
+                emails.Add(result.user.Email);
+
+                var currentWeekString = GetCurrentWeekRangeString();
+                var subject = "Informe de Alimentación - Semana de " + currentWeekString;
+
+                var mess = @"Hola.
+
+Está recibiendo este informe de alimentación semanal como parte del servicio premium de PlaniFive.
+
+Esperamos le sea de mucha ayuda! Muchas gracias,
+
+Soporte PlaniFive.";
+
+                await _emailService.SendEmailResponseWithAttachmentAsync(subject, mess, emails, fileName);
+                File.Delete(fileName);
             }
         }
 
@@ -68,12 +89,9 @@ namespace MismeAPI.Service.Impls
         {
             var result = await _accountService.GetUserProfileUseAsync(userId);
 
-            //var image = GetImage();
             var cover = await GetCoverContent(result.user);
-            //var charData = GetChartsContent();
             var contents = new List<MemoryStream>();
             contents.Add(new MemoryStream(cover));
-            //contents.Add(new MemoryStream(charData));
 
             using (var mergedFileStream = new MemoryStream())
             {
@@ -95,7 +113,25 @@ namespace MismeAPI.Service.Impls
 
                 var mergedFileContentBytes = mergedFileStream.ToArray();
 
-                File.WriteAllBytes("D:\\ReporteNutricion.pdf", mergedFileContentBytes);
+                var fileName = "Reporte Nutricion.pdf";
+                File.WriteAllBytes(fileName, mergedFileContentBytes);
+
+                var emails = new List<string>();
+                emails.Add(result.user.Email);
+
+                var currentWeekString = GetCurrentWeekRangeString();
+                var subject = "Informe de Nutrición - Semana de " + currentWeekString;
+
+                var mess = @"Hola.
+
+Está recibiendo este informe de nutrición semanal como parte del servicio premium de PlaniFive.
+
+Esperamos le sea de mucha ayuda! Muchas gracias,
+
+Soporte PlaniFive.";
+
+                await _emailService.SendEmailResponseWithAttachmentAsync(subject, mess, emails, fileName);
+                File.Delete(fileName);
             }
         }
 
@@ -2040,11 +2076,11 @@ namespace MismeAPI.Service.Impls
             var info = await _pollService.GetUserPollsInfoAsync(user.Id);
             var currentWeekString = GetCurrentWeekRangeString();
             var currentWeekDates = GetCurrentWeekRangeDates();
-            //var firstDay = currentWeekDates.ElementAt(0);
-            //var lastDay = currentWeekDates.ElementAt(6);
+            var firstDay = currentWeekDates.ElementAt(0);
+            var lastDay = currentWeekDates.ElementAt(6);
 
-            var firstDay = DateTime.Parse("Nov 15, 2020");
-            var lastDay = DateTime.Parse("Nov 21, 2020");
+            //var firstDay = DateTime.Parse("Nov 15, 2020");
+            //var lastDay = DateTime.Parse("Nov 21, 2020");
 
             var eatsWeek = await _uow.EatDishRepository.GetAll().Where(ed => ed.Eat.CreatedAt.Date >= firstDay.Date &&
                     ed.Eat.CreatedAt.Date <= lastDay.Date &&
@@ -2387,16 +2423,223 @@ namespace MismeAPI.Service.Impls
                     FeedAddOtherChartToFirstPage(args.PdfDoc, eatsWeek, eatsWeekCompoundDish);
                     args.PdfDoc.NewPage();
 
-                    var gr = eatsWeek.GroupBy(e => e.Eat.CreatedAt.Date);
-                    var gr1 = eatsWeekCompoundDish.GroupBy(e => e.Eat.CreatedAt.Date);
-                    var uniqueTimes = new List<DateTime>();
-                    foreach (var group in gr)
+                    var advises = new PdfGrid(numColumns: 1)
                     {
-                        if (!uniqueTimes.Any(u => u.Date == group.Key.Date))
+                        WidthPercentage = 100
+                    };
+                    advises.AddSimpleRow(
+                        (cellData, properties) =>
                         {
-                            uniqueTimes.Add(group.Key);
-                        }
-                    }
+                            cellData.Value = "Consejos para lograr una alimentación saludable y balanceada:";
+
+                            properties.PdfFont = args.PdfFont;
+                            properties.RunDirection = PdfRunDirection.LeftToRight;
+                            properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Justified;
+                            properties.PdfFontStyle = DocumentFontStyle.Bold;
+                        });
+
+                    advises.AddSimpleRow(
+                       (cellData, properties) =>
+                       {
+                           cellData.Value = "Una alimentación saludable consiste en comer de todo sin exceso y distribuir los alimentos a lo largo del día. Distribuya la ingesta en 5 comidas al día según las planificaciones de la App. Adecue su menú diario y semanal siguiendo las frecuencias recomendadas de cada grupo de alimentos:";
+
+                           properties.PdfFont = args.PdfFont;
+                           properties.RunDirection = PdfRunDirection.LeftToRight;
+                           properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Justified;
+                           properties.PaddingTop = 10;
+                       });
+
+                    advises.AddSimpleRow(
+                       (cellData, properties) =>
+                       {
+                           cellData.Value = "DIARIO";
+
+                           properties.PdfFont = args.PdfFont;
+                           properties.RunDirection = PdfRunDirection.LeftToRight;
+                           properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Justified;
+                           properties.PaddingTop = 10;
+                       });
+
+                    advises.AddSimpleRow(
+                       (cellData, properties) =>
+                       {
+                           cellData.Value = "1- FRUTAS (≥ 3 raciones/día) Se puede considerar ración: 1 pieza mediana, 1 taza equivalente a su puño de cerezas, fresas o frutas troceadas, etc; 2 rodajas de melón.";
+
+                           properties.PdfFont = args.PdfFont;
+                           properties.RunDirection = PdfRunDirection.LeftToRight;
+                           properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Justified;
+                           properties.PaddingTop = 10;
+                       });
+
+                    advises.AddSimpleRow(
+                       (cellData, properties) =>
+                       {
+                           cellData.Value = "2- VERDURAS (≥ 2 raciones/día) Se puede considerar ración: 1 plato equivalente a su puño de ensalada variada, 1 plato de verdura cocida, 1 tomate grande, 2 zanahorias.";
+
+                           properties.PdfFont = args.PdfFont;
+                           properties.RunDirection = PdfRunDirection.LeftToRight;
+                           properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Justified;
+                       });
+
+                    advises.AddSimpleRow(
+                       (cellData, properties) =>
+                       {
+                           cellData.Value = "3- LÁCTEOS (4 raciones/día). Se puede considerar ración: un vaso de 250 ml de leche, 1 unidad de yogurt, 1 porción queso fresco, 1 porción de queso semicurado.";
+
+                           properties.PdfFont = args.PdfFont;
+                           properties.RunDirection = PdfRunDirection.LeftToRight;
+                           properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Justified;
+                       });
+
+                    advises.AddSimpleRow(
+                       (cellData, properties) =>
+                       {
+                           cellData.Value = "4- ACEITE DE OLIVA (3 raciones / día) Se puede considerar ración: 10 ml 1 cucharada.";
+
+                           properties.PdfFont = args.PdfFont;
+                           properties.RunDirection = PdfRunDirection.LeftToRight;
+                           properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Justified;
+                       });
+
+                    advises.AddSimpleRow(
+                       (cellData, properties) =>
+                       {
+                           cellData.Value = "5- PAN y CEREALES (2-3 raciones/día) Se puede considerar ración:  una palma de pan, un puñado de cereales desayuno, 2-3  galletas “maría” (mejor integral), 3-4 rebanadas o un panecillo.";
+
+                           properties.PdfFont = args.PdfFont;
+                           properties.RunDirection = PdfRunDirection.LeftToRight;
+                           properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Justified;
+                       });
+
+                    advises.AddSimpleRow(
+                       (cellData, properties) =>
+                       {
+                           cellData.Value = "SEMANAL";
+
+                           properties.PdfFont = args.PdfFont;
+                           properties.RunDirection = PdfRunDirection.LeftToRight;
+                           properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Justified;
+                           properties.PaddingTop = 10;
+                       });
+
+                    advises.AddSimpleRow(
+                       (cellData, properties) =>
+                       {
+                           cellData.Value = "1- PASTA, ARROZ, MAIZ, PATATA, OTROS TUBÉRCULOS (3-4 raciones/ semana) Se puede considerar ración: un puño de arroz cocido (mejor integral), o de patatas.";
+
+                           properties.PdfFont = args.PdfFont;
+                           properties.RunDirection = PdfRunDirection.LeftToRight;
+                           properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Justified;
+                           properties.PaddingTop = 10;
+                       });
+
+                    advises.AddSimpleRow(
+                       (cellData, properties) =>
+                       {
+                           cellData.Value = "2- LEGUMBRES (2-3 raciones/ semana) Se puede considerar ración:  1 plato hondo raso equivalente a su puño de (garbanzos, lentejas, soja, judías).";
+
+                           properties.PdfFont = args.PdfFont;
+                           properties.RunDirection = PdfRunDirection.LeftToRight;
+                           properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Justified;
+                       });
+
+                    advises.AddSimpleRow(
+                       (cellData, properties) =>
+                       {
+                           cellData.Value = "3- PESCADO (4-5 raciones/ semana) (2 pescado azul) Se puede considerar ración: 1 filete.";
+
+                           properties.PdfFont = args.PdfFont;
+                           properties.RunDirection = PdfRunDirection.LeftToRight;
+                           properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Justified;
+                       });
+
+                    advises.AddSimpleRow(
+                       (cellData, properties) =>
+                       {
+                           cellData.Value = "4- CARNES MAGRAS, AVES (3- 4 raciones/ semana) Se puede considerar ración: carne magra equivalente a palma de su mano o 1 filete pequeño o 1 cuarto de pollo o conejo.";
+
+                           properties.PdfFont = args.PdfFont;
+                           properties.RunDirection = PdfRunDirection.LeftToRight;
+                           properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Justified;
+                       });
+
+                    advises.AddSimpleRow(
+                       (cellData, properties) =>
+                       {
+                           cellData.Value = "5- HUEVOS (4-6 raciones/ semana) Se puede considerar ración: 1 huevo (prioridad a las claras).";
+
+                           properties.PdfFont = args.PdfFont;
+                           properties.RunDirection = PdfRunDirection.LeftToRight;
+                           properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Justified;
+                       });
+
+                    advises.AddSimpleRow(
+                       (cellData, properties) =>
+                       {
+                           cellData.Value = "6- FRUTOS SECOS (3-5 raciones/ semana) Se puede considerar ración: un puñado o ración individual (naturales o tostados sin sal).";
+
+                           properties.PdfFont = args.PdfFont;
+                           properties.RunDirection = PdfRunDirection.LeftToRight;
+                           properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Justified;
+                       });
+
+                    advises.AddSimpleRow(
+                       (cellData, properties) =>
+                       {
+                           cellData.Value = "OCASIONALMENTE";
+                           properties.PdfFont = args.PdfFont;
+                           properties.RunDirection = PdfRunDirection.LeftToRight;
+                           properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Justified;
+                           properties.PaddingTop = 10;
+                       });
+
+                    advises.AddSimpleRow(
+                       (cellData, properties) =>
+                       {
+                           cellData.Value = "1- EMBUTIDOS Y CARNES GRASAS, BOLLERIA, HELADOS, GOLOSINAS.";
+                           properties.PdfFont = args.PdfFont;
+                           properties.RunDirection = PdfRunDirection.LeftToRight;
+                           properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Justified;
+                           properties.PaddingTop = 10;
+                       });
+
+                    advises.AddSimpleRow(
+                       (cellData, properties) =>
+                       {
+                           cellData.Value = "Planifique la compra periódicamente y adaptada a la elaboración de los menús. Elija alimentos propios de cada estación y almacénelos adecuadamente. El etiquetado que acompaña a los alimentos es un medio útil para conocer el contenido en sustancias nutritivas.";
+                           properties.PdfFont = args.PdfFont;
+                           properties.RunDirection = PdfRunDirection.LeftToRight;
+                           properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Justified;
+                           properties.PaddingTop = 10;
+                       });
+
+                    advises.AddSimpleRow(
+                       (cellData, properties) =>
+                       {
+                           cellData.Value = "Trate de balancear su plato ideal con la mitad de frutas y verduras crudas. Si toma 2 platos prefiera que el primero, sea casi siempre una ensalada. Una ración de verduras está constituida por un puño de verduras crudas de hojas, media taza de verduras troceadas, tres cuartos de taza de zumo vegetal.";
+                           properties.PdfFont = args.PdfFont;
+                           properties.RunDirection = PdfRunDirection.LeftToRight;
+                           properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Justified;
+                           properties.PaddingTop = 10;
+                       });
+
+                    advises.AddSimpleRow(
+                       (cellData, properties) =>
+                       {
+                           cellData.Value = "No olvide que, “el comer es un placer” al que no se debe renunciar porque además contribuye a mantener una buena salud mental.";
+                           properties.PdfFont = args.PdfFont;
+                           properties.RunDirection = PdfRunDirection.LeftToRight;
+                           properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Justified;
+                           properties.PaddingTop = 10;
+                       });
+
+                    args.PdfDoc.Add(advises);
+
+                    //var bye = new PdfGrid(numColumns: 1)
+                    //{
+                    //    WidthPercentage = 100,
+                    //    SpacingBefore = 200
+                    //};
 
                     args.PdfDoc.NewPage();
 
@@ -2417,6 +2660,7 @@ namespace MismeAPI.Service.Impls
                         });
 
                     args.PdfDoc.Add(bye);
+
                     var bye1 = new PdfGrid(numColumns: 1)
                     {
                         WidthPercentage = 100,
@@ -2475,11 +2719,11 @@ namespace MismeAPI.Service.Impls
             var info = await _pollService.GetUserPollsInfoAsync(user.Id);
             var currentWeekString = GetCurrentWeekRangeString();
             var currentWeekDates = GetCurrentWeekRangeDates();
-            //var firstDay = currentWeekDates.ElementAt(0);
-            //var lastDay = currentWeekDates.ElementAt(6);
+            var firstDay = currentWeekDates.ElementAt(0);
+            var lastDay = currentWeekDates.ElementAt(6);
 
-            var firstDay = DateTime.Parse("Nov 15, 2020");
-            var lastDay = DateTime.Parse("Nov 21, 2020");
+            //var firstDay = DateTime.Parse("Nov 15, 2020");
+            //var lastDay = DateTime.Parse("Nov 21, 2020");
 
             var eatsWeek = await _uow.EatDishRepository.GetAll().Where(ed => ed.Eat.CreatedAt.Date >= firstDay.Date &&
                     ed.Eat.CreatedAt.Date <= lastDay.Date &&
@@ -4709,78 +4953,25 @@ namespace MismeAPI.Service.Impls
             return range;
         }
 
-        private byte[] GetChartsContent()
+        public async Task SendReportsAsync()
         {
-            var data = GetData(null, null);
-            try
-            {
-                return new PdfReport().DocumentPreferences(doc =>
-                {
-                    doc.RunDirection(PdfRunDirection.LeftToRight);
-                    doc.Orientation(PageOrientation.Landscape);
-                    doc.PageSize(PdfPageSize.A4);
-                    doc.DocumentMetadata(new DocumentMetadata { Author = "PlaniFive", Application = "PlaniFive", Keywords = "Nutricional", Title = "Informe Nutricional" });
-                    doc.Compression(new CompressionSettings
-                    {
-                        EnableCompression = true,
-                        EnableFullCompression = true
-                    });
-                })
-                 .DefaultFonts(fonts =>
-                 {
-                     fonts.Size(9);
-                     fonts.Color(System.Drawing.Color.Black);
-                 })
-                 .PagesFooter(footer =>
-                 {
-                     footer.DefaultFooter(DateTime.Now.ToString("MMM. dd, yyyy"));
-                 })
-                 .PagesHeader(header =>
-                 {
-                     header.CacheHeader(cache: false);
-                 })
-                 .MainTableTemplate(template =>
-                 {
-                 })
-                 .MainTablePreferences(table =>
-                 {
-                     table.ColumnsWidthsType(TableColumnWidthType.FitToContent);
-                     table.NumberOfDataRowsPerPage(10);
-                 })
-                 .MainTableDataSource(dataSource =>
-                 {
-                     dataSource.StronglyTypedList(data);
-                 })
-                 .MainTableColumns(columns =>
-                 {
-                     columns.AddColumn(column =>
-                     {
-                         column.PropertyName("rowNo");
-                         column.IsRowNumber(true);
-                         column.CellsHorizontalAlignment(PdfRpt.Core.Contracts.HorizontalAlignment.Center);
-                         column.IsVisible(true);
-                         //column.Order(0);
-                         column.Width(1);
-                         column.HeaderCell("#");
-                     });
-                 })
-                 .MainTableEvents(events =>
-                 {
-                     events.DataSourceIsEmpty(message: "There is no data available to display.");
+            var userSubs = await _uow.UserSubscriptionRepository.GetAll()
+                .Where(us => us.IsActive == true &&
+                            (us.Subscription.Product == Data.Entities.Enums.SubscriptionEnum.FOOD_REPORT ||
+                            us.Subscription.Product == Data.Entities.Enums.SubscriptionEnum.NUTRITION_REPORT))
+                .Include(us => us.Subscription)
+                .ToListAsync();
 
-                     events.DocumentClosing(args =>
-                     {
-                         //AddChartToPage(args.PdfDoc);
-                         //AddChartToPage(args.PdfDoc, width: (int)args.PdfWriter.PageSize.Width - 100, height: 250);
-                     });
-                 })
-                   .GenerateAsByteArray();
-                //.Generate(data => data.AsPdfFile("d:\\NutriotionalReport.pdf"));
-                //.Export(export => { });
-            }
-            catch (Exception e)
+            foreach (var item in userSubs)
             {
-                throw e;
+                if (item.Subscription.Product == Data.Entities.Enums.SubscriptionEnum.FOOD_REPORT)
+                {
+                    await GetFeedReportAsync(item.UserId);
+                }
+                if (item.Subscription.Product == Data.Entities.Enums.SubscriptionEnum.NUTRITION_REPORT)
+                {
+                    await GetNutritionalReportAsync(item.UserId);
+                }
             }
         }
     }

@@ -6,5 +6,7 @@ namespace MismeAPI.Services
     public interface IEmailService
     {
         Task SendEmailResponseAsync(string subject, string htmlMessage, IEnumerable<string> email);
+
+        Task SendEmailResponseWithAttachmentAsync(string subject, string htmlMessage, IEnumerable<string> email, string filePath);
     }
 }
