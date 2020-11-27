@@ -192,7 +192,6 @@ namespace MismeAPI.Service.Impls
             var userSubscription = InitOrIncreaseUserSubscriptionObject(user.Id, subscription.Id);
 
             await _uow.UserSubscriptionRepository.AddAsync(userSubscription);
-
             await _uow.CommitAsync();
 
             return userSubscription;
@@ -240,7 +239,7 @@ namespace MismeAPI.Service.Impls
 
             var user = await _userService.GetUserAsync(loggedUser);
             var subscriptions = await _uow.SubscriptionRepository.GetAll()
-                .Where(s => bulkSubscriptions.Any(b => b == s.Product))
+                .Where(s => bulkSubscriptions.Contains(s.Product))
                 .ToListAsync();
 
             if (subscriptions.Where(s => s.IsActive).Count() != 3)
@@ -252,7 +251,7 @@ namespace MismeAPI.Service.Impls
 
             if (statistics == null || statistics.Coins < unitPrice)
             {
-                throw new Exception("Not enough coins to buy subscriptions");
+                throw new ForbiddenException("Not enough coins to buy subscriptions");
             }
 
             foreach (var subscription in subscriptions)
@@ -359,15 +358,15 @@ namespace MismeAPI.Service.Impls
 
             var subscriptions = await _uow.SubscriptionRepository.GetAll().ToListAsync();
 
-            var subscription1 = subscriptions.Where(c => c.Product == SubscriptionEnum.VIRTUAL_ASESSOR);
+            var subscription1 = subscriptions.FirstOrDefault(c => c.Product == SubscriptionEnum.VIRTUAL_ASESSOR);
             if (subscription1 == null)
                 await CreateSubscriptionAsync(subscriptionReques1);
 
-            var subscription2 = subscriptions.Where(c => c.Product == SubscriptionEnum.FOOD_REPORT);
+            var subscription2 = subscriptions.FirstOrDefault(c => c.Product == SubscriptionEnum.FOOD_REPORT);
             if (subscription2 == null)
                 await CreateSubscriptionAsync(subscriptionReques2);
 
-            var subscription3 = subscriptions.Where(c => c.Product == SubscriptionEnum.NUTRITION_REPORT);
+            var subscription3 = subscriptions.FirstOrDefault(c => c.Product == SubscriptionEnum.NUTRITION_REPORT);
             if (subscription3 == null)
                 await CreateSubscriptionAsync(subscriptionReques3);
 

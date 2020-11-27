@@ -8,7 +8,7 @@ namespace MismeAPI.Common.DTO.Response.Subscription
     {
         public int Id { get; set; }
         public int UserId { get; set; }
-        public int UserSubscriptionId { get; set; }
+        public int SubscriptionId { get; set; }
         public int ProductId { get; set; }
         public string Product { get; set; }
         public string Name { get; set; }

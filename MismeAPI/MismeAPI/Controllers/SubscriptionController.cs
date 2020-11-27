@@ -25,32 +25,19 @@ namespace APITaxi.API.Controllers
     [Route("api/subscriptions")]
     public class SubscriptionController : Controller
     {
-        private readonly IAccountService _accountService;
         private readonly IMapper _mapper;
-        private IWebHostEnvironment _env;
-        private readonly IEmailService _emailService;
-        private IHubContext<UserHub> _hub;
-        private IUserReferralService _userReferralService;
-        private IRewardHelper _rewardHelper;
         private IUserService _userService;
         private ISubscriptionService _subscriptionService;
 
-        public SubscriptionController(IAccountService accountService, IMapper mapper, IEmailService emailService, IWebHostEnvironment env,
-            IHubContext<UserHub> hub, IUserReferralService userReferralService, IRewardHelper rewardHelper, IUserService userService, ISubscriptionService subscriptionService)
+        public SubscriptionController(IMapper mapper, IUserService userService, ISubscriptionService subscriptionService)
         {
-            _accountService = accountService ?? throw new ArgumentNullException(nameof(accountService));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
-            _env = env ?? throw new ArgumentNullException(nameof(env));
-            _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
-            _hub = hub ?? throw new ArgumentNullException(nameof(hub));
-            _userReferralService = userReferralService ?? throw new ArgumentNullException(nameof(userReferralService));
-            _rewardHelper = rewardHelper ?? throw new ArgumentNullException(nameof(rewardHelper));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _subscriptionService = subscriptionService ?? throw new ArgumentNullException(nameof(subscriptionService));
         }
 
         /// <summary>
-        /// Get active subscriptions. Require admin authentication
+        /// Get active subscriptions. Require authentication
         /// </summary>
         /// <param name="page">The page to be displayed. 1 by default.</param>
         /// <param name="perPage">The number of eats to be displayed per page. 10 by default.</param>
@@ -103,7 +90,7 @@ namespace APITaxi.API.Controllers
         }
 
         /// <summary>
-        /// Create a subscription
+        /// Create a subscription. Only an admin can do this operation.
         /// </summary>
         /// <param name="request">Subscription object</param>
         /// <returns>User with subscription object</returns>
@@ -121,7 +108,7 @@ namespace APITaxi.API.Controllers
         }
 
         /// <summary>
-        /// Update a subscription
+        /// Update a subscription. Only an admin can do this operation.
         /// </summary>
         /// <param name="id">Subscription id</param>
         /// <param name="request">Subscription object</param>
@@ -157,7 +144,7 @@ namespace APITaxi.API.Controllers
         }
 
         /// <summary>
-        /// Assign subscription to an user
+        /// Assign subscription to an user. Only an admin can do this operation.
         /// </summary>
         /// <param name="userId">User who wich the admin will add a subscription</param>
         /// <param name="subscription">Subscription to assign to this user</param>
@@ -205,14 +192,14 @@ namespace APITaxi.API.Controllers
         [HttpPost]
         [Route("buy-offer-one")]
         [Authorize]
-        [ProducesResponseType(typeof(UserSubscriptionResponse), (int)HttpStatusCode.Created)]
+        [ProducesResponseType(typeof(IEnumerable<UserSubscriptionResponse>), (int)HttpStatusCode.Created)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
-        public async Task<IActionResult> BulkBuySubscriptions(int id)
+        public async Task<IActionResult> BulkBuySubscriptions()
         {
             var loggedUser = User.GetUserIdFromToken();
 
             var userSubscription = await _subscriptionService.BuySubscriptionPackageAsync(loggedUser);
-            var mapped = _mapper.Map<UserSubscriptionResponse>(userSubscription);
+            var mapped = _mapper.Map<IEnumerable<UserSubscriptionResponse>>(userSubscription);
 
             return Created("", new ApiOkResponse(mapped));
         }
