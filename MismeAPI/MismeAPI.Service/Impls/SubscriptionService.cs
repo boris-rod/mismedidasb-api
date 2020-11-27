@@ -359,15 +359,15 @@ namespace MismeAPI.Service.Impls
 
             var subscriptions = await _uow.SubscriptionRepository.GetAll().ToListAsync();
 
-            var subscription1 = subscriptions.Where(c => c.Product == SubscriptionEnum.VIRTUAL_ASESSOR);
+            var subscription1 = subscriptions.FirstOrDefault(c => c.Product == SubscriptionEnum.VIRTUAL_ASESSOR);
             if (subscription1 == null)
                 await CreateSubscriptionAsync(subscriptionReques1);
 
-            var subscription2 = subscriptions.Where(c => c.Product == SubscriptionEnum.FOOD_REPORT);
+            var subscription2 = subscriptions.FirstOrDefault(c => c.Product == SubscriptionEnum.FOOD_REPORT);
             if (subscription2 == null)
                 await CreateSubscriptionAsync(subscriptionReques2);
 
-            var subscription3 = subscriptions.Where(c => c.Product == SubscriptionEnum.NUTRITION_REPORT);
+            var subscription3 = subscriptions.FirstOrDefault(c => c.Product == SubscriptionEnum.NUTRITION_REPORT);
             if (subscription3 == null)
                 await CreateSubscriptionAsync(subscriptionReques3);
 
