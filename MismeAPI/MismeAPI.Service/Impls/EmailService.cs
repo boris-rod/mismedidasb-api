@@ -72,7 +72,7 @@ namespace MismeAPI.Services.Impls
 
                     var builder = new BodyBuilder();
 
-                    builder.TextBody = message;
+                    builder.HtmlBody = message;
 
                     builder.Attachments.Add(filePath);
 

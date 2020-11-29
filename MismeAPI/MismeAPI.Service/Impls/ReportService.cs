@@ -72,13 +72,9 @@ namespace MismeAPI.Service.Impls
                 var currentWeekString = GetCurrentWeekRangeString();
                 var subject = "Informe de Alimentación - Semana de " + currentWeekString;
 
-                var mess = @"Hola.
-
-Está recibiendo este informe de alimentación semanal como parte del servicio premium de PlaniFive.
-
-Esperamos le sea de mucha ayuda! Muchas gracias,
-
-Soporte PlaniFive.";
+                var mess = "<p>Hola.</p><p>Está recibiendo este informe de alimentación semanal como parte del servicio premium de PlaniFive.</p>" +
+                                    "<p>Para consultar alguno de nuestros especialistas puede reservar una cita visitando este <a href='https://book.timify.com/availability?accountId=5f420e4b846bcf12c3140046&fullscreen=1&hideCloseButton=1'>link</a>.</p>" +
+                                    "<p>Esperamos le sea de mucha ayuda! Muchas gracias,</p><p>Soporte PlaniFive.</p>";
 
                 await _emailService.SendEmailResponseWithAttachmentAsync(subject, mess, emails, fileName);
                 File.Delete(fileName);
@@ -122,13 +118,9 @@ Soporte PlaniFive.";
                 var currentWeekString = GetCurrentWeekRangeString();
                 var subject = "Informe de Nutrición - Semana de " + currentWeekString;
 
-                var mess = @"Hola.
-
-Está recibiendo este informe de nutrición semanal como parte del servicio premium de PlaniFive.
-
-Esperamos le sea de mucha ayuda! Muchas gracias,
-
-Soporte PlaniFive.";
+                var mess = "<p>Hola.</p><p>Está recibiendo este informe de nutrición semanal como parte del servicio premium de PlaniFive.</p>" +
+                    "<p>Para consultar alguno de nuestros especialistas puede reservar una cita visitando este <a href='https://book.timify.com/availability?accountId=5f420e4b846bcf12c3140046&fullscreen=1&hideCloseButton=1'>link</a>.</p>" +
+                    "<p>Esperamos le sea de mucha ayuda! Muchas gracias,</p><p>Soporte PlaniFive.</p>";
 
                 await _emailService.SendEmailResponseWithAttachmentAsync(subject, mess, emails, fileName);
                 File.Delete(fileName);
@@ -2643,6 +2635,320 @@ Soporte PlaniFive.";
 
                     args.PdfDoc.NewPage();
 
+                    var tips = new PdfGrid(numColumns: 1)
+                    {
+                        WidthPercentage = 100
+                    };
+                    tips.AddSimpleRow(
+                        (cellData, properties) =>
+                        {
+                            cellData.Value = "Recomendaciones:";
+
+                            properties.PdfFont = args.PdfFont;
+                            properties.RunDirection = PdfRunDirection.LeftToRight;
+                            properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Justified;
+                            properties.PdfFontStyle = DocumentFontStyle.Bold;
+                        });
+
+                    tips.AddSimpleRow(
+                        (cellData, properties) =>
+                        {
+                            cellData.Value = "- Utilice la sal con moderación; sustitúyala por otros condimentos como el vinagre, el limón y diferentes especias para aumenta el sabor.";
+
+                            properties.PdfFont = args.PdfFont;
+                            properties.RunDirection = PdfRunDirection.LeftToRight;
+                            properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Justified;
+                            properties.PaddingTop = 10;
+                        });
+
+                    tips.AddSimpleRow(
+                        (cellData, properties) =>
+                        {
+                            cellData.Value = "- Tome el sol directamente (sin excederse), sus rayos son una excelente fuente de vitamina D.";
+
+                            properties.PdfFont = args.PdfFont;
+                            properties.RunDirection = PdfRunDirection.LeftToRight;
+                            properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Justified;
+                        });
+
+                    tips.AddSimpleRow(
+                        (cellData, properties) =>
+                        {
+                            cellData.Value = "- Diariamente camine en sus desplazamientos, suba escaleras, etc. Además, si le es posible, realice ejercicio físico 30-45 min. 3 días/semana de forma regular (montar en bicicleta, natación, clases de gimnasia colectivas, etc).";
+
+                            properties.PdfFont = args.PdfFont;
+                            properties.RunDirection = PdfRunDirection.LeftToRight;
+                            properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Justified;
+                        });
+
+                    if (FruitsAndVegetablesAdviseIsNeeded(eatsWeek, eatsWeekCompoundDish, info))
+                    {
+                        tips.AddSimpleRow(
+                                (cellData, properties) =>
+                                {
+                                    cellData.Value = "FRUTAS Y VEGETALES:";
+
+                                    properties.PdfFont = args.PdfFont;
+                                    properties.RunDirection = PdfRunDirection.LeftToRight;
+                                    properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Justified;
+                                    properties.PaddingTop = 10;
+                                });
+
+                        tips.AddSimpleRow(
+                                (cellData, properties) =>
+                                {
+                                    cellData.Value = "- Incremente el consumo de frutas y verduras crudas con ellas aporta vitaminas y otros micronutrientes que pueden perderse con la cocción. Recuerde que si adiciona azúcar a las frutas y salsas o cremas a las verduras puede convertirlos en platos calóricos.";
+
+                                    properties.PdfFont = args.PdfFont;
+                                    properties.RunDirection = PdfRunDirection.LeftToRight;
+                                    properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Justified;
+                                    properties.PaddingTop = 10;
+                                });
+
+                        tips.AddSimpleRow(
+                                (cellData, properties) =>
+                                {
+                                    cellData.Value = "- Consuma varias piezas de frutas, lo ideal al menos 5 diariamente. Es preferible el consumo de frutas completas al de zumos. Si se decanta por batir o triturar las frutas para hacer purés o zumos, adicione solo agua, aproveche el dulzor natural de las frutas.";
+
+                                    properties.PdfFont = args.PdfFont;
+                                    properties.RunDirection = PdfRunDirection.LeftToRight;
+                                    properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Justified;
+                                });
+
+                        tips.AddSimpleRow(
+                                (cellData, properties) =>
+                                {
+                                    cellData.Value = "- Una ración de fruta puede estar constituida por una pieza del tipo de la manzana o de la naranja o troceada en cantidad equivalente al tamaño de su puño.";
+
+                                    properties.PdfFont = args.PdfFont;
+                                    properties.RunDirection = PdfRunDirection.LeftToRight;
+                                    properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Justified;
+                                });
+
+                        tips.AddSimpleRow(
+                                (cellData, properties) =>
+                                {
+                                    cellData.Value = "- Incluya diariamente alguna pieza de fruta con alto contenido en vitamina C (naranja, mandarina, pomelo, kiwi, fresa) y una ración de verduras crudas.";
+
+                                    properties.PdfFont = args.PdfFont;
+                                    properties.RunDirection = PdfRunDirection.LeftToRight;
+                                    properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Justified;
+                                });
+                    }
+
+                    if (ProteicsAdviseIsNeeded(eatsWeek, eatsWeekCompoundDish, info))
+                    {
+                        tips.AddSimpleRow(
+                                (cellData, properties) =>
+                                {
+                                    cellData.Value = "PROTEICOS:";
+
+                                    properties.PdfFont = args.PdfFont;
+                                    properties.RunDirection = PdfRunDirection.LeftToRight;
+                                    properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Justified;
+                                    properties.PaddingTop = 10;
+                                });
+
+                        tips.AddSimpleRow(
+                                (cellData, properties) =>
+                                {
+                                    cellData.Value = "- Trate de combinar en la dieta varios tipos de proteínas, eso permitirá que sea mas completa y equilibrada. Las carnes , los pescado , el huevo y los lácteos aportan proteínas de gran calidad biológica y contienen aminoácidos esenciales.";
+
+                                    properties.PdfFont = args.PdfFont;
+                                    properties.RunDirection = PdfRunDirection.LeftToRight;
+                                    properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Justified;
+                                    properties.PaddingTop = 10;
+                                });
+
+                        tips.AddSimpleRow(
+                                (cellData, properties) =>
+                                {
+                                    cellData.Value = "- Las proteínas de origen vegetal son muy importantes en la dieta, aunque, debido a que su valor biológico está ligeramente disminuido con respecto a la proteína de origen animal, es recomendable combinar su consumo con alimentos que puedan complementar su calidad proteica, por ejemplo, con los cereales y loas propias proteínas de origen animal.";
+
+                                    properties.PdfFont = args.PdfFont;
+                                    properties.RunDirection = PdfRunDirection.LeftToRight;
+                                    properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Justified;
+                                });
+
+                        tips.AddSimpleRow(
+                                (cellData, properties) =>
+                                {
+                                    cellData.Value = "- Las legumbres constituyen un importante ingrediente de la dieta mediterránea, ya que son una fuente excepcional de proteínas, fibra dietética, hidratos de carbono de digestión lenta y vitaminas del grupo B. Dentro de ellas , las judías, lentejas o garbanzos, son excelentes fuentes de proteína vegetal y fibra dietética, recomendando su consumo varias veces a la semana. El contenido en fibra de media taza de legumbres equivale, de forma general, a una ración de verduras.";
+
+                                    properties.PdfFont = args.PdfFont;
+                                    properties.RunDirection = PdfRunDirection.LeftToRight;
+                                    properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Justified;
+                                });
+
+                        tips.AddSimpleRow(
+                                (cellData, properties) =>
+                                {
+                                    cellData.Value = "- Los frutos secos presentan un elevado contenido en proteínas, escaso en hidratos de carbono y un gran aporte de grasas insaturadas. Contienen sobre todo ácido oleico y el linoleico a excepción de las nueces, que son ricas en grasa polinsaturada.";
+
+                                    properties.PdfFont = args.PdfFont;
+                                    properties.RunDirection = PdfRunDirection.LeftToRight;
+                                    properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Justified;
+                                });
+                    }
+
+                    if (CandiesAdviseIsNeeded(eatsWeek, eatsWeekCompoundDish, info))
+                    {
+                        tips.AddSimpleRow(
+                                (cellData, properties) =>
+                                {
+                                    cellData.Value = "POSTRES, DULCES Y COMPLEMENTOS:";
+
+                                    properties.PdfFont = args.PdfFont;
+                                    properties.RunDirection = PdfRunDirection.LeftToRight;
+                                    properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Justified;
+                                    properties.PaddingTop = 10;
+                                });
+
+                        tips.AddSimpleRow(
+                                (cellData, properties) =>
+                                {
+                                    cellData.Value = "- Disminuya el consumo de carbohidratos simples. Los postres, confituras y dulces elaborados son una fuente de azúcares directa. La contribución del azúcar al total de la energía no debe superar el 10 %. Evite las bebidas azucaradas.";
+
+                                    properties.PdfFont = args.PdfFont;
+                                    properties.RunDirection = PdfRunDirection.LeftToRight;
+                                    properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Justified;
+                                    properties.PaddingTop = 10;
+                                });
+
+                        tips.AddSimpleRow(
+                                (cellData, properties) =>
+                                {
+                                    cellData.Value = "- Se recomienda que un 75% del total de los carbohidratos sean complejos como los almidones: cereales, raíces y tubérculos (chirivías, papa, yuca, batata), legumbres, frutas ricas en almidón (plátano, calabaza, calabacín, maíz, arvejas.";
+
+                                    properties.PdfFont = args.PdfFont;
+                                    properties.RunDirection = PdfRunDirection.LeftToRight;
+                                    properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Justified;
+                                });
+
+                        tips.AddSimpleRow(
+                                (cellData, properties) =>
+                                {
+                                    cellData.Value = "- Entre lo que se considera una ración de cereales se puede incluir una rebanada de pan, 30 g de cereales de preparación rápida o un puño de cereal cocinado, como arroz o pasta. Dado que los productos hechos con semillas refinadas (pan blanco, arroz blanco o la mayoría de las pastas) presentan un reducido contenido en fibra, es preferible consumir derivados elaborados con salvado (de trigo o de avena) o con cereal entero (pan integral, harina de avena, pastas integrales, arroz integral) dada la mayor cantidad de fibra que aportan.";
+
+                                    properties.PdfFont = args.PdfFont;
+                                    properties.RunDirection = PdfRunDirection.LeftToRight;
+                                    properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Justified;
+                                });
+                    }
+
+                    if (FatsAdherAdviseIsNeeded(eatsWeek, eatsWeekCompoundDish, info))
+                    {
+                        tips.AddSimpleRow(
+                                (cellData, properties) =>
+                                {
+                                    cellData.Value = "GRASAS, ADEREZOS Y SALSAS:";
+
+                                    properties.PdfFont = args.PdfFont;
+                                    properties.RunDirection = PdfRunDirection.LeftToRight;
+                                    properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Justified;
+                                    properties.PaddingTop = 10;
+                                });
+
+                        tips.AddSimpleRow(
+                                (cellData, properties) =>
+                                {
+                                    cellData.Value = "- La ingestión de ácidos grasos saturados no debe exceder el 10 % de la energía total y debe sustituirse por ac.  monoinsaturados y los polinsaturados . Para lograrlo disminuya o evite la bollería sobre todo industrial, comidas de fast food que emplean aceites vegetales solidificados; dulces y manteca de coco, mantecas animales ,carnes y derivados, embutidos ,etc. ";
+
+                                    properties.PdfFont = args.PdfFont;
+                                    properties.RunDirection = PdfRunDirection.LeftToRight;
+                                    properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Justified;
+                                    properties.PaddingTop = 10;
+                                });
+
+                        tips.AddSimpleRow(
+                                (cellData, properties) =>
+                                {
+                                    cellData.Value = "- Cocine en olla a presión, horno o microondas. Modere el consumo de grasas de origen animal (mantequilla, nata, tocino, etc.), embutidos y alimentos precocinados.";
+
+                                    properties.PdfFont = args.PdfFont;
+                                    properties.RunDirection = PdfRunDirection.LeftToRight;
+                                    properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Justified;
+                                });
+
+                        tips.AddSimpleRow(
+                                (cellData, properties) =>
+                                {
+                                    cellData.Value = "- Utilice aceites de oliva y diversas frutas y frutos secos (aguacate, avellanas, cacahuete, almendras, nueces y otros que son ricos en monoinsaturados.";
+
+                                    properties.PdfFont = args.PdfFont;
+                                    properties.RunDirection = PdfRunDirection.LeftToRight;
+                                    properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Justified;
+                                });
+
+                        tips.AddSimpleRow(
+                                (cellData, properties) =>
+                                {
+                                    cellData.Value = "- Consuma pescados azules 2-3 v/semana para aportar ac. polinsaturados (anguila, atún, bonito del norte, boquerón, caballa, estornino, jurel, palometa negra o japuta, salmón, sardina)";
+
+                                    properties.PdfFont = args.PdfFont;
+                                    properties.RunDirection = PdfRunDirection.LeftToRight;
+                                    properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Justified;
+                                });
+                    }
+
+                    if (AlcoholAdviseIsNeeded(eatsWeek, eatsWeekCompoundDish, info))
+                    {
+                        tips.AddSimpleRow(
+                                (cellData, properties) =>
+                                {
+                                    cellData.Value = "ALCOHOL:";
+
+                                    properties.PdfFont = args.PdfFont;
+                                    properties.RunDirection = PdfRunDirection.LeftToRight;
+                                    properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Justified;
+                                    properties.PaddingTop = 10;
+                                });
+
+                        tips.AddSimpleRow(
+                                (cellData, properties) =>
+                                {
+                                    cellData.Value = "- Las bebidas alcohólicas no son adecuadas para la salud. Evite las de alta graduación y consuma con moderación: vino, cerveza, y sidra, son bebidas fermentadas con menor cantidad de alcohol. Limite el consumo de alcohol a 1 ó 2 copas de vino, cerveza o sidra al día.";
+
+                                    properties.PdfFont = args.PdfFont;
+                                    properties.RunDirection = PdfRunDirection.LeftToRight;
+                                    properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Justified;
+                                    properties.PaddingTop = 10;
+                                });
+
+                        tips.AddSimpleRow(
+                                (cellData, properties) =>
+                                {
+                                    cellData.Value = "- El agua es la mejor bebida para mantenerse bien hidratado. Tome diariamente al menos de 2-3 litros al día. Otros líquidos como las infusiones, caldos, zumos, refrescos, etc., o ciertas frutas y verduras, (melón, sandía, naranja, gazpacho...) ayudan a cubrir las necesidades diarias entre 2 y 3 litros de líquidos.";
+
+                                    properties.PdfFont = args.PdfFont;
+                                    properties.RunDirection = PdfRunDirection.LeftToRight;
+                                    properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Justified;
+                                });
+
+                        tips.AddSimpleRow(
+                                (cellData, properties) =>
+                                {
+                                    cellData.Value = "- Hay que beber el agua recomendada aunque no se tenga sed en ambientes calurosos, es necesario aumentar la cantidad de líquido ingerido.";
+
+                                    properties.PdfFont = args.PdfFont;
+                                    properties.RunDirection = PdfRunDirection.LeftToRight;
+                                    properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Justified;
+                                });
+
+                        tips.AddSimpleRow(
+                                (cellData, properties) =>
+                                {
+                                    cellData.Value = "- El agua no tiene calorías, por lo tanto no produce obesidad, aunque sí repercute en el peso ya que en la deshidratación se pierde peso y en la rehidratación se recupera el peso perdido por la deshidratación.";
+
+                                    properties.PdfFont = args.PdfFont;
+                                    properties.RunDirection = PdfRunDirection.LeftToRight;
+                                    properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Justified;
+                                });
+                    }
+                    args.PdfDoc.Add(tips);
+
+                    args.PdfDoc.NewPage();
+
                     var bye = new PdfGrid(numColumns: 1)
                     {
                         WidthPercentage = 100,
@@ -4951,6 +5257,155 @@ Soporte PlaniFive.";
             var range = Enumerable.Range(0, 7).Select(i => startOfWeek
                     .AddDays(i));
             return range;
+        }
+
+        private bool ProteicsAdviseIsNeeded(List<EatDish> eatsWeek, List<EatCompoundDish> eatsWeekCompoundDish, (int age, int weight, int height, int sex, DateTime? HealthMeasuresLastUpdate, DateTime? ValueMeasuresLastUpdate, DateTime? WellnessMeasuresLastUpdate, DateTime? LastPlanedEat) info)
+        {
+            var totalWeight = 0.0;
+            var totalProteicsWeight = 0.0;
+
+            foreach (var item in eatsWeek)
+            {
+                totalWeight += item.Dish.NetWeight ?? 0.0;
+                if (item.Dish.IsProteic)
+                {
+                    totalProteicsWeight += item.Dish.NetWeight ?? 0.0;
+                }
+            }
+            if (totalProteicsWeight / totalWeight < 0.25)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool AlcoholAdviseIsNeeded(List<EatDish> eatsWeek, List<EatCompoundDish> eatsWeekCompoundDish, (int age, int weight, int height, int sex, DateTime? HealthMeasuresLastUpdate, DateTime? ValueMeasuresLastUpdate, DateTime? WellnessMeasuresLastUpdate, DateTime? LastPlanedEat) info)
+        {
+            var gr = eatsWeek.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+            if (gr.Count() > 0)
+            {
+                foreach (var group in gr)
+                {
+                    var totalAlcohol = 0.0;
+                    var temp = eatsWeek.Where(e => e.Eat.CreatedAt.Date == group.Key);
+                    foreach (var item in temp)
+                    {
+                        totalAlcohol += item.Dish.Alcohol ?? 0.0;
+                    }
+                    if (totalAlcohol > 40 && info.sex == 1)
+                    {
+                        return true;
+                    }
+                    else if (totalAlcohol > 20 && info.sex != 1)
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        private bool FatsAdherAdviseIsNeeded(List<EatDish> eatsWeek, List<EatCompoundDish> eatsWeekCompoundDish, (int age, int weight, int height, int sex, DateTime? HealthMeasuresLastUpdate, DateTime? ValueMeasuresLastUpdate, DateTime? WellnessMeasuresLastUpdate, DateTime? LastPlanedEat) info)
+        {
+            var gr = eatsWeek.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+            if (gr.Count() > 0)
+            {
+                foreach (var group in gr)
+                {
+                    var totalKCal = 0.0;
+                    var fatsKcal = 0.0;
+                    var temp = eatsWeek.Where(e => e.Eat.CreatedAt.Date == group.Key);
+                    foreach (var item in temp)
+                    {
+                        totalKCal += item.Dish.Calories ?? 0.0;
+                        if (item.Dish.DishTags.Any(dt => dt.Tag.Name == "Grasas/aderezos/salsas"))
+                        {
+                            fatsKcal += item.Dish.Calories ?? 0.0;
+                        }
+                    }
+                    if (fatsKcal / totalKCal > 0.35)
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        private bool CandiesAdviseIsNeeded(List<EatDish> eatsWeek, List<EatCompoundDish> eatsWeekCompoundDish, (int age, int weight, int height, int sex, DateTime? HealthMeasuresLastUpdate, DateTime? ValueMeasuresLastUpdate, DateTime? WellnessMeasuresLastUpdate, DateTime? LastPlanedEat) info)
+        {
+            var gr = eatsWeek.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+            if (gr.Count() > 0)
+            {
+                foreach (var group in gr)
+                {
+                    var totalKCal = 0.0;
+                    var candiesKcal = 0.0;
+                    var temp = eatsWeek.Where(e => e.Eat.CreatedAt.Date == group.Key);
+                    foreach (var item in temp)
+                    {
+                        totalKCal += item.Dish.Calories ?? 0.0;
+                        if (item.Dish.DishTags.Any(dt => dt.Tag.Name == "Postre/dulces/complementos"))
+                        {
+                            candiesKcal += item.Dish.Calories ?? 0.0;
+                        }
+                    }
+                    if (candiesKcal / totalKCal > 0.1)
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        private bool FruitsAndVegetablesAdviseIsNeeded(List<EatDish> eats, List<EatCompoundDish> eatsCompoundDish, (int age, int weight, int height, int sex, DateTime? HealthMeasuresLastUpdate, DateTime? ValueMeasuresLastUpdate, DateTime? WellnessMeasuresLastUpdate, DateTime? LastPlanedEat) info)
+        {
+            var gr = eats.GroupBy(e => e.Eat.CreatedAt.Date).OrderBy(g => g.Key);
+            var count = 1;
+
+            if (gr.Count() < 3)
+            {
+                return true;
+            }
+            else
+            {
+                foreach (var group in gr)
+                {
+                    var temp = eats.Where(e => e.Eat.CreatedAt.Date == group.Key);
+                    var fruitss = 0.0;
+                    var dayTotals = 0.0;
+                    foreach (var item in temp)
+                    {
+                        dayTotals += (item.Dish.NetWeight ?? 0.0) * item.Qty;
+
+                        if (item.Dish.IsFruitAndVegetables)
+                        {
+                            fruitss += (item.Dish.NetWeight ?? 0.0) * item.Qty;
+                        }
+                    }
+
+                    if (dayTotals > 0)
+                    {
+                        if (Math.Round(fruitss / dayTotals, 2) < 0.5)
+                        {
+                            count += 1;
+                        }
+                    }
+                    else
+                    {
+                        count += 1;
+                    }
+
+                    if (count > 3)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         public async Task SendReportsAsync()
