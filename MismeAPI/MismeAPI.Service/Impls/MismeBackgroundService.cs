@@ -283,7 +283,7 @@ namespace MismeAPI.Service.Impls
                     {
                         await _subscriptionService.NotifySubscriptionAboutToExpireAsync(userSubscription.Id);
                     }
-                    else if (userSubscription.IsActive && userSubscription.ValidAt.Date > today.Date)
+                    else if (userSubscription.IsActive && userSubscription.ValidAt.Date < today.Date)
                     {
                         await _subscriptionService.DisableUserSubscriptionAsync(userSubscription.Id);
                     }

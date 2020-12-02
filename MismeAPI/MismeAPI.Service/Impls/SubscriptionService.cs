@@ -299,8 +299,8 @@ namespace MismeAPI.Service.Impls
             if (userSubscription.User != null && userSubscription.User.Devices != null)
             {
                 // TODO: Internationalization on this msgs.
-                var title = "Subscripcion terminada";
-                var body = "Subscripcion " + subscriptionName + " ha terminado, vaya y activela otra vez.";
+                var title = "Subscripción terminada";
+                var body = "Su período de suscripción a " + subscriptionName + " ha expirado. Renovar";
                 await _notificationService.SendFirebaseNotificationAsync(title, body, userSubscription.User.Devices);
             }
 
@@ -325,7 +325,7 @@ namespace MismeAPI.Service.Impls
             {
                 // TODO: Internationalization on this msgs.
                 var title = "Subscripcion cerca de expirar";
-                var body = "Subscripcion " + subscriptionName + " cerca de expirar (24h), vaya y activela otra vez.";
+                var body = "Subscripción " + subscriptionName + " cerca de expirar (24h). Renovar";
                 await _notificationService.SendFirebaseNotificationAsync(title, body, userSubscription.User.Devices);
             }
         }
