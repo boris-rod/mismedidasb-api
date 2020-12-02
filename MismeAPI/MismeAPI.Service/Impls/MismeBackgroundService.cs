@@ -265,28 +265,13 @@ namespace MismeAPI.Service.Impls
 
             foreach (var userSubscription in userSubscriptions)
             {
-                var isPlaniSubscription = userSubscription.Subscription != null && userSubscription.Subscription.Product == SubscriptionEnum.VIRTUAL_ASESSOR;
-                if (isPlaniSubscription)
+                if (userSubscription.IsActive && userSubscription.ValidAt.Date == tomorrow.Date)
                 {
-                    if (userSubscription.ValidAt.Date < today.Date)
-                    {
-                        /*Extend the subscription to all users to prevent loose plany - TODO disable this when the requirement be requested*/
-                        await _subscriptionService.AssignSubscriptionAsync(userSubscription.UserId, SubscriptionEnum.VIRTUAL_ASESSOR);
-                    }
-
-                    // Do not disable subscriptions now.
-                    //await _subscriptionService.DisableUserSubscriptionAsync(userSubscription.Id);
+                    await _subscriptionService.NotifySubscriptionAboutToExpireAsync(userSubscription.Id);
                 }
-                else
+                else if (userSubscription.IsActive && userSubscription.ValidAt.Date < today.Date)
                 {
-                    if (userSubscription.IsActive && userSubscription.ValidAt.Date == tomorrow.Date)
-                    {
-                        await _subscriptionService.NotifySubscriptionAboutToExpireAsync(userSubscription.Id);
-                    }
-                    else if (userSubscription.IsActive && userSubscription.ValidAt.Date < today.Date)
-                    {
-                        await _subscriptionService.DisableUserSubscriptionAsync(userSubscription.Id);
-                    }
+                    await _subscriptionService.DisableUserSubscriptionAsync(userSubscription.Id);
                 }
             }
         }
