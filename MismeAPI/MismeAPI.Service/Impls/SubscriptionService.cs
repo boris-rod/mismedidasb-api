@@ -206,7 +206,7 @@ namespace MismeAPI.Service.Impls
 
             if (statistics == null || statistics.Coins < subscription.ValueCoins)
             {
-                throw new ForbiddenException("No tiene suficientes monedas para comprar la subscripción.");
+                throw new UnprocessableEntityException("No tiene suficientes monedas para comprar la subscripción.");
             }
 
             if (!subscription.IsActive)
@@ -251,7 +251,7 @@ namespace MismeAPI.Service.Impls
 
             if (statistics == null || statistics.Coins < unitPrice)
             {
-                throw new ForbiddenException("No tiene suficientes monedas para comprar la subscripción.");
+                throw new UnprocessableEntityException("No tiene suficientes monedas para comprar la subscripción.");
             }
 
             foreach (var subscription in subscriptions)
