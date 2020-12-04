@@ -1,14 +1,10 @@
 ﻿using CorePush.Google;
-using FirebaseAdmin.Messaging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using MismeAPI.Common;
-using MismeAPI.Common.DTO.Response;
-using MismeAPI.Common.Exceptions;
 using MismeAPI.Data.Entities;
-using MismeAPI.Data.Entities.Enums;
 using MismeAPI.Data.UoW;
-using MismeAPI.Services.Utils;
+using MismeAPI.Service.Notifications.Firebase;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -91,6 +87,8 @@ namespace MismeAPI.Service.Impls
 
             var data = new Dictionary<string, string>()
             {
+                { "notiTitle", title},
+                { "notiBody", body},
                 { "externalUrl", externalUrl}
             };
 
@@ -104,6 +102,7 @@ namespace MismeAPI.Service.Impls
                         {
                             Title = title,
                             Body = body,
+                            Sound = "default"
                         },
                         Data = data,
                         Token = device.Token

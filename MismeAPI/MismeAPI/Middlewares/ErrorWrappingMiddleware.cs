@@ -67,6 +67,12 @@ namespace MismeAPI.Middlewares
                 context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
                 Message = ex.Message;
             }
+            catch (UnprocessableEntityException ex)
+            {
+                Log.Error(ex, ex.Message);
+                context.Response.StatusCode = (int)HttpStatusCode.UnprocessableEntity;
+                Message = ex.Message;
+            }
             catch (Exception ex)
             {
                 Log.Error(ex, ex.Message);
