@@ -5,6 +5,7 @@ using MismeAPI.BasicResponses;
 using MismeAPI.Common.DTO.Response;
 using MismeAPI.Common.DTO.Response.User;
 using MismeAPI.Service;
+using MismeAPI.Service.Utils;
 using MismeAPI.Services;
 using MismeAPI.Utils;
 using System;
@@ -19,16 +20,16 @@ namespace MismeAPI.Controllers.Admin
     public class UserController : Controller
     {
         private readonly IUserService _userService;
-        private readonly IAccountService _accountService;
+        private readonly IProfileHelthHelper _profileHelthHelper;
         private readonly IMapper _mapper;
         private readonly IPollService _pollService;
         private readonly INotificationService _notificationService;
 
-        public UserController(IUserService userService, IMapper mapper, IAccountService accountService, IPollService pollService, INotificationService notificationService)
+        public UserController(IUserService userService, IMapper mapper, IProfileHelthHelper profileHelthHelper, IPollService pollService, INotificationService notificationService)
         {
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
-            _accountService = accountService ?? throw new ArgumentNullException(nameof(accountService));
+            _profileHelthHelper = profileHelthHelper ?? throw new ArgumentNullException(nameof(profileHelthHelper));
             _pollService = pollService ?? throw new ArgumentNullException(nameof(pollService));
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
         }
@@ -42,7 +43,7 @@ namespace MismeAPI.Controllers.Admin
         [ProducesResponseType(typeof(UserAdminResponse), (int)HttpStatusCode.OK)]
         public async Task<IActionResult> GetUserProfile(int id)
         {
-            var result = await _accountService.GetUserProfileUseAsync(id);
+            var result = await _profileHelthHelper.GetUserProfileUseAsync(id);
             var info = await _pollService.GetUserPollsInfoAsync(id);
 
             var user = _mapper.Map<UserAdminResponse>(result.user);

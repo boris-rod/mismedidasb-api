@@ -22,10 +22,11 @@ namespace MismeAPI.Service.Impls
         private readonly IRewardHelper _rewardHelper;
         private readonly ISubscriptionService _subscriptionService;
         private readonly INotificationService _notificationService;
+        private readonly IReportService _reportService;
         private readonly List<int> STREAK_REWARDS = new List<int> { 7, 30, 60, 90, 120 };
 
         public MismeBackgroundService(IUnitOfWork uow, IConfiguration config, IUserStatisticsService userStatisticsService,
-            IRewardHelper rewardHelper, ISubscriptionService subscriptionService, INotificationService notificationService)
+            IRewardHelper rewardHelper, ISubscriptionService subscriptionService, INotificationService notificationService, IReportService reportService)
         {
             _uow = uow ?? throw new ArgumentNullException(nameof(uow));
             _config = config ?? throw new ArgumentNullException(nameof(config));
@@ -33,6 +34,7 @@ namespace MismeAPI.Service.Impls
             _rewardHelper = rewardHelper ?? throw new ArgumentNullException(nameof(rewardHelper));
             _subscriptionService = subscriptionService ?? throw new ArgumentNullException(nameof(subscriptionService));
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
+            _reportService = reportService ?? throw new ArgumentNullException(nameof(reportService));
         }
 
         public async Task CleanExpiredTokensAsync()
@@ -295,6 +297,11 @@ namespace MismeAPI.Service.Impls
                     await _notificationService.SendFirebaseNotificationAsync(title, body, user.Devices, externalUrl);
                 }
             }
+        }
+
+        public async Task SendReportsAsync()
+        {
+            await _reportService.SendReportsAsync();
         }
 
         private DateTime UtcToLocalTime(DateTime dateUtc, int userOffset = 0)
