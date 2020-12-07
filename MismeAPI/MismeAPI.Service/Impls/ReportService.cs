@@ -5,6 +5,7 @@ using MismeAPI.Common.DTO;
 using MismeAPI.Common.Extensions;
 using MismeAPI.Data.Entities;
 using MismeAPI.Data.UoW;
+using MismeAPI.Service.Utils;
 using MismeAPI.Services;
 using PdfRpt.Core.Contracts;
 using PdfRpt.Core.Helper;
@@ -22,21 +23,21 @@ namespace MismeAPI.Service.Impls
     public class ReportService : IReportService
     {
         private readonly IUnitOfWork _uow;
-        private readonly IAccountService _accountService;
+        private readonly IProfileHelthHelper _profileHelthHelper;
         private readonly IPollService _pollService;
         private readonly IEmailService _emailService;
 
-        public ReportService(IUnitOfWork uow, IAccountService accountService, IPollService pollService, IEmailService emailService)
+        public ReportService(IUnitOfWork uow, IProfileHelthHelper profileHelthHelper, IPollService pollService, IEmailService emailService)
         {
             _uow = uow ?? throw new ArgumentNullException(nameof(uow));
-            _accountService = accountService ?? throw new ArgumentNullException(nameof(accountService));
+            _profileHelthHelper = profileHelthHelper ?? throw new ArgumentNullException(nameof(profileHelthHelper));
             _pollService = pollService ?? throw new ArgumentNullException(nameof(pollService));
             _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
         }
 
         public async Task GetFeedReportAsync(int userId)
         {
-            var result = await _accountService.GetUserProfileUseAsync(userId);
+            var result = await _profileHelthHelper.GetUserProfileUseAsync(userId);
 
             var cover = await GetFeedCoverContent(result.user);
             var contents = new List<MemoryStream>();
@@ -83,7 +84,7 @@ namespace MismeAPI.Service.Impls
 
         public async Task GetNutritionalReportAsync(int userId)
         {
-            var result = await _accountService.GetUserProfileUseAsync(userId);
+            var result = await _profileHelthHelper.GetUserProfileUseAsync(userId);
 
             var cover = await GetCoverContent(result.user);
             var contents = new List<MemoryStream>();
