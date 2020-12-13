@@ -12,7 +12,6 @@ using PdfRpt.Core.Helper;
 using PdfRpt.FluentInterface;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -5239,7 +5238,8 @@ namespace MismeAPI.Service.Impls
 
         private string GetCurrentWeekRangeString()
         {
-            DateTime startOfWeek = DateTime.Today.AddDays((int)CultureInfo.CurrentCulture.DateTimeFormat.FirstDayOfWeek - (int)DateTime.Today.DayOfWeek);
+            //DateTime startOfWeek = DateTime.Today.AddDays((int)CultureInfo.CurrentCulture.DateTimeFormat.FirstDayOfWeek - (int)DateTime.Today.DayOfWeek);
+            DateTime startOfWeek = DateTime.Today.AddDays(-7);
 
             //string result = string.Join("," + Environment.NewLine, Enumerable.Range(0, 7)
             //  .Select(i => startOfWeek
@@ -5253,8 +5253,8 @@ namespace MismeAPI.Service.Impls
 
         private IEnumerable<DateTime> GetCurrentWeekRangeDates()
         {
-            DateTime startOfWeek = DateTime.Today.AddDays((int)CultureInfo.CurrentCulture.DateTimeFormat.FirstDayOfWeek - (int)DateTime.Today.DayOfWeek);
-
+            //DateTime startOfWeek = DateTime.Today.AddDays((int)CultureInfo.CurrentCulture.DateTimeFormat.FirstDayOfWeek - (int)DateTime.Today.DayOfWeek);
+            DateTime startOfWeek = DateTime.Today.AddDays(-7);
             var range = Enumerable.Range(0, 7).Select(i => startOfWeek
                     .AddDays(i));
             return range;
