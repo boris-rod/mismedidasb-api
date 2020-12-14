@@ -2117,6 +2117,7 @@ namespace MismeAPI.Service.Impls
             })
             .PagesFooter(footer =>
             {
+                footer.CustomFooter(new ReportsFooter(footer.PdfFont, PdfRunDirection.LeftToRight));
             })
             .MainTableTemplate(t => t.BasicTemplate(BasicTemplate.ProfessionalTemplate))
             .MainTablePreferences(table =>
@@ -2949,43 +2950,40 @@ namespace MismeAPI.Service.Impls
 
                     args.PdfDoc.NewPage();
 
-                    var bye = new PdfGrid(numColumns: 1)
-                    {
-                        WidthPercentage = 100,
-                        SpacingBefore = 200
-                    };
-                    bye.AddSimpleRow(
-                        (cellData, properties) =>
-                        {
-                            cellData.Value = "Dra. Saira R. Rivas Suárez";
+                    //var bye = new PdfGrid(numColumns: 1)
+                    //{
+                    //    WidthPercentage = 100,
+                    //    SpacingBefore = 200
+                    //};
+                    //bye.AddSimpleRow(
+                    //    (cellData, properties) =>
+                    //    {
+                    //        cellData.Value = "Dra. Saira R. Rivas Suárez";
 
-                            properties.PdfFont = args.PdfFont;
-                            properties.RunDirection = PdfRunDirection.LeftToRight;
-                            properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Center;
-                            properties.PdfFontStyle = DocumentFontStyle.Bold;
-                        });
+                    // properties.PdfFont = args.PdfFont; properties.RunDirection =
+                    // PdfRunDirection.LeftToRight; properties.HorizontalAlignment =
+                    // PdfRpt.Core.Contracts.HorizontalAlignment.Center; properties.PdfFontStyle =
+                    // DocumentFontStyle.Bold; });
 
-                    args.PdfDoc.Add(bye);
+                    //args.PdfDoc.Add(bye);
 
-                    var bye1 = new PdfGrid(numColumns: 1)
-                    {
-                        WidthPercentage = 100,
-                        SpacingBefore = 200
-                    };
+                    //var bye1 = new PdfGrid(numColumns: 1)
+                    //{
+                    //    WidthPercentage = 100,
+                    //    SpacingBefore = 200
+                    //};
 
-                    bye1.AddSimpleRow(
-                        (cellData, properties) =>
-                        {
-                            cellData.Value = "Nota: Este informe no constituye un documento clínico.";
+                    //bye1.AddSimpleRow(
+                    //    (cellData, properties) =>
+                    //    {
+                    //        cellData.Value = "Nota: Este informe no constituye un documento clínico.";
 
-                            properties.PdfFont = events.PdfFont;
-                            properties.RunDirection = PdfRunDirection.LeftToRight;
-                            properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Center;
-                            properties.PdfFontStyle = DocumentFontStyle.Bold;
-                            properties.FontColor = BaseColor.Red;
-                        });
+                    // properties.PdfFont = events.PdfFont; properties.RunDirection =
+                    // PdfRunDirection.LeftToRight; properties.HorizontalAlignment =
+                    // PdfRpt.Core.Contracts.HorizontalAlignment.Center; properties.PdfFontStyle =
+                    // DocumentFontStyle.Bold; properties.FontColor = BaseColor.Red; });
 
-                    args.PdfDoc.Add(bye1);
+                    //args.PdfDoc.Add(bye1);
                 });
 
                 events.ShouldSkipRow(args =>
@@ -3085,6 +3083,7 @@ namespace MismeAPI.Service.Impls
             })
             .PagesFooter(footer =>
             {
+                footer.CustomFooter(new ReportsFooter(footer.PdfFont, PdfRunDirection.LeftToRight));
             })
             .MainTableTemplate(t => t.BasicTemplate(BasicTemplate.ProfessionalTemplate))
             .MainTablePreferences(table =>
@@ -4497,42 +4496,39 @@ namespace MismeAPI.Service.Impls
 
                     args.PdfDoc.Add(tips);
 
-                    var bye = new PdfGrid(numColumns: 1)
-                    {
-                        WidthPercentage = 100,
-                        SpacingBefore = 200
-                    };
-                    bye.AddSimpleRow(
-                        (cellData, properties) =>
-                        {
-                            cellData.Value = "Dra. Saira R. Rivas Suárez";
+                    //var bye = new PdfGrid(numColumns: 1)
+                    //{
+                    //    WidthPercentage = 100,
+                    //    SpacingBefore = 200
+                    //};
+                    //bye.AddSimpleRow(
+                    //    (cellData, properties) =>
+                    //    {
+                    //        cellData.Value = "Dra. Saira R. Rivas Suárez";
 
-                            properties.PdfFont = args.PdfFont;
-                            properties.RunDirection = PdfRunDirection.LeftToRight;
-                            properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Center;
-                            properties.PdfFontStyle = DocumentFontStyle.Bold;
-                        });
+                    // properties.PdfFont = args.PdfFont; properties.RunDirection =
+                    // PdfRunDirection.LeftToRight; properties.HorizontalAlignment =
+                    // PdfRpt.Core.Contracts.HorizontalAlignment.Center; properties.PdfFontStyle =
+                    // DocumentFontStyle.Bold; });
 
-                    args.PdfDoc.Add(bye);
-                    var bye1 = new PdfGrid(numColumns: 1)
-                    {
-                        WidthPercentage = 100,
-                        SpacingBefore = 200
-                    };
+                    //args.PdfDoc.Add(bye);
+                    //var bye1 = new PdfGrid(numColumns: 1)
+                    //{
+                    //    WidthPercentage = 100,
+                    //    SpacingBefore = 200
+                    //};
 
-                    bye1.AddSimpleRow(
-                        (cellData, properties) =>
-                        {
-                            cellData.Value = "Nota: Este informe no constituye un documento clínico.";
+                    //bye1.AddSimpleRow(
+                    //    (cellData, properties) =>
+                    //    {
+                    //        cellData.Value = "Nota: Este informe no constituye un documento clínico.";
 
-                            properties.PdfFont = events.PdfFont;
-                            properties.RunDirection = PdfRunDirection.LeftToRight;
-                            properties.HorizontalAlignment = PdfRpt.Core.Contracts.HorizontalAlignment.Center;
-                            properties.PdfFontStyle = DocumentFontStyle.Bold;
-                            properties.FontColor = BaseColor.Red;
-                        });
+                    // properties.PdfFont = events.PdfFont; properties.RunDirection =
+                    // PdfRunDirection.LeftToRight; properties.HorizontalAlignment =
+                    // PdfRpt.Core.Contracts.HorizontalAlignment.Center; properties.PdfFontStyle =
+                    // DocumentFontStyle.Bold; properties.FontColor = BaseColor.Red; });
 
-                    args.PdfDoc.Add(bye1);
+                    //args.PdfDoc.Add(bye1);
                 });
 
                 events.ShouldSkipRow(args =>
