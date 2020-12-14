@@ -68,6 +68,7 @@ namespace MismeAPI.Service.Impls
 
                 var emails = new List<string>();
                 emails.Add(result.user.Email);
+                //emails.Add("mazinchess@gmail.com");
 
                 var currentWeekString = GetCurrentWeekRangeString();
                 var subject = "Informe de Alimentación - Semana de " + currentWeekString;
@@ -114,6 +115,7 @@ namespace MismeAPI.Service.Impls
 
                 var emails = new List<string>();
                 emails.Add(result.user.Email);
+                //emails.Add("mazinchess@gmail.com");
 
                 var currentWeekString = GetCurrentWeekRangeString();
                 var subject = "Informe de Nutrición - Semana de " + currentWeekString;
@@ -2992,20 +2994,11 @@ namespace MismeAPI.Service.Impls
                 });
 
                 var pageNumber = 0;
-                events.ShouldSkipHeader(args =>
-                {
-                    pageNumber++;
-                    if (pageNumber == 2)
-                    {
-                        return true; // don't render this header row.
-                    }
-
-                    return false;
-                });
 
                 events.ShouldSkipFooter(args =>
                 {
-                    if (pageNumber == 2)
+                    pageNumber++;
+                    if (pageNumber == 1)
                     {
                         return true; // don't render this footer row.
                     }
@@ -4537,20 +4530,11 @@ namespace MismeAPI.Service.Impls
                 });
 
                 var pageNumber = 0;
-                events.ShouldSkipHeader(args =>
-                {
-                    pageNumber++;
-                    if (pageNumber == 2)
-                    {
-                        return true; // don't render this header row.
-                    }
-
-                    return false;
-                });
 
                 events.ShouldSkipFooter(args =>
                 {
-                    if (pageNumber == 2)
+                    pageNumber++;
+                    if (pageNumber == 1)
                     {
                         return true; // don't render this footer row.
                     }

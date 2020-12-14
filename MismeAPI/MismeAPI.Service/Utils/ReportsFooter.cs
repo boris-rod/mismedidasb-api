@@ -35,7 +35,7 @@ namespace MismeAPI.Service.Utils
             var text = "Dra. Saira R. Rivas Suárez - Este informe no constituye un documento clínico";
             var textLen = _font.BaseFont.GetWidthPoint(text, _font.Size);
             var center = (pageSize.Left + pageSize.Right) / 2;
-            var align = _direction == PdfRunDirection.RightToLeft ? Element.ALIGN_RIGHT : Element.ALIGN_LEFT;
+            var align = Element.ALIGN_CENTER;
 
             ColumnText.ShowTextAligned(
                         canvas: _pdfContentByte,
