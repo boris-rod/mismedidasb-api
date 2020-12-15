@@ -2993,15 +2993,15 @@ namespace MismeAPI.Service.Impls
                     return false;
                 });
 
-                var pageNumber = 0;
+                //var pageNumber = 0;
 
                 events.ShouldSkipFooter(args =>
                 {
-                    pageNumber++;
-                    if (pageNumber == 1)
-                    {
-                        return true; // don't render this footer row.
-                    }
+                    //pageNumber++;
+                    //if (pageNumber == 1)
+                    //{
+                    //    return true; // don't render this footer row.
+                    //}
 
                     return false;
                 });
@@ -4529,15 +4529,15 @@ namespace MismeAPI.Service.Impls
                     return false;
                 });
 
-                var pageNumber = 0;
+                //var pageNumber = 0;
 
                 events.ShouldSkipFooter(args =>
                 {
-                    pageNumber++;
-                    if (pageNumber == 1)
-                    {
-                        return true; // don't render this footer row.
-                    }
+                    //pageNumber++;
+                    //if (pageNumber == 1)
+                    //{
+                    //    return true; // don't render this footer row.
+                    //}
 
                     return false;
                 });
