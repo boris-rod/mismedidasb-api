@@ -89,7 +89,8 @@ namespace MismeAPI.Service.Impls
             {
                 { "notiTitle", title},
                 { "notiBody", body},
-                { "externalUrl", externalUrl}
+                { "externalUrl", externalUrl},
+                { "click_action", "FLUTTER_NOTIFICATION_CLICK"}
             };
 
             foreach (var device in devices)
