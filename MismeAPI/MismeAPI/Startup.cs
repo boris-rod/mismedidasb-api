@@ -102,6 +102,7 @@ namespace MismeAPI
             services.AddTransient<IPaypalService, PaypalService>();
             services.AddTransient<IProductService, Services.Impls.ProductService>();
             services.AddTransient<IReportService, ReportService>();
+            services.AddTransient<IProfileHelthHelper, ProfileHelthHelper>();
 
             var provider = services.BuildServiceProvider();
             var amazonS3Service = provider.GetService<IAmazonS3Service>();
@@ -127,6 +128,9 @@ namespace MismeAPI
             recurringJobs.AddOrUpdate<IMismeBackgroundService>("HandleUserStreaksWest", (e) => e.HandleUserStreaksAsync(1), "0 10 * * *", TimeZoneInfo.Utc);
             recurringJobs.AddOrUpdate<IMismeBackgroundService>("HandleUserStreaksEast", (e) => e.HandleUserStreaksAsync(-1), "0 23 * * *", TimeZoneInfo.Utc);
             recurringJobs.AddOrUpdate<IMismeBackgroundService>("HandleSubscriptions", (e) => e.HandleSubscriptionsAsync(), "0 12 * * *", TimeZoneInfo.Utc);
+            recurringJobs.AddOrUpdate<IMismeBackgroundService>("SendPlanifyEventNotificationAsync", (e) => e.SendPlanifyEventNotificationAsync(), "0 12 ? * 3,6", TimeZoneInfo.Utc);
+
+            recurringJobs.AddOrUpdate<IMismeBackgroundService>("SendReportsAsync", (e) => e.SendReportsAsync(), "0 7 * * 0", TimeZoneInfo.Utc);
 
             if (env.IsDevelopment())
             {

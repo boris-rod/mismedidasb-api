@@ -1,14 +1,10 @@
 ﻿using CorePush.Google;
-using FirebaseAdmin.Messaging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using MismeAPI.Common;
-using MismeAPI.Common.DTO.Response;
-using MismeAPI.Common.Exceptions;
 using MismeAPI.Data.Entities;
-using MismeAPI.Data.Entities.Enums;
 using MismeAPI.Data.UoW;
-using MismeAPI.Services.Utils;
+using MismeAPI.Service.Notifications.Firebase;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -84,10 +80,18 @@ namespace MismeAPI.Service.Impls
             }
         }
 
-        public async Task SendFirebaseNotificationAsync(string title, string body, IEnumerable<Device> devices)
+        public async Task SendFirebaseNotificationAsync(string title, string body, IEnumerable<Device> devices, string externalUrl = "")
         {
             var serverKey = _config["Firebase:ServerKey"];
             var senderId = _config["Firebase:SenderId"];
+
+            var data = new Dictionary<string, string>()
+            {
+                { "notiTitle", title},
+                { "notiBody", body},
+                { "externalUrl", externalUrl},
+                { "click_action", "FLUTTER_NOTIFICATION_CLICK"}
+            };
 
             foreach (var device in devices)
             {
@@ -99,7 +103,9 @@ namespace MismeAPI.Service.Impls
                         {
                             Title = title,
                             Body = body,
+                            Sound = "default"
                         },
+                        Data = data,
                         Token = device.Token
                     };
 

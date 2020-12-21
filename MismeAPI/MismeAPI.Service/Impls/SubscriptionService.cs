@@ -8,6 +8,7 @@ using MismeAPI.Data.Entities.Enums;
 using MismeAPI.Data.UoW;
 using MismeAPI.Services.Utils;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -153,14 +154,14 @@ namespace MismeAPI.Service.Impls
             var subscription = await GetSubscriptionByNameAsync(subscriptionType);
             var userSubscription = user.Subscriptions.FirstOrDefault(us => us.Subscription.Product == subscription.Product);
 
-            if (!subscription.IsActive || subscription.Product != SubscriptionEnum.VIRTUAL_ASESSOR)
+            if (!subscription.IsActive)
             {
                 throw new InvalidDataException(ExceptionConstants.INVALID_DATA, "subscription.");
             }
 
             if (userSubscription == null)
             {
-                userSubscription = await GetOrInitPlaniSubscriptionAsync(user);
+                userSubscription = await GetOrInitSubscriptionAsync(user, subscriptionType);
             }
             else
             {
@@ -173,25 +174,24 @@ namespace MismeAPI.Service.Impls
             return userSubscription;
         }
 
-        public async Task<UserSubscription> GetOrInitPlaniSubscriptionAsync(User user)
+        public async Task<UserSubscription> GetOrInitSubscriptionAsync(User user, SubscriptionEnum subscriptionType)
         {
             if (user == null)
                 throw new NotFoundException(ExceptionConstants.NOT_FOUND, "User");
 
             var existSubscription = await _uow.UserSubscriptionRepository.GetAll()
                 .Include(us => us.Subscription)
-                .Where(us => us.UserId == user.Id && us.Subscription.Product == SubscriptionEnum.VIRTUAL_ASESSOR)
+                .Where(us => us.UserId == user.Id && us.Subscription.Product == subscriptionType)
                 .FirstOrDefaultAsync();
 
             if (existSubscription != null)
                 return existSubscription;
 
-            var subscription = await GetSubscriptionByProductAsync(SubscriptionEnum.VIRTUAL_ASESSOR);
+            var subscription = await GetSubscriptionByProductAsync(subscriptionType);
 
             var userSubscription = InitOrIncreaseUserSubscriptionObject(user.Id, subscription.Id);
 
             await _uow.UserSubscriptionRepository.AddAsync(userSubscription);
-
             await _uow.CommitAsync();
 
             return userSubscription;
@@ -206,17 +206,17 @@ namespace MismeAPI.Service.Impls
 
             if (statistics == null || statistics.Coins < subscription.ValueCoins)
             {
-                throw new Exception("Not enough coins to buy subscription");
+                throw new UnprocessableEntityException("No tiene suficientes monedas para comprar la subscripción.");
             }
 
-            if (!subscription.IsActive || subscription.Product != SubscriptionEnum.VIRTUAL_ASESSOR)
+            if (!subscription.IsActive)
             {
                 throw new InvalidDataException(ExceptionConstants.INVALID_DATA, "subscription.");
             }
 
             if (userSubscription == null)
             {
-                userSubscription = await GetOrInitPlaniSubscriptionAsync(user);
+                userSubscription = await GetOrInitSubscriptionAsync(user, subscription.Product);
             }
             else
             {
@@ -232,9 +232,54 @@ namespace MismeAPI.Service.Impls
             return userSubscription;
         }
 
+        public async Task<IEnumerable<UserSubscription>> BuySubscriptionPackageAsync(int loggedUser)
+        {
+            var bulkSubscriptions = new List<SubscriptionEnum> { SubscriptionEnum.VIRTUAL_ASESSOR, SubscriptionEnum.FOOD_REPORT, SubscriptionEnum.NUTRITION_REPORT };
+            var unitPrice = 2500;
+
+            var user = await _userService.GetUserAsync(loggedUser);
+            var subscriptions = await _uow.SubscriptionRepository.GetAll()
+                .Where(s => bulkSubscriptions.Contains(s.Product))
+                .ToListAsync();
+
+            if (subscriptions.Where(s => s.IsActive).Count() != 3)
+            {
+                throw new InvalidDataException(ExceptionConstants.INVALID_DATA, "subscriptions.");
+            }
+
+            var statistics = user.UserStatistics;
+
+            if (statistics == null || statistics.Coins < unitPrice)
+            {
+                throw new UnprocessableEntityException("No tiene suficientes monedas para comprar la subscripción.");
+            }
+
+            foreach (var subscription in subscriptions)
+            {
+                var userSubscription = user.Subscriptions.FirstOrDefault(us => us.Subscription.Product == subscription.Product);
+                if (userSubscription == null)
+                {
+                    userSubscription = await GetOrInitSubscriptionAsync(user, subscription.Product);
+                }
+                else
+                {
+                    userSubscription = InitOrIncreaseUserSubscriptionObject(user.Id, subscription.Id, userSubscription);
+                    await _uow.UserSubscriptionRepository.UpdateAsync(userSubscription, userSubscription.Id);
+                }
+            }
+
+            statistics.Coins -= unitPrice;
+            await _uow.UserStatisticsRepository.UpdateAsync(statistics, statistics.Id);
+
+            await _uow.CommitAsync();
+
+            return user.Subscriptions;
+        }
+
         public async Task DisableUserSubscriptionAsync(int userSubscriptionID)
         {
             var userSubscription = await _uow.UserSubscriptionRepository.GetAll()
+                .Include(us => us.Subscription)
                 .Include(us => us.User)
                     .ThenInclude(us => us.Devices)
                 .Where(us => us.Id == userSubscriptionID)
@@ -249,15 +294,40 @@ namespace MismeAPI.Service.Impls
             userSubscription.ModifiedAt = now;
             await _uow.UserSubscriptionRepository.UpdateAsync(userSubscription, userSubscriptionID);
 
+            var subscriptionName = userSubscription.Subscription != null ? userSubscription.Subscription.Name : "-";
+
             if (userSubscription.User != null && userSubscription.User.Devices != null)
             {
                 // TODO: Internationalization on this msgs.
-                var title = "Subscription de plani terminada";
-                var body = "Su subscription de plani ha terminado, vaya y activela otra vez para disfrutar de su divertida ayuda.";
+                var title = "Subscripción terminada";
+                var body = "Su período de suscripción a " + subscriptionName + " ha expirado. Renovar";
                 await _notificationService.SendFirebaseNotificationAsync(title, body, userSubscription.User.Devices);
             }
 
             await _uow.CommitAsync();
+        }
+
+        public async Task NotifySubscriptionAboutToExpireAsync(int userSubscriptionID)
+        {
+            var userSubscription = await _uow.UserSubscriptionRepository.GetAll()
+                .Include(us => us.Subscription)
+                .Include(us => us.User)
+                    .ThenInclude(us => us.Devices)
+                .Where(us => us.Id == userSubscriptionID)
+                .FirstOrDefaultAsync();
+
+            if (userSubscription == null)
+                throw new NotFoundException(ExceptionConstants.NOT_FOUND, "User Subscription");
+
+            var subscriptionName = userSubscription.Subscription != null ? userSubscription.Subscription.Name : "-";
+
+            if (userSubscription.User != null && userSubscription.User.Devices != null)
+            {
+                // TODO: Internationalization on this msgs.
+                var title = "Subscripcion cerca de expirar";
+                var body = "Subscripción " + subscriptionName + " cerca de expirar (24h). Renovar";
+                await _notificationService.SendFirebaseNotificationAsync(title, body, userSubscription.User.Devices);
+            }
         }
 
         public async Task SeedSubscriptionAsync()
@@ -270,16 +340,42 @@ namespace MismeAPI.Service.Impls
                 IsActive = true
             };
 
-            var subscription1 = await _uow.SubscriptionRepository
-                .FindAsync(c => c.Product == SubscriptionEnum.VIRTUAL_ASESSOR);
+            var subscriptionReques2 = new CreateSubscriptionRequest
+            {
+                Name = "Reporte de Alimentacion",
+                Product = (int)SubscriptionEnum.FOOD_REPORT,
+                ValueCoins = 1000,
+                IsActive = true
+            };
+
+            var subscriptionReques3 = new CreateSubscriptionRequest
+            {
+                Name = "Reporte de Nutricion",
+                Product = (int)SubscriptionEnum.NUTRITION_REPORT,
+                ValueCoins = 1000,
+                IsActive = true
+            };
+
+            var subscriptions = await _uow.SubscriptionRepository.GetAll().ToListAsync();
+
+            var subscription1 = subscriptions.FirstOrDefault(c => c.Product == SubscriptionEnum.VIRTUAL_ASESSOR);
             if (subscription1 == null)
                 await CreateSubscriptionAsync(subscriptionReques1);
+
+            var subscription2 = subscriptions.FirstOrDefault(c => c.Product == SubscriptionEnum.FOOD_REPORT);
+            if (subscription2 == null)
+                await CreateSubscriptionAsync(subscriptionReques2);
+
+            var subscription3 = subscriptions.FirstOrDefault(c => c.Product == SubscriptionEnum.NUTRITION_REPORT);
+            if (subscription3 == null)
+                await CreateSubscriptionAsync(subscriptionReques3);
 
             var admin = await _uow.UserRepository.GetAll()
                 .Include(u => u.Subscriptions)
                     .ThenInclude(s => s.Subscription)
                 .Where(u => u.Email == "admin@mismedidas.com")
                 .FirstOrDefaultAsync();
+
             var adminHasPlani = admin.Subscriptions.Any(s => s.Subscription.Product == SubscriptionEnum.VIRTUAL_ASESSOR);
 
             if (!adminHasPlani)
@@ -293,7 +389,7 @@ namespace MismeAPI.Service.Impls
 
                 foreach (var user in users)
                 {
-                    await GetOrInitPlaniSubscriptionAsync(user);
+                    await GetOrInitSubscriptionAsync(user, SubscriptionEnum.VIRTUAL_ASESSOR);
                 }
             }
         }

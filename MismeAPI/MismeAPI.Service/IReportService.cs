@@ -1,11 +1,14 @@
-﻿using System.Threading.Tasks;
+﻿using Hangfire;
+using System.Threading.Tasks;
 
 namespace MismeAPI.Service
 {
     public interface IReportService
     {
-        void GetNutritionalReport();
+        Task GetNutritionalReportAsync(int userId);
 
-        Task GetFeedReportAsync();
+        Task GetFeedReportAsync(int userId);
+
+        Task SendReportsAsync();
     }
 }

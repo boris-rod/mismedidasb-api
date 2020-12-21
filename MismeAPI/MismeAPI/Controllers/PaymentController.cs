@@ -3,11 +3,14 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using MismeAPI.BasicResponses;
+using MismeAPI.Common.DTO.Response.Payment;
 using MismeAPI.Services;
 using MismeAPI.Utils;
 using Stripe;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace MismeAPI.Controllers
@@ -30,14 +33,20 @@ namespace MismeAPI.Controllers
         /// Init a stripe payment intent
         /// </summary>
         /// <param name="productId">Product that the current user will buy</param>
+        /// <param name="setupFutureUsage">
+        /// Define if the user want to save the card for future on_session payments
+        /// </param>
         /// <returns>Client secret for payment intent</returns>
         [Authorize]
         [HttpPost("create-stripe-payment-intent")]
-        public async Task<IActionResult> CreatePaymentIntentToken([FromQuery] int productId)
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> CreatePaymentIntentToken([FromQuery] int productId, [FromQuery] bool setupFutureUsage)
         {
             var loggedUser = User.GetUserIdFromToken();
 
-            var clientSecret = await _paymentService.PaymentIntentAsync(loggedUser, productId);
+            var clientSecret = await _paymentService.PaymentIntentAsync(loggedUser, productId, setupFutureUsage);
 
             return Created("Payment Intent", new ApiOkResponse(new { clientSecret }));
         }
@@ -88,6 +97,42 @@ namespace MismeAPI.Controllers
                 Console.WriteLine(e.Message);
                 return BadRequest();
             }
+        }
+
+        /// <summary>
+        /// Get current user payment methods used in stripe
+        /// </summary>
+        /// <returns></returns>
+        [Authorize]
+        [HttpGet("stripe-payment-methods")]
+        [ProducesResponseType(typeof(IEnumerable<StripePaymentMethodResponse>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> GetStripePaymentMethods()
+        {
+            var loggedUser = User.GetUserIdFromToken();
+
+            var paymentMethods = await _paymentService.GetStripeCustomerPaymentMethods(loggedUser);
+
+            return Ok(new ApiOkResponse(paymentMethods));
+        }
+
+        /// <summary>
+        /// Delete a payment method used in stripe
+        /// </summary>
+        /// <returns></returns>
+        [Authorize]
+        [HttpDelete("stripe-payment-methods")]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> DeleteStripePaymentMethod([FromQuery] string paymentMethodId)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+
+            await _paymentService.DeleteStripeCustomerPaymentMethod(loggedUser, paymentMethodId);
+
+            return NoContent();
         }
     }
 }

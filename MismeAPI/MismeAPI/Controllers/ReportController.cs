@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using MismeAPI.Service;
 using System;
+using System.Threading.Tasks;
 
 namespace MismeAPI
 {
@@ -21,9 +22,23 @@ namespace MismeAPI
         /// Get a report.
         /// </summary>
         [HttpPost]
-        public IActionResult GetReport()
+        public async Task<IActionResult> GetReport()
         {
-            _reportService.GetNutritionalReport();
+            //hardcoded now
+            var userId = 298;
+            await _reportService.GetNutritionalReportAsync(userId);
+            return Ok();
+        }
+
+        /// <summary>
+        /// Get feed report.
+        /// </summary>
+        [HttpPost("feed-report")]
+        public async Task<IActionResult> GetFeedReport()
+        {
+            //hardcoded now
+            var userId = 298;
+            await _reportService.GetFeedReportAsync(userId);
             return Ok();
         }
     }

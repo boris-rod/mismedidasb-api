@@ -333,8 +333,7 @@ namespace MismeAPI.Service.Impls
                 if (user.ActivatedAt.HasValue)
                 {
                     await UpdateTotalCoinsAsync(user, coins);
-                    if (user.Email.Contains("pavel"))
-                        await SendTesterCoinsRewardsNotificationAsync(user, coins);
+                    await SendTesterCoinsRewardsNotificationAsync(user, coins);
                 }
             }
         }

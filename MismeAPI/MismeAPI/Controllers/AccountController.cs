@@ -36,9 +36,10 @@ namespace MismeAPI.Controllers
         private IUserReferralService _userReferralService;
         private IRewardHelper _rewardHelper;
         private IUserService _userService;
+        private IProfileHelthHelper _profileHelthHelper;
 
         public AccountController(IAccountService accountService, IMapper mapper, IEmailService emailService, IWebHostEnvironment env,
-            IHubContext<UserHub> hub, IUserReferralService userReferralService, IRewardHelper rewardHelper, IUserService userService)
+            IHubContext<UserHub> hub, IUserReferralService userReferralService, IRewardHelper rewardHelper, IUserService userService, IProfileHelthHelper profileHelthHelper)
         {
             _accountService = accountService ?? throw new ArgumentNullException(nameof(accountService));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
@@ -48,6 +49,7 @@ namespace MismeAPI.Controllers
             _userReferralService = userReferralService ?? throw new ArgumentNullException(nameof(userReferralService));
             _rewardHelper = rewardHelper ?? throw new ArgumentNullException(nameof(rewardHelper));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
+            _profileHelthHelper = profileHelthHelper ?? throw new ArgumentNullException(nameof(profileHelthHelper));
         }
 
         /// <summary>
@@ -365,7 +367,7 @@ namespace MismeAPI.Controllers
         public async Task<IActionResult> GetUserProfile()
         {
             var loggedUser = User.GetUserIdFromToken();
-            var result = await _accountService.GetUserProfileUseAsync(loggedUser);
+            var result = await _profileHelthHelper.GetUserProfileUseAsync(loggedUser);
             var user = _mapper.Map<UserWithSubscriptionResponse>(result.user);
             user.KCal = result.kcal;
             user.IMC = result.IMC;

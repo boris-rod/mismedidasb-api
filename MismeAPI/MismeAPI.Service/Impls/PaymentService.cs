@@ -1,30 +1,16 @@
-﻿using DeviceDetectorNET;
-using DeviceDetectorNET.Cache;
-using DeviceDetectorNET.Parser;
-using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
-using MismeAPI.Common;
-using MismeAPI.Common.DTO.Request;
+using MismeAPI.Common.DTO.Response.Payment;
 using MismeAPI.Common.Exceptions;
 using MismeAPI.Data.Entities;
 using MismeAPI.Data.Entities.Enums;
 using MismeAPI.Data.UoW;
 using MismeAPI.Service;
-using MismeAPI.Service.Utils;
-using rlcx.suid;
 using Stripe;
 using System;
 using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
-using System.Security.Claims;
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Wangkanai.Detection;
 
 namespace MismeAPI.Services.Impls
 {
@@ -52,7 +38,7 @@ namespace MismeAPI.Services.Impls
         /// <param name="logguedUser"></param>
         /// <param name="productId"></param>
         /// <returns></returns>
-        public async Task<string> PaymentIntentAsync(int logguedUser, int productId)
+        public async Task<string> PaymentIntentAsync(int logguedUser, int productId, bool setupFutureUsage)
         {
             var user = await _userService.GetUserAsync(logguedUser);
             var product = await _productService.GetProductAsync(productId);
@@ -74,6 +60,9 @@ namespace MismeAPI.Services.Impls
                 Customer = user.StripeCustomerId,
                 Description = "Buying product " + product.Name + ". {ID: " + product.Id + "}"
             };
+
+            if (setupFutureUsage)
+                options.SetupFutureUsage = "on_session";
 
             var service = new PaymentIntentService();
             var paymentIntent = await service.CreateAsync(options);
@@ -152,19 +141,69 @@ namespace MismeAPI.Services.Impls
             await HandlePaymentIntentNotSuccess(paymentIntent, order, OrderStatusEnum.CANCELED);
         }
 
-        public async Task<StripeList<PaymentMethod>> GetStripeCustomerPaymentMethods(int userId)
+        public async Task<IEnumerable<StripePaymentMethodResponse>> GetStripeCustomerPaymentMethods(int userId)
         {
-            var user = await _userService.GetUserAsync(userId);
-            var options = new PaymentMethodListOptions
+            var user = await _userService.GetUserDevicesAsync(userId);
+
+            var result = new List<StripePaymentMethodResponse>();
+
+            if (!string.IsNullOrEmpty(user.StripeCustomerId))
             {
-                Customer = user.StripeCustomerId,
-                Type = "card",
-            };
+                var options = new PaymentMethodListOptions
+                {
+                    Customer = user.StripeCustomerId,
+                    Type = "card"
+                };
 
-            var service = new PaymentMethodService();
-            var paymentMethods = await service.ListAsync(options);
+                var service = new PaymentMethodService();
+                var paymentMethods = await service.ListAsync(options);
 
-            return paymentMethods;
+                foreach (var method in paymentMethods)
+                {
+                    if (method.Type == "card" && method.Card != null)
+                    {
+                        var card = method.Card;
+                        var mapped = new StripePaymentMethodResponse
+                        {
+                            PaymentMethodId = method.Id,
+                            Last4 = card.Last4,
+                            Country = card.Country,
+                            Description = card.Description,
+                            ExpMonth = card.ExpMonth,
+                            ExpYear = card.ExpYear,
+                            Funding = card.Funding,
+                            Issuer = card.Issuer
+                        };
+
+                        result.Add(mapped);
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        public async Task DeleteStripeCustomerPaymentMethod(int userId, string paymentMethodId)
+        {
+            var user = await _userService.GetUserDevicesAsync(userId);
+
+            if (!string.IsNullOrEmpty(user.StripeCustomerId))
+            {
+                var service = new PaymentMethodService();
+                var paymentMethod = await service.GetAsync(paymentMethodId);
+
+                if (paymentMethod != null)
+                {
+                    if (paymentMethod.CustomerId != user.StripeCustomerId)
+                    {
+                        throw new ForbiddenException("You dont have permission to remove this payment method");
+                    }
+                    else
+                    {
+                        await service.DetachAsync(paymentMethodId);
+                    }
+                }
+            }
         }
 
         private async Task CreateStripeCustomerAsync(User user)
@@ -247,6 +286,7 @@ namespace MismeAPI.Services.Impls
         {
             var order = await _uow.OrderRepository.GetAll()
                 .Include(o => o.User)
+                .Include(o => o.Product)
                 .Where(o => o.ExternalId == externalId)
                 .FirstOrDefaultAsync();
 

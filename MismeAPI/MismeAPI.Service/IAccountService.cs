@@ -42,8 +42,6 @@ namespace MismeAPI.Services
 
         Task<User> RemoveAvatarAsync(int loggedUser);
 
-        Task<(User user, double kcal, double IMC, DateTime? firstHealtMeasured)> GetUserProfileUseAsync(int loggedUser);
-
         Task<IEnumerable<UserSetting>> GetUserSettingsAsync(int loggedUser);
 
         Task UpdateUserSettingsAsync(int loggedUser, List<UpdateSettingRequest> request);
