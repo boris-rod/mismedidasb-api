@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using MismeAPI.Common;
 using MismeAPI.Common.DTO.Request;
 using MismeAPI.Common.DTO.Request.Dish;
@@ -22,12 +23,14 @@ namespace MismeAPI.Service.Impls
         private readonly IUnitOfWork _uow;
         private readonly IFileService _fileService;
         private readonly MismeContext _context;
+        private readonly IConfiguration _config;
 
-        public DishService(IUnitOfWork uow, IFileService fileService, MismeContext context)
+        public DishService(IUnitOfWork uow, IFileService fileService, MismeContext context, IConfiguration config)
         {
             _uow = uow ?? throw new ArgumentNullException(nameof(uow));
             _fileService = fileService ?? throw new ArgumentNullException(nameof(fileService));
             _context = context ?? throw new ArgumentNullException(nameof(context));
+            _config = config ?? throw new ArgumentNullException(nameof(config));
         }
 
         public async Task ChangeDishTranslationAsync(int loggedUser, DishTranslationRequest dishTranslationRequest, int id)
@@ -63,7 +66,8 @@ namespace MismeAPI.Service.Impls
             _uow.DishRepository.Update(dish);
             await _uow.CommitAsync();
             //expire cache
-            QueryCacheManager.ExpireTag(CacheEntries.ALL_DISHES);
+
+            QueryCacheManager.ExpireTag(_config.GetSection("AWS")["CachePrefix"] + CacheEntries.ALL_DISHES);
         }
 
         public async Task<Dish> CreateDishAsync(int loggedUser, CreateDishRequest dish)
@@ -177,7 +181,7 @@ namespace MismeAPI.Service.Impls
             await _uow.CommitAsync();
 
             //expire cache
-            QueryCacheManager.ExpireTag(CacheEntries.ALL_DISHES);
+            QueryCacheManager.ExpireTag(_config.GetSection("AWS")["CachePrefix"] + CacheEntries.ALL_DISHES);
 
             return dbDish;
         }
@@ -204,7 +208,7 @@ namespace MismeAPI.Service.Impls
             await _uow.CommitAsync();
 
             //expire cache
-            QueryCacheManager.ExpireTag(CacheEntries.ALL_DISHES);
+            QueryCacheManager.ExpireTag(_config.GetSection("AWS")["CachePrefix"] + CacheEntries.ALL_DISHES);
         }
 
         public async Task<Dish> GetDishByIdAsync(int id)
@@ -246,7 +250,7 @@ namespace MismeAPI.Service.Impls
                 .Include(d => d.LackSelfControlDishes)
                 .Include(d => d.DishTags)
                     .ThenInclude(t => t.Tag)
-                .FromCacheAsync(CacheEntries.ALL_DISHES);
+                .FromCacheAsync(_config.GetSection("AWS")["CachePrefix"] + CacheEntries.ALL_DISHES);
 
             results = results.Where(r => r.Name.ToLower().Equals(search.ToLower()));
 
@@ -271,7 +275,7 @@ namespace MismeAPI.Service.Impls
                          .Include(d => d.LackSelfControlDishes)
                          .Include(d => d.DishTags)
                              .ThenInclude(t => t.Tag)
-                         .FromCacheAsync(CacheEntries.ALL_DISHES);
+                         .FromCacheAsync(_config.GetSection("AWS")["CachePrefix"] + CacheEntries.ALL_DISHES);
 
             results = results.Where(r => r.Name.ToLower() != search.ToLower() && r.Name.ToLower().StartsWith(search.ToLower()))
                              .OrderBy(r => r.Name);
@@ -293,7 +297,7 @@ namespace MismeAPI.Service.Impls
                            .Include(d => d.LackSelfControlDishes)
                            .Include(d => d.DishTags)
                                .ThenInclude(t => t.Tag)
-                           .FromCacheAsync(CacheEntries.ALL_DISHES);
+                           .FromCacheAsync(_config.GetSection("AWS")["CachePrefix"] + CacheEntries.ALL_DISHES);
 
             results = results.Where(r => r.Name.ToLower() != search.ToLower()
                                      && !r.Name.ToLower().StartsWith(search.ToLower())
@@ -330,7 +334,7 @@ namespace MismeAPI.Service.Impls
                            .Include(d => d.LackSelfControlDishes)
                            .Include(d => d.DishTags)
                                .ThenInclude(t => t.Tag)
-                           .FromCacheAsync(CacheEntries.ALL_DISHES);
+                           .FromCacheAsync(_config.GetSection("AWS")["CachePrefix"] + CacheEntries.ALL_DISHES);
 
             if (!string.IsNullOrWhiteSpace(search))
             {
@@ -607,7 +611,7 @@ namespace MismeAPI.Service.Impls
             await _uow.CommitAsync();
 
             //expire cache
-            QueryCacheManager.ExpireTag(CacheEntries.ALL_DISHES);
+            QueryCacheManager.ExpireTag(_config.GetSection("AWS")["CachePrefix"] + CacheEntries.ALL_DISHES);
             return dishh;
         }
 
@@ -631,7 +635,7 @@ namespace MismeAPI.Service.Impls
             await _uow.FavoriteDishRepository.AddAsync(favoriteDish);
             await _uow.CommitAsync();
 
-            QueryCacheManager.ExpireTag(CacheEntries.ALL_DISHES);
+            QueryCacheManager.ExpireTag(_config.GetSection("AWS")["CachePrefix"] + CacheEntries.ALL_DISHES);
 
             return dish;
         }
@@ -649,7 +653,7 @@ namespace MismeAPI.Service.Impls
                 _uow.FavoriteDishRepository.Delete(exist);
                 await _uow.CommitAsync();
 
-                QueryCacheManager.ExpireTag(CacheEntries.ALL_DISHES);
+                QueryCacheManager.ExpireTag(_config.GetSection("AWS")["CachePrefix"] + CacheEntries.ALL_DISHES);
             }
         }
 
@@ -668,7 +672,7 @@ namespace MismeAPI.Service.Impls
                 await _uow.LackSelfControlDishRepository.UpdateAsync(exist, dishId);
                 await _uow.CommitAsync();
 
-                QueryCacheManager.ExpireTag(CacheEntries.ALL_DISHES);
+                QueryCacheManager.ExpireTag(_config.GetSection("AWS")["CachePrefix"] + CacheEntries.ALL_DISHES);
 
                 return dish;
             }
@@ -683,7 +687,7 @@ namespace MismeAPI.Service.Impls
             await _uow.LackSelfControlDishRepository.AddAsync(noControlDish);
             await _uow.CommitAsync();
 
-            QueryCacheManager.ExpireTag(CacheEntries.ALL_DISHES);
+            QueryCacheManager.ExpireTag(_config.GetSection("AWS")["CachePrefix"] + CacheEntries.ALL_DISHES);
 
             return dish;
         }
@@ -701,7 +705,7 @@ namespace MismeAPI.Service.Impls
                 _uow.LackSelfControlDishRepository.Delete(exist);
                 await _uow.CommitAsync();
 
-                QueryCacheManager.ExpireTag(CacheEntries.ALL_DISHES);
+                QueryCacheManager.ExpireTag(_config.GetSection("AWS")["CachePrefix"] + CacheEntries.ALL_DISHES);
             }
         }
 

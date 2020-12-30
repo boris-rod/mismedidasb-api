@@ -84,6 +84,8 @@ namespace MismeAPI.Controllers
             var userId = User.GetUserIdFromToken();
             var language = await _userService.GetUserLanguageFromUserIdAsync(userId);
 
+            var user = await _userService.GetUserAsync(userId);
+
             var eatTyp = eatType ?? -1;
 
             var result = await _eatService.GetAllUserEatsByDateAsync(userId, date, endDate, eatTyp);
@@ -93,6 +95,66 @@ namespace MismeAPI.Controllers
                 opt.Items["lang"] = language;
             });
 
+            if (user.Role == Data.Entities.Enums.RoleEnum.NORMAL)
+            {
+                // THIS IS TRASH BUT I CAN"T FIND A BETTER WAY TO DEAL WITH THIS
+                var sex = await _accountService.GetSexAsync(userId);
+                var height = await _accountService.GetHeightAsync(userId);
+                var factor = 1.0;
+                foreach (var item in mapped)
+                {
+                    foreach (var item1 in item.EatDishResponse)
+                    {
+                        switch (item1.Dish.HandCode)
+                        {
+                            case 3:
+                                factor = await _dishService.GetConversionFactorAsync(height, sex, 3);
+                                break;
+
+                            case 6:
+                                factor = await _dishService.GetConversionFactorAsync(height, sex, 6);
+                                break;
+
+                            case 10:
+                                factor = await _dishService.GetConversionFactorAsync(height, sex, 10);
+                                break;
+
+                            case 11:
+                                factor = await _dishService.GetConversionFactorAsync(height, sex, 11);
+                                break;
+
+                            default:
+                                break;
+                        }
+                        item1.Dish.Calcium = item1.Dish.Calcium * factor;
+                        item1.Dish.Calories = item1.Dish.Calories * factor;
+                        item1.Dish.Carbohydrates = item1.Dish.Carbohydrates * factor;
+                        item1.Dish.Cholesterol = item1.Dish.Cholesterol * factor;
+                        item1.Dish.Fat = item1.Dish.Fat * factor;
+                        item1.Dish.Fiber = item1.Dish.Fiber * factor;
+                        item1.Dish.Iron = item1.Dish.Iron * factor;
+                        item1.Dish.MonoUnsaturatedFat = item1.Dish.MonoUnsaturatedFat * factor;
+                        item1.Dish.Phosphorus = item1.Dish.Phosphorus * factor;
+                        item1.Dish.PolyUnsaturatedFat = item1.Dish.PolyUnsaturatedFat * factor;
+                        item1.Dish.Potassium = item1.Dish.Potassium * factor;
+                        item1.Dish.Proteins = item1.Dish.Proteins * factor;
+                        item1.Dish.SaturatedFat = item1.Dish.SaturatedFat * factor;
+                        item1.Dish.Sodium = item1.Dish.Sodium * factor;
+                        item1.Dish.VitaminA = item1.Dish.VitaminA * factor;
+                        item1.Dish.VitaminB12 = item1.Dish.VitaminB12 * factor;
+                        item1.Dish.VitaminB1Thiamin = item1.Dish.VitaminB1Thiamin * factor;
+                        item1.Dish.VitaminB2Riboflavin = item1.Dish.VitaminB2Riboflavin * factor;
+                        item1.Dish.VitaminB3Niacin = item1.Dish.VitaminB3Niacin * factor;
+                        item1.Dish.VitaminB6 = item1.Dish.VitaminB6 * factor;
+                        item1.Dish.VitaminB9Folate = item1.Dish.VitaminB9Folate * factor;
+                        item1.Dish.VitaminC = item1.Dish.VitaminC * factor;
+                        item1.Dish.VitaminD = item1.Dish.VitaminD * factor;
+                        item1.Dish.VitaminE = item1.Dish.VitaminE * factor;
+                        item1.Dish.VitaminK = item1.Dish.VitaminK * factor;
+                        item1.Dish.Zinc = item1.Dish.Zinc * factor;
+                    }
+                }
+            }
             var planSummaries = await _eatService.GetPlanSummaryAsync(result);
 
             return Ok(new ApiPlanResponse(mapped, planSummaries));
