@@ -4,6 +4,7 @@ using FirebaseAdmin.Messaging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using MismeAPI.Common;
+using MismeAPI.Common.DTO.Request.Reward;
 using MismeAPI.Common.DTO.Response;
 using MismeAPI.Common.Exceptions;
 using MismeAPI.Data.Entities;
@@ -301,39 +302,91 @@ namespace MismeAPI.Service.Impls
             return statistic;
         }
 
-        public async Task RewardTestersAsync()
+        public async Task RewardCoinsToUsersAsync(RewardManualCoinsRequest request)
         {
-            var testerDate = new DateTime(2020, 8, 31);
-
-            var points = 2000;
-            var userIds = await _uow.UserRepository.GetAll()
-                .Where(u => u.CreatedAt < testerDate && u.ActivatedAt.HasValue)
-                .Select(u => u.Id)
-                .ToListAsync();
-
-            await RewardCoinsToUsersAsync(userIds, points);
-        }
-
-        public async Task RewardCoinsToUsersAsync(IEnumerable<int> userIds, int coins)
-        {
-            if (coins < 1)
+            if (request.Coins < 1)
             {
                 throw new InvalidDataException("Coins");
             }
 
-            if (userIds.Count() < 1)
+            if (request.UserIds.Count() < 1)
             {
                 throw new InvalidDataException("Users");
             }
 
-            var users = await _uow.UserRepository.FindAllAsync(u => userIds.Contains(u.Id));
+            var query = _uow.UserRepository.GetAll()
+                .Include(u => u.Devices)
+                .Include(u => u.UserSettings)
+                .AsQueryable();
 
+            if (request.UserIds.FirstOrDefault() != -1)
+                query = query.Where(u => request.UserIds.Contains(u.Id));
+
+            var users = await query.ToListAsync();
+
+            var setting = await _uow.SettingRepository.GetAll().Where(s => s.Name == SettingsConstants.LANGUAGE).FirstOrDefaultAsync();
             foreach (var user in users)
             {
                 if (user.ActivatedAt.HasValue)
                 {
-                    await UpdateTotalCoinsAsync(user, coins);
-                    await SendTesterCoinsRewardsNotificationAsync(user, coins);
+                    var manualReward = await _uow.RewardCategoryRepository.GetAll().FirstOrDefaultAsync(r => r.Category == RewardCategoryEnum.ADMIN_MANUAL);
+                    if (manualReward == null)
+                    {
+                        throw new Exception("Manual reward is not activated.");
+                    }
+
+                    await _uow.RewardHistoryRepository.AddAsync(new RewardHistory
+                    {
+                        RewardCategoryId = manualReward.Id,
+                        Points = request.Coins,
+                        UserId = user.Id,
+                        CreatedAt = DateTime.UtcNow
+                    });
+                    await _uow.CommitAsync();
+
+                    await UpdateTotalCoinsAsync(user, request.Coins);
+
+                    if (string.IsNullOrEmpty(request.Title))
+                    {
+                        await SendTesterCoinsRewardsNotificationAsync(user, request.Coins);
+                    }
+                    else
+                    {
+                        var title = request.Title;
+                        var body = request.Body;
+
+                        var lang = "ES";
+                        if (user.UserSettings != null)
+                        {
+                            var userSetting = user.UserSettings.FirstOrDefault(us => us.SettingId == setting.Id);
+                            if (userSetting != null && !string.IsNullOrWhiteSpace(userSetting.Value))
+                            {
+                                lang = userSetting.Value;
+                            }
+                        }
+
+                        switch (lang)
+                        {
+                            case "ES":
+                                await _notificationService.SendFirebaseNotificationAsync(title, body, user.Devices);
+                                break;
+
+                            case "EN":
+                                var titleEN = string.IsNullOrEmpty(request.TitleEN) ? title : request.TitleEN;
+                                var bodyEN = string.IsNullOrEmpty(request.BodyEN) ? body : request.BodyEN;
+                                await _notificationService.SendFirebaseNotificationAsync(titleEN, bodyEN, user.Devices);
+                                break;
+
+                            case "IT":
+                                var titleIT = string.IsNullOrEmpty(request.TitleIT) ? title : request.TitleIT;
+                                var bodyIT = string.IsNullOrEmpty(request.BodyIT) ? body : request.BodyIT;
+                                await _notificationService.SendFirebaseNotificationAsync(titleIT, bodyIT, user.Devices);
+                                break;
+
+                            default:
+                                break;
+                        }
+                    }
                 }
             }
         }
@@ -348,9 +401,8 @@ namespace MismeAPI.Service.Impls
                 _ => "Gracias por tu aporte." + " Has recibido " + coins + " monedas.",
             };
 
-            var uDevices = await _userService.GetUserDevicesAsync(user.Id);
-            if (uDevices?.Devices != null)
-                await _notificationService.SendFirebaseNotificationAsync(title, body, uDevices.Devices);
+            if (user?.Devices != null)
+                await _notificationService.SendFirebaseNotificationAsync(title, body, user.Devices);
         }
 
         private async Task<UserStatistics> GetOrCreateUserStatisticsAsync(User user)
