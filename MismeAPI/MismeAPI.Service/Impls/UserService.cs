@@ -9,6 +9,7 @@ using MismeAPI.Common.Exceptions;
 using MismeAPI.Data.Entities;
 using MismeAPI.Data.Entities.Enums;
 using MismeAPI.Data.UoW;
+using MismeAPI.Services;
 using MismeAPI.Services.Utils;
 using System;
 using System.Collections.Generic;
@@ -22,11 +23,13 @@ namespace MismeAPI.Service.Impls
     {
         private readonly IUnitOfWork _uow;
         private readonly IConfiguration _config;
+        private readonly IEmailService _emailService;
 
-        public UserService(IUnitOfWork uow, IConfiguration config)
+        public UserService(IUnitOfWork uow, IConfiguration config, IEmailService emailService)
         {
             _uow = uow ?? throw new ArgumentNullException(nameof(uow));
             _config = config ?? throw new ArgumentNullException(nameof(config));
+            _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
         }
 
         public async Task<PaginatedList<User>> GetUsersAsync(int loggedUser, int pag, int perPag, string sortOrder, int statusFilter, string search)
@@ -802,6 +805,95 @@ namespace MismeAPI.Service.Impls
                 }
             }
             return false;
+        }
+
+        public async Task SendEmailAsync(SendEmailRequest request)
+        {
+            if (request.UserIds.Count() < 1)
+            {
+                throw new InvalidDataException("Users");
+            }
+
+            var query = _uow.UserRepository.GetAll()
+                .Include(u => u.Devices)
+                .Include(u => u.UserSettings)
+                .AsQueryable();
+
+            if (request.UserIds.FirstOrDefault() != -1)
+                query = query.Where(u => request.UserIds.Contains(u.Id));
+
+            var users = await query.ToListAsync();
+
+            var setting = await _uow.SettingRepository.GetAll().Where(s => s.Name == SettingsConstants.LANGUAGE).FirstOrDefaultAsync();
+            var userES = new List<User>();
+            var userEN = new List<User>();
+            var userIT = new List<User>();
+
+            if (setting != null)
+            {
+                foreach (var user in users)
+                {
+                    var lang = "ES";
+                    if (user.UserSettings != null)
+                    {
+                        var userSetting = user.UserSettings.FirstOrDefault(us => us.SettingId == setting.Id);
+                        if (userSetting != null && !string.IsNullOrWhiteSpace(userSetting.Value))
+                        {
+                            lang = userSetting.Value;
+                        }
+                    }
+
+                    switch (lang)
+                    {
+                        case "ES":
+                            userES.Add(user);
+                            break;
+
+                        case "EN":
+                            userEN.Add(user);
+                            break;
+
+                        case "IT":
+                            userIT.Add(user);
+                            break;
+
+                        default:
+                            break;
+                    }
+                }
+            }
+            else
+            {
+                userES.AddRange(users);
+            }
+
+            IEnumerable<string> emails;
+
+            if (string.IsNullOrEmpty(request.SubjectEN) && string.IsNullOrEmpty(request.SubjectIT))
+            {
+                emails = users.Select(u => u.Email);
+                await _emailService.SendEmailResponseAsync(request.Subject, request.Body, emails);
+            }
+            else
+            {
+                if (!string.IsNullOrEmpty(request.SubjectEN) && userEN.Count() > 0)
+                {
+                    emails = userEN.Select(u => u.Email);
+                    await _emailService.SendEmailResponseAsync(request.SubjectEN, request.BodyEN, emails);
+                }
+
+                if (!string.IsNullOrEmpty(request.SubjectIT) && userIT.Count() > 0)
+                {
+                    emails = userIT.Select(u => u.Email);
+                    await _emailService.SendEmailResponseAsync(request.SubjectIT, request.BodyIT, emails);
+                }
+
+                if (userES.Count() > 0)
+                {
+                    emails = userES.Select(u => u.Email);
+                    await _emailService.SendEmailResponseAsync(request.Subject, request.Body, emails);
+                }
+            }
         }
     }
 }

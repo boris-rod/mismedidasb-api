@@ -20,6 +20,11 @@ namespace MismeAPI.Utils
             return resource.Replace("#FULLNAME#", fullname).Replace("#APKLINKIOS#", iOSLink).Replace("#APKLINKANDROID#", androidLink);
         }
 
+        public static string ToManualEmail(this string resource, string subject, string body)
+        {
+            return resource.Replace("#SUBJECT#", subject).Replace("#BODY#", body);
+        }
+
         public static int GetUserIdFromToken(this ClaimsPrincipal user)
         {
             var claimsIdentity = user.Identity as ClaimsIdentity;
