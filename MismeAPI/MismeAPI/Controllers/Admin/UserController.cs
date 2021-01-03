@@ -118,7 +118,7 @@ namespace MismeAPI.Controllers.Admin
         public async Task<IActionResult> SendEmail([FromBody] SendEmailRequest request)
         {
             request = PrepareEmailBody(request);
-            await _userService.SendEmailAsync(request);
+            await _userService.SendManualEmailAsync(request);
 
             return Ok();
         }

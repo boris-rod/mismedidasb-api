@@ -807,7 +807,7 @@ namespace MismeAPI.Service.Impls
             return false;
         }
 
-        public async Task SendEmailAsync(SendEmailRequest request)
+        public async Task SendManualEmailAsync(SendEmailRequest request)
         {
             if (request.UserIds.Count() < 1)
             {

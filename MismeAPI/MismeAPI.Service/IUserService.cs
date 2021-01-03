@@ -38,6 +38,6 @@ namespace MismeAPI.Service
 
         Task<bool> GetUserOptInNotificationAsync(int userId, string settingConstant);
 
-        Task SendEmailAsync(SendEmailRequest request);
+        Task SendManualEmailAsync(SendEmailRequest request);
     }
 }
