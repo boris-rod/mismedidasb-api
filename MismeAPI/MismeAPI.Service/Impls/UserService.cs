@@ -89,11 +89,11 @@ namespace MismeAPI.Service.Impls
                         break;
 
                     case "status_desc":
-                        result = result.OrderByDescending(i => i.Status.ToString());
+                        result = result.OrderByDescending(i => i.Status);
                         break;
 
                     case "status_asc":
-                        result = result.OrderBy(i => i.Status.ToString());
+                        result = result.OrderBy(i => i.Status);
                         break;
 
                     default:
