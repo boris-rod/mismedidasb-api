@@ -25,6 +25,24 @@ namespace MismeAPI.Utils
             return resource.Replace("#SUBJECT#", subject).Replace("#BODY#", body);
         }
 
+        public static string ToHeaderEmail(this string resource, string subject)
+        {
+            return resource.Replace("#HEADERSUBJECT#", subject);
+        }
+
+        public static string SetHeaderFooterToTemplate(this string resource, string header, string footer)
+        {
+            return resource.Replace("#HEADER#", header).Replace("#FOOTER#", footer);
+        }
+
+        public static string ToGroupAdminInviteEmail(this string resource, bool isNewUser, string adminUrl, string email = "", string password = "")
+        {
+            if (isNewUser)
+                return resource.Replace("#EMAIL#", email).Replace("#PASSWORD#", password).Replace("#AMINURL#", adminUrl);
+            else
+                return resource.Replace("#AMINURL#", adminUrl);
+        }
+
         public static int GetUserIdFromToken(this ClaimsPrincipal user)
         {
             var claimsIdentity = user.Identity as ClaimsIdentity;

@@ -35,9 +35,10 @@ namespace MismeAPI.Services.Impls
         private readonly IFileService _fileService;
         private readonly ISubscriptionService _subscriptionService;
         private readonly IProfileHelthHelper _profileHelthHelper;
+        private readonly IGroupService _groupService;
 
         public AccountService(IConfiguration configuration, IUnitOfWork uow, IDetection detection,
-            IFileService fileService, ISubscriptionService subscriptionService, IProfileHelthHelper profileHelthHelper)
+            IFileService fileService, ISubscriptionService subscriptionService, IProfileHelthHelper profileHelthHelper, IGroupService groupService)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _uow = uow ?? throw new ArgumentNullException(nameof(uow));
@@ -45,6 +46,7 @@ namespace MismeAPI.Services.Impls
             _fileService = fileService ?? throw new ArgumentNullException(nameof(fileService));
             _subscriptionService = subscriptionService ?? throw new ArgumentNullException(nameof(subscriptionService));
             _profileHelthHelper = profileHelthHelper ?? throw new ArgumentNullException(nameof(profileHelthHelper));
+            _groupService = groupService ?? throw new ArgumentNullException(nameof(groupService));
         }
 
         public async Task<(User user, string accessToken, string refreshToken, double kcal, double IMC, DateTime? firstHealtMeasured)> LoginAsync(LoginRequest loginRequest)
@@ -52,6 +54,7 @@ namespace MismeAPI.Services.Impls
             var hashedPass = GetSha256Hash(loginRequest.Password);
 
             var user = await _uow.UserRepository.FindBy(u => u.Email == loginRequest.Email)
+                .Include(u => u.Group)
                 .Include(u => u.UserSettings)
                     .ThenInclude(s => s.Setting)
                 .FirstOrDefaultAsync();
@@ -65,6 +68,12 @@ namespace MismeAPI.Services.Impls
             {
                 throw new UnauthorizedException(ExceptionConstants.UNAUTHORIZED);
             }
+
+            if (user.Role == RoleEnum.GROUP_ADMIN && user.Group == null)
+            {
+                await _groupService.ValidateGroupAdminFirstLoginAsync(user);
+            }
+
             if (user.Status != StatusEnum.ACTIVE)
             {
                 throw new NotAllowedException(ExceptionConstants.NOT_ALLOWED);

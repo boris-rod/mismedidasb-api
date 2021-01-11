@@ -56,6 +56,8 @@ namespace MismeAPI.Data.UoW
         IGenericRepository<Order> OrderRepository { get; set; }
         IGenericRepository<FavoriteCompoundDishes> FavoriteCompoundDishRepository { get; set; }
         IGenericRepository<LackSelfControlCompoundDish> LackSelfControlCompoundDishRepository { get; set; }
+        IGenericRepository<Group> GroupRepository { get; set; }
+        IGenericRepository<GroupInvitation> GroupInvitationRepository { get; set; }
 
         Task<int> CommitAsync();
     }
