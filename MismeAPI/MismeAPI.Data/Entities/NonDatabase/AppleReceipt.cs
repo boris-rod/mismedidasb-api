@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using MismeAPI.Common.Exceptions;
+using Newtonsoft.Json.Linq;
 using System;
 
 namespace MismeAPI.Data.Entities.NonDatabase
@@ -20,6 +21,9 @@ namespace MismeAPI.Data.Entities.NonDatabase
 
             int.TryParse(json["status"].ToString(), out status);
             this.Status = status;
+
+            if (this.Status == 21002)
+                throw new InvalidDataException("The data in the receipt-data property was malformed or the service experienced a temporary issue. Try again.");
 
             // Receipt is actually a child
             json = (JObject)json["receipt"];

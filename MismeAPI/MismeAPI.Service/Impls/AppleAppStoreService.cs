@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
+using MismeAPI.Common.Exceptions;
 using MismeAPI.Data.Entities.NonDatabase;
 using MismeAPI.Service.Utils;
 using PayPalCheckoutSdk.Orders;
@@ -28,7 +29,7 @@ namespace MismeAPI.Service.Impls
 
         public AppleReceipt GetReceipt(string receiptData)
         {
-            var url = _configuration["Firebase:ServerKey"];
+            var url = _configuration["InAppPurshase:VerifyReceiptUrl"];
             AppleReceipt result = null;
 
             string post = PostRequest(url, ConvertReceiptToPost(receiptData));
@@ -36,7 +37,8 @@ namespace MismeAPI.Service.Impls
             if (!string.IsNullOrEmpty(post))
             {
                 try { result = new AppleReceipt(post); }
-                catch { result = null; }
+                catch (InvalidDataException e) { throw e; }
+                catch (Exception) { result = null; }
             }
 
             return result;
@@ -54,7 +56,7 @@ namespace MismeAPI.Service.Impls
             //string itunesDecodedReceipt = Encoding.UTF8.GetString(ReceiptVerification.ConvertAppStoreTokenToBytes(receipt.Replace("<", string.Empty).Replace(">", string.Empty))).Trim();
             string itunesDecodedReceipt = receipt.Replace("<", string.Empty).Replace(">", string.Empty).Trim();
             string encodedReceipt = Base64Encode(itunesDecodedReceipt);
-            return string.Format(@"{{""receipt-data"":""{0}""}}", encodedReceipt);
+            return string.Format(@"{{""receipt-data"":""{0}"", ""password"":""{1}""}}", encodedReceipt, "");
         }
 
         /// <summary>
@@ -122,7 +124,8 @@ namespace MismeAPI.Service.Impls
             }
             catch (Exception ex)
             {
-                return string.Empty;
+                Console.WriteLine(ex.ToString());
+                throw ex;
             }
         }
 
