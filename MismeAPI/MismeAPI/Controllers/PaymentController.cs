@@ -134,5 +134,31 @@ namespace MismeAPI.Controllers
 
             return NoContent();
         }
+
+        /// <summary>
+        /// Verify a success Apple In App Purshase
+        /// </summary>
+        /// <param name="receipt">
+        /// Receipt object send by apple in the payment process converted to a json string
+        /// </param>
+        /// <returns>
+        /// Boolean status of the success verification process. Coins will be assigned to the user
+        /// if the validation returns true
+        /// </returns>
+        [Authorize]
+        [HttpPost("verify-apple-in-app-purshase")]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Conflict)]
+        public async Task<IActionResult> VirifyAppleInAppPurshase([FromBody] string receipt)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+
+            var result = await _paymentService.ValidateAppleReceiptAsync(loggedUser, receipt);
+
+            return Created("Verified", new ApiOkResponse(result));
+        }
     }
 }

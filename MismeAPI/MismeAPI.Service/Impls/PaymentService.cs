@@ -21,15 +21,17 @@ namespace MismeAPI.Services.Impls
         private readonly IProductService _productService;
         private readonly IUserService _userService;
         private readonly IUserStatisticsService _userStatisticsService;
+        private readonly IAppleAppStoreService _appleAppStoreService;
 
         public PaymentService(IConfiguration configuration, IUnitOfWork uow, IProductService productService,
-            IUserService userService, IUserStatisticsService userStatisticsService)
+            IUserService userService, IUserStatisticsService userStatisticsService, IAppleAppStoreService appleAppStoreService)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _uow = uow ?? throw new ArgumentNullException(nameof(uow));
             _productService = productService ?? throw new ArgumentNullException(nameof(productService));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _userStatisticsService = userStatisticsService ?? throw new ArgumentNullException(nameof(userStatisticsService));
+            _appleAppStoreService = appleAppStoreService ?? throw new ArgumentNullException(nameof(appleAppStoreService));
         }
 
         /// <summary>
@@ -43,7 +45,7 @@ namespace MismeAPI.Services.Impls
             var user = await _userService.GetUserAsync(logguedUser);
             var product = await _productService.GetProductAsync(productId);
 
-            var amount = GetProductPriceForStripe(product);
+            var amount = GetProductPriceInteger(product);
 
             if (amount <= 0)
                 throw new NotAllowedException("Price must to be great than 0");
@@ -206,6 +208,58 @@ namespace MismeAPI.Services.Impls
             }
         }
 
+        public async Task<bool> ValidateAppleReceiptAsync(int userId, string receiptData)
+        {
+            var receipt = _appleAppStoreService.GetReceipt(receiptData);
+            var isReceiptValid = _appleAppStoreService.IsReceiptValid(receipt);
+
+            if (isReceiptValid)
+            {
+                var applProductId = receipt.ProductId;
+                var user = await _userService.GetUserAsync(userId);
+                Data.Entities.Product product = null;
+
+                switch (applProductId)
+                {
+                    case "p500":
+                        product = await _uow.ProductRepository.GetAll().FirstOrDefaultAsync(p => p.Value == 500 && p.Type == ProductEnum.COIN_OFFER);
+                        break;
+
+                    default:
+                        break;
+                }
+
+                var amount = GetProductPriceInteger(product);
+                var statusInfo = "In App Purshase Completed";
+
+                if (product == null)
+                {
+                    statusInfo = "El producto comprado no fue encontrado en el servidor";
+                    await CreateOrderAsync(receipt.OriginalTransactionId, user, product, amount, statusInfo, PaymentMethodEnum.IN_APP_PURSHASE_APPLE, OrderStatusEnum.FAILED);
+
+                    throw new NotFoundException(statusInfo);
+                }
+
+                // check if order does not exist and save it
+                var order = await GetOrderAsync(receipt.OriginalTransactionId);
+                if (order != null && order.Status == OrderStatusEnum.SUCCED)
+                {
+                    statusInfo = "Las monedas asociadas a esta compra ya fueron entregadas al usuario";
+                    throw new AlreadyExistsException(statusInfo);
+                }
+
+                await CreateOrderAsync(receipt.OriginalTransactionId, user, product, amount, statusInfo, PaymentMethodEnum.IN_APP_PURSHASE_APPLE, OrderStatusEnum.SUCCED);
+
+                // give coins to the user
+                await HandleCoinsIncrementActionAsync(order);
+                await _uow.CommitAsync();
+
+                return true;
+            }
+
+            return false;
+        }
+
         private async Task CreateStripeCustomerAsync(User user)
         {
             var options = new CustomerCreateOptions
@@ -270,7 +324,7 @@ namespace MismeAPI.Services.Impls
             // TODO: Evaluate with Frontend devs y they need a PN with the success payment completed
         }
 
-        private int GetProductPriceForStripe(Data.Entities.Product product)
+        private int GetProductPriceInteger(Data.Entities.Product product)
         {
             switch (product.Type)
             {
@@ -293,11 +347,12 @@ namespace MismeAPI.Services.Impls
             return order;
         }
 
-        private async Task<Data.Entities.Order> CreateOrderAsync(string clientSecret, User user, Data.Entities.Product product, int amount, string StatusInformation = "")
+        private async Task<Data.Entities.Order> CreateOrderAsync(string externalId, User user, Data.Entities.Product product, int amount,
+            string StatusInformation = "", PaymentMethodEnum paymentMethod = PaymentMethodEnum.STRIPE, OrderStatusEnum status = OrderStatusEnum.PROCESING)
         {
             var order = new Data.Entities.Order
             {
-                ExternalId = clientSecret,
+                ExternalId = externalId,
                 UserId = user.Id,
                 UserEmail = user.Email,
                 UserFullName = user.FullName,
@@ -305,9 +360,9 @@ namespace MismeAPI.Services.Impls
                 ProductName = product.Name,
                 ProductDescription = product.Description,
                 Amount = amount / 100m,
-                Status = OrderStatusEnum.PROCESING,
+                Status = status,
                 StatusInformation = "Stripe Payment Intent Requested",
-                PaymentMethod = PaymentMethodEnum.STRIPE,
+                PaymentMethod = paymentMethod,
                 CreatedAt = DateTime.UtcNow,
                 ModifiedAt = DateTime.UtcNow
             };
