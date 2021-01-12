@@ -19,6 +19,6 @@ namespace MismeAPI.Services
 
         Task DeleteStripeCustomerPaymentMethod(int userId, string paymentMethodId);
 
-        Task<bool> ValidateAppleReceiptAsync(int userId, string receiptData);
+        Task<IEnumerable<Data.Entities.Order>> ValidateAppleReceiptAsync(int userId, string receiptData);
     }
 }

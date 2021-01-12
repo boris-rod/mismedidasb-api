@@ -1,12 +1,17 @@
 ﻿using MismeAPI.Common.Exceptions;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 
 namespace MismeAPI.Data.Entities.NonDatabase
 {
     [Serializable()]
     public class AppleReceipt
     {
+        public AppleReceipt()
+        {
+        }
+
         #region Constructor
 
         /// <summary>
@@ -15,38 +20,60 @@ namespace MismeAPI.Data.Entities.NonDatabase
         /// <param name="receipt"></param>
         public AppleReceipt(string receipt)
         {
+            var receipts = new List<AppleReceipt>();
+
             JObject json = JObject.Parse(receipt);
 
             int status = -1;
 
             int.TryParse(json["status"].ToString(), out status);
-            this.Status = status;
+            Status = status;
 
-            if (this.Status == 21002)
+            if (Status == 21002)
                 throw new InvalidDataException("The data in the receipt-data property was malformed or the service experienced a temporary issue. Try again.");
+
+            Console.WriteLine("#ReceiptValidation returns status: " + Status.ToString());
 
             // Receipt is actually a child
             json = (JObject)json["receipt"];
 
-            this.OriginalTransactionId = json["original_transaction_id"].ToString();
-            this.Bvrs = json["bvrs"].ToString();
-            this.ProductId = json["product_id"].ToString();
+            var inApp = (JArray)json["in_app"];
 
-            DateTime purchaseDate = DateTime.MinValue;
-            if (DateTime.TryParseExact(json["purchase_date"].ToString().Replace(" Etc/GMT", string.Empty).Replace("\"", string.Empty).Trim(), "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out purchaseDate))
-                this.PurchaseDate = purchaseDate;
+            foreach (var item in inApp)
+            {
+                this.OriginalTransactionId = item["original_transaction_id"].ToString();
+                this.ProductId = item["product_id"].ToString();
 
-            DateTime originalPurchaseDate = DateTime.MinValue;
-            if (DateTime.TryParseExact(json["original_purchase_date"].ToString().Replace(" Etc/GMT", string.Empty).Replace("\"", string.Empty).Trim(), "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out originalPurchaseDate))
-                this.OriginalPurchaseDate = originalPurchaseDate;
+                DateTime purchaseDate = DateTime.MinValue;
+                if (DateTime.TryParseExact(item["purchase_date"].ToString().Replace(" Etc/GMT", string.Empty).Replace("\"", string.Empty).Trim(), "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out purchaseDate))
+                    this.PurchaseDate = purchaseDate;
 
-            int quantity = 1;
-            int.TryParse(json["quantity"].ToString(), out quantity);
-            this.Quantity = quantity;
+                DateTime originalPurchaseDate = DateTime.MinValue;
+                if (DateTime.TryParseExact(item["original_purchase_date"].ToString().Replace(" Etc/GMT", string.Empty).Replace("\"", string.Empty).Trim(), "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out originalPurchaseDate))
+                    this.OriginalPurchaseDate = originalPurchaseDate;
 
-            this.BundleIdentifier = json["bid"].ToString();
+                int quantity = 1;
+                int.TryParse(item["quantity"].ToString(), out quantity);
+                this.Quantity = quantity;
 
-            this.TransactionId = json["transaction_id"].ToString();
+                this.BundleIdentifier = json["bundle_id"].ToString();
+
+                this.TransactionId = item["transaction_id"].ToString();
+
+                var receiptObject = new AppleReceipt();
+                receiptObject.OriginalTransactionId = OriginalTransactionId;
+                receiptObject.ProductId = ProductId;
+                receiptObject.PurchaseDate = PurchaseDate;
+                receiptObject.Quantity = Quantity;
+                receiptObject.BundleIdentifier = BundleIdentifier;
+                receiptObject.OriginalPurchaseDate = OriginalPurchaseDate;
+                receiptObject.TransactionId = TransactionId;
+                receiptObject.Status = Status;
+
+                receipts.Add(receiptObject);
+            }
+
+            Receipts = receipts;
         }
 
         #endregion Constructor
@@ -54,8 +81,6 @@ namespace MismeAPI.Data.Entities.NonDatabase
         #region Properties
 
         public string OriginalTransactionId { get; set; }
-
-        public string Bvrs { get; set; }
 
         public string ProductId { get; set; }
 
@@ -71,10 +96,7 @@ namespace MismeAPI.Data.Entities.NonDatabase
 
         public int Status { get; set; }
 
-        /// <summary>
-        /// For whatever use you please :)
-        /// </summary>
-        public object Tag { get; set; }
+        public IEnumerable<AppleReceipt> Receipts { get; set; }
 
         #endregion Properties
     }
