@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using MismeAPI.BasicResponses;
+using MismeAPI.Common.DTO.Response.Order;
 using MismeAPI.Common.DTO.Response.Payment;
 using MismeAPI.Services;
 using MismeAPI.Utils;
@@ -138,27 +139,25 @@ namespace MismeAPI.Controllers
         /// <summary>
         /// Verify a success Apple In App Purshase
         /// </summary>
-        /// <param name="receipt">
-        /// Receipt object send by apple in the payment process converted to a json string
-        /// </param>
+        /// <param name="receipt">Receipt in Base64 string sent by apple in the payment process</param>
         /// <returns>
-        /// Boolean status of the success verification process. Coins will be assigned to the user
-        /// if the validation returns true
+        /// List of Orders generated in this verification process after processed and give the
+        /// points to the user. Use ExternalId as the TransactionId that need to be completed.
         /// </returns>
         [Authorize]
         [HttpPost("verify-apple-in-app-purshase")]
-        [ProducesResponseType(typeof(string), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(IEnumerable<OrderResponse>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Unauthorized)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
-        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
-        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Conflict)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.InternalServerError)]
         public async Task<IActionResult> VirifyAppleInAppPurshase([FromBody] string receipt)
         {
             var loggedUser = User.GetUserIdFromToken();
 
-            var result = await _paymentService.ValidateAppleReceiptAsync(loggedUser, receipt);
+            var orders = await _paymentService.ValidateAppleReceiptAsync(loggedUser, receipt);
+            var mapped = _mapper.Map<IEnumerable<OrderResponse>>(orders);
 
-            return Created("Verified", new ApiOkResponse(result));
+            return Created("Verified", new ApiOkResponse(mapped));
         }
     }
 }

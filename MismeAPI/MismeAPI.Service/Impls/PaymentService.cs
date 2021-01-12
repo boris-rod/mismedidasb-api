@@ -208,56 +208,74 @@ namespace MismeAPI.Services.Impls
             }
         }
 
-        public async Task<bool> ValidateAppleReceiptAsync(int userId, string receiptData)
+        /// <summary>
+        /// validates the receipt and returns the list of orders generated from that receipt. All
+        /// payment not tracked in the api are processed and completed.
+        /// </summary>
+        /// <param name="userId">user which will receive all the unprocessed payments in the receipt</param>
+        /// <param name="receiptData">receipt as a base64 string</param>
+        /// <returns>List of orders processed</returns>
+        public async Task<IEnumerable<Data.Entities.Order>> ValidateAppleReceiptAsync(int userId, string receiptData)
         {
+            var orders = new List<Data.Entities.Order>();
             var receipt = _appleAppStoreService.GetReceipt(receiptData);
             var isReceiptValid = _appleAppStoreService.IsReceiptValid(receipt);
 
             if (isReceiptValid)
             {
-                var applProductId = receipt.ProductId;
                 var user = await _userService.GetUserAsync(userId);
-                Data.Entities.Product product = null;
-
-                switch (applProductId)
+                foreach (var item in receipt.Receipts)
                 {
-                    case "p500":
-                        product = await _uow.ProductRepository.GetAll().FirstOrDefaultAsync(p => p.Value == 500 && p.Type == ProductEnum.COIN_OFFER);
-                        break;
+                    var applProductId = item.ProductId;
+                    Data.Entities.Product product = null;
+                    // check if order does not exist and save it
+                    var order = await GetOrderAsync(item.TransactionId);
+                    // If order exist then this receipt was already processed
+                    if (order == null)
+                    {
+                        switch (applProductId)
+                        {
+                            case "p500":
+                                product = await _uow.ProductRepository.GetAll().FirstOrDefaultAsync(p => p.Value == 500 && p.Type == ProductEnum.COIN_OFFER);
+                                break;
 
-                    default:
-                        break;
+                            case "p2000":
+                                product = await _uow.ProductRepository.GetAll().FirstOrDefaultAsync(p => p.Value == 2000 && p.Type == ProductEnum.COIN_OFFER);
+                                break;
+
+                            case "p3500":
+                                product = await _uow.ProductRepository.GetAll().FirstOrDefaultAsync(p => p.Value == 3500 && p.Type == ProductEnum.COIN_OFFER);
+                                break;
+
+                            default:
+                                break;
+                        }
+
+                        var statusInfo = "In App Purshase Completed";
+
+                        if (product == null)
+                        {
+                            statusInfo = "Product not found in the server (" + applProductId + ")";
+                            await CreateOrderAsync(item.TransactionId, user, product, 0, statusInfo, PaymentMethodEnum.IN_APP_PURSHASE_APPLE, OrderStatusEnum.FAILED);
+
+                            Console.WriteLine(statusInfo);
+                        }
+                        else
+                        {
+                            var amount = GetProductPriceInteger(product);
+                            order = await CreateOrderAsync(item.TransactionId, user, product, amount, statusInfo, PaymentMethodEnum.IN_APP_PURSHASE_APPLE, OrderStatusEnum.SUCCED);
+
+                            // give coins to the user
+                            await HandleCoinsIncrementActionAsync(order);
+                            await _uow.CommitAsync();
+
+                            orders.Add(order);
+                        }
+                    }
                 }
-
-                var amount = GetProductPriceInteger(product);
-                var statusInfo = "In App Purshase Completed";
-
-                if (product == null)
-                {
-                    statusInfo = "El producto comprado no fue encontrado en el servidor";
-                    await CreateOrderAsync(receipt.OriginalTransactionId, user, product, amount, statusInfo, PaymentMethodEnum.IN_APP_PURSHASE_APPLE, OrderStatusEnum.FAILED);
-
-                    throw new NotFoundException(statusInfo);
-                }
-
-                // check if order does not exist and save it
-                var order = await GetOrderAsync(receipt.OriginalTransactionId);
-                if (order != null && order.Status == OrderStatusEnum.SUCCED)
-                {
-                    statusInfo = "Las monedas asociadas a esta compra ya fueron entregadas al usuario";
-                    throw new AlreadyExistsException(statusInfo);
-                }
-
-                await CreateOrderAsync(receipt.OriginalTransactionId, user, product, amount, statusInfo, PaymentMethodEnum.IN_APP_PURSHASE_APPLE, OrderStatusEnum.SUCCED);
-
-                // give coins to the user
-                await HandleCoinsIncrementActionAsync(order);
-                await _uow.CommitAsync();
-
-                return true;
             }
 
-            return false;
+            return orders;
         }
 
         private async Task CreateStripeCustomerAsync(User user)
@@ -348,7 +366,7 @@ namespace MismeAPI.Services.Impls
         }
 
         private async Task<Data.Entities.Order> CreateOrderAsync(string externalId, User user, Data.Entities.Product product, int amount,
-            string StatusInformation = "", PaymentMethodEnum paymentMethod = PaymentMethodEnum.STRIPE, OrderStatusEnum status = OrderStatusEnum.PROCESING)
+            string statusInformation = "", PaymentMethodEnum paymentMethod = PaymentMethodEnum.STRIPE, OrderStatusEnum status = OrderStatusEnum.PROCESING)
         {
             var order = new Data.Entities.Order
             {
@@ -356,12 +374,12 @@ namespace MismeAPI.Services.Impls
                 UserId = user.Id,
                 UserEmail = user.Email,
                 UserFullName = user.FullName,
-                ProductId = product.Id,
-                ProductName = product.Name,
-                ProductDescription = product.Description,
+                ProductId = product?.Id,
+                ProductName = product?.Name,
+                ProductDescription = product?.Description,
                 Amount = amount / 100m,
                 Status = status,
-                StatusInformation = "Stripe Payment Intent Requested",
+                StatusInformation = statusInformation,
                 PaymentMethod = paymentMethod,
                 CreatedAt = DateTime.UtcNow,
                 ModifiedAt = DateTime.UtcNow

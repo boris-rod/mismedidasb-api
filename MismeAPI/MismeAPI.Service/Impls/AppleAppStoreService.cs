@@ -54,10 +54,10 @@ namespace MismeAPI.Service.Impls
         private static string ConvertReceiptToPost(string receipt)
         {
             //string itunesDecodedReceipt = Encoding.UTF8.GetString(ReceiptVerification.ConvertAppStoreTokenToBytes(receipt.Replace("<", string.Empty).Replace(">", string.Empty))).Trim();
-            string itunesDecodedReceipt = receipt.Replace("<", string.Empty).Replace(">", string.Empty).Trim();
-            string encodedReceipt = Base64Encode(itunesDecodedReceipt);
+            //string itunesDecodedReceipt = receipt.Replace("<", string.Empty).Replace(">", string.Empty).Trim();
+            //string encodedReceipt = Base64Encode(itunesDecodedReceipt);
             //return string.Format(@"{{""receipt-data"":""{0}"", ""password"":""{1}""}}", encodedReceipt, "c6299613b6f849faada7ddf9c170b756");
-            return string.Format(@"{{""receipt-data"":""{0}""}}", encodedReceipt);
+            return string.Format(@"{{""receipt-data"":""{0}""}}", receipt);
         }
 
         /// <summary>
