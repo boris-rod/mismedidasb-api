@@ -146,7 +146,7 @@ namespace MismeAPI.Controllers
         /// </returns>
         [Authorize]
         [HttpPost("verify-apple-in-app-purshase")]
-        [ProducesResponseType(typeof(IEnumerable<OrderResponse>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(IEnumerable<OrderResponse>), (int)HttpStatusCode.Created)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Unauthorized)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.InternalServerError)]
