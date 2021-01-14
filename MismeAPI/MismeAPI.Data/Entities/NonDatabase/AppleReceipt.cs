@@ -29,8 +29,38 @@ namespace MismeAPI.Data.Entities.NonDatabase
             int.TryParse(json["status"].ToString(), out status);
             Status = status;
 
+            if (Status == 21000)
+                throw new InvalidDataException("The request to the App Store was not made using the HTTP POST request method.");
+
+            if (Status == 21001)
+                throw new InvalidDataException("This status code is no longer sent by the App Store.");
+
             if (Status == 21002)
                 throw new InvalidDataException("The data in the receipt-data property was malformed or the service experienced a temporary issue. Try again.");
+
+            if (Status == 21003)
+                throw new InvalidDataException("The receipt could not be authenticated.");
+
+            if (Status == 21004)
+                throw new InvalidDataException("The shared secret you provided does not match the shared secret on file for your account.");
+
+            if (Status == 21005)
+                throw new InvalidDataException("The receipt server was temporarily unable to provide the receipt. Try again.");
+
+            if (Status == 21006)
+                throw new InvalidDataException("This receipt is valid but the subscription has expired. When this status code is returned to your server, the receipt data is also decoded and returned as part of the response. Only returned for iOS 6-style transaction receipts for auto-renewable subscriptions.");
+
+            if (Status == 21007)
+                throw new InvalidDataException("This receipt is from the test environment, but it was sent to the production environment for verification.");
+
+            if (Status == 21008)
+                throw new InvalidDataException("This receipt is from the production environment, but it was sent to the test environment for verification.");
+
+            if (Status == 21009)
+                throw new InvalidDataException("Internal data access error. Try again later.");
+
+            if (Status == 21010)
+                throw new InvalidDataException("The user account cannot be found or has been deleted.");
 
             Console.WriteLine("#ReceiptValidation returns status: " + Status.ToString());
 
