@@ -75,11 +75,15 @@ namespace MismeAPI.Data.Entities.NonDatabase
 
             if (Status == 21007)
             {
-                throw new BadGateway("This receipt is from the test environment, but it was sent to the production environment for verification.");
+                errorMsg = "This receipt is from the test environment, but it was sent to the production environment for verification.";
+                throw new Exception(errorMsg);
             }
 
             if (Status == 21008)
-                throw new BadGateway("This receipt is from the production environment, but it was sent to the test environment for verification.");
+            {
+                errorMsg = "This receipt is from the production environment, but it was sent to the test environment for verification.";
+                throw new Exception(errorMsg);
+            }
 
             if (Status == 21009)
             {

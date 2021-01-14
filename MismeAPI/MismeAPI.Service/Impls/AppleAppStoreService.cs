@@ -41,10 +41,6 @@ namespace MismeAPI.Service.Impls
                 {
                     result = new AppleReceipt(post);
                 }
-                catch (BadGateway e)
-                {
-                    throw e;
-                }
                 catch (Exception e)
                 {
                     Log.Error(e.Message);
