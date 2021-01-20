@@ -10,6 +10,7 @@ using MismeAPI.Data.Entities.Enums;
 using MismeAPI.Service;
 using MismeAPI.Service.Utils;
 using MismeAPI.Utils;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -79,10 +80,14 @@ namespace MismeAPI.Controllers
         [Authorize]
         [ProducesResponseType(typeof(IEnumerable<AdminCompoundDishResponse>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(IEnumerable<ApiResponse>), (int)HttpStatusCode.Forbidden)]
-        public async Task<IActionResult> GetDishesAdmin(string search, int filter)
+        public async Task<IActionResult> GetDishesAdmin(string search, int filter, int? page, int? perPage, string sort)
         {
             var loggedUser = User.GetUserIdFromToken();
-            var result = await _compoundDishService.GetAllCompoundDishesAsync(loggedUser, search, filter);
+            var result = await _compoundDishService.GetAllCompoundDishesAsync(loggedUser, search, filter, page ?? 1, perPage ?? 10, sort);
+            HttpContext.Response.Headers.Add("PagingData", JsonConvert.SerializeObject(result.GetPaginationData));
+            HttpContext.Response.Headers["Access-Control-Expose-Headers"] = "PagingData";
+            HttpContext.Response.Headers["Access-Control-Allow-Headers"] = "PagingData";
+
             var mapped = _mapper.Map<IEnumerable<AdminCompoundDishResponse>>(result, opt =>
             {
                 opt.Items["lang"] = "es";

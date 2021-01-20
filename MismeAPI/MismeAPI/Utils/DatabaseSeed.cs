@@ -32,18 +32,34 @@ namespace MismeAPI.Utils
             await _soloQuestionService.SeedSoloQuestionsAsync();
             await _subscriptionService.SeedSubscriptionAsync();
             await _productService.SeedProductsAsync();
-            //try
-            //{
-            //    //ImportDishesAsync(_uow, serviceProvider).Wait();
-            //    //UpdateDishesAsync(_uow, serviceProvider).Wait();
-            //    //RemoveDishesAsync(serviceProvider).Wait();
-            //    //UploadHandCode(_uow, serviceProvider).Wait();
-            //    //ImportHandCodeConversionValues(_uow, serviceProvider).Wait();
-            //}
-            //catch (Exception ex)
-            //{
-            //    throw ex;
-            //}
+            try
+            {
+                //ImportDishesAsync(_uow, serviceProvider).Wait();
+                //UpdateDishesAsync(_uow, serviceProvider).Wait();
+                //RemoveDishesAsync(serviceProvider).Wait();
+                //UploadHandCode(_uow, serviceProvider).Wait();
+                //ImportHandCodeConversionValues(_uow, serviceProvider).Wait();
+                ChangeColumns(_uow, serviceProvider).Wait();
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        private static async Task ChangeColumns(IUnitOfWork uow, IServiceProvider serviceProvider)
+        {
+            var dishes = uow.DishRepository.GetAll();
+            foreach (var item in dishes)
+            {
+                var tempProteinsChanged = item.Carbohydrates;
+                var tempCarboChanged = item.Proteins;
+                item.Carbohydrates = tempCarboChanged;
+                item.Proteins = tempProteinsChanged;
+                await uow.DishRepository.UpdateAsync(item, item.Id);
+            }
+
+            await uow.CommitAsync();
         }
 
         private static async Task ImportHandCodeConversionValues(IUnitOfWork _uow, IServiceProvider serviceProvider)

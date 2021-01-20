@@ -322,7 +322,7 @@ namespace MismeAPI.Service.Impls
             return results;
         }
 
-        public async Task<PaginatedList<Dish>> GetDishesAsync(string search, List<int> tags, int? page, int? perPage, int? harvardFilter)
+        public async Task<PaginatedList<Dish>> GetDishesAsync(string search, List<int> tags, int? page, int? perPage, int? harvardFilter, string sort)
         {
             //var results = _uow.DishRepository.GetAll()
             //    .Include(d => d.DishTags)
@@ -373,6 +373,64 @@ namespace MismeAPI.Service.Impls
 
                     default:
                         results = results.Where(r => r.IsFruitAndVegetables == true);
+                        break;
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(sort))
+            {
+                // sort order section
+                switch (sort)
+                {
+                    case "name_desc":
+                        results = results.OrderByDescending(i => i.Name);
+                        break;
+
+                    case "name_asc":
+                        results = results.OrderBy(i => i.Name);
+                        break;
+
+                    case "calories_desc":
+                        results = results.OrderByDescending(i => i.Calories);
+                        break;
+
+                    case "calories_asc":
+                        results = results.OrderBy(i => i.Calories);
+                        break;
+
+                    case "proteins_desc":
+                        results = results.OrderByDescending(i => i.Proteins);
+                        break;
+
+                    case "proteins_asc":
+                        results = results.OrderBy(i => i.Proteins);
+                        break;
+
+                    case "carbohydrates_desc":
+                        results = results.OrderByDescending(i => i.Carbohydrates);
+                        break;
+
+                    case "carbohydrates_asc":
+                        results = results.OrderBy(i => i.Carbohydrates);
+                        break;
+
+                    case "fiber_desc":
+                        results = results.OrderByDescending(i => i.Fiber);
+                        break;
+
+                    case "fiber_asc":
+                        results = results.OrderBy(i => i.Fiber);
+                        break;
+
+                    case "fat_desc":
+                        results = results.OrderByDescending(i => i.Fat);
+                        break;
+
+                    case "fat_asc":
+                        results = results.OrderBy(i => i.Fat);
+                        break;
+
+                    default:
                         break;
                 }
             }
