@@ -1,5 +1,6 @@
 ﻿using MismeAPI.Common.Exceptions;
 using Newtonsoft.Json.Linq;
+using Serilog;
 using System;
 using System.Collections.Generic;
 
@@ -29,38 +30,72 @@ namespace MismeAPI.Data.Entities.NonDatabase
             int.TryParse(json["status"].ToString(), out status);
             Status = status;
 
+            var errorMsg = "";
             if (Status == 21000)
-                throw new InvalidDataException("The request to the App Store was not made using the HTTP POST request method.");
+            {
+                errorMsg = "IAP Error 21000 - The request to the App Store was not made using the HTTP POST request method.";
+                throw new Exception(errorMsg);
+            }
 
             if (Status == 21001)
-                throw new InvalidDataException("This status code is no longer sent by the App Store.");
+            {
+                errorMsg = "IAP Error 21001 - This status code is no longer sent by the App Store.";
+                throw new Exception(errorMsg);
+            }
 
             if (Status == 21002)
-                throw new InvalidDataException("The data in the receipt-data property was malformed or the service experienced a temporary issue. Try again.");
+            {
+                errorMsg = "IAP Error 21002 - The data in the receipt-data property was malformed or the service experienced a temporary issue. Try again.";
+                throw new Exception(errorMsg);
+            }
 
             if (Status == 21003)
-                throw new InvalidDataException("The receipt could not be authenticated.");
+            {
+                errorMsg = "IAP Error 21003 - The receipt could not be authenticated.";
+                throw new Exception(errorMsg);
+            }
 
             if (Status == 21004)
-                throw new InvalidDataException("The shared secret you provided does not match the shared secret on file for your account.");
+            {
+                errorMsg = "IAP Error 21004 - The shared secret you provided does not match the shared secret on file for your account.";
+                throw new Exception(errorMsg);
+            }
 
             if (Status == 21005)
-                throw new InvalidDataException("The receipt server was temporarily unable to provide the receipt. Try again.");
+            {
+                errorMsg = "IAP Error 21005 - The receipt server was temporarily unable to provide the receipt. Try again.";
+                throw new Exception(errorMsg);
+            }
 
             if (Status == 21006)
-                throw new InvalidDataException("This receipt is valid but the subscription has expired. When this status code is returned to your server, the receipt data is also decoded and returned as part of the response. Only returned for iOS 6-style transaction receipts for auto-renewable subscriptions.");
+            {
+                errorMsg = "IAP Error 21006 - This receipt is valid but the subscription has expired. When this status code is returned to your server, the receipt data is also decoded and returned as part of the response. Only returned for iOS 6-style transaction receipts for auto-renewable subscriptions.";
+                throw new Exception(errorMsg);
+            }
 
             if (Status == 21007)
-                throw new InvalidDataException("This receipt is from the test environment, but it was sent to the production environment for verification.");
+            {
+                errorMsg = "This receipt is from the test environment, but it was sent to the production environment for verification.";
+                throw new Exception(errorMsg);
+            }
 
             if (Status == 21008)
-                throw new InvalidDataException("This receipt is from the production environment, but it was sent to the test environment for verification.");
+            {
+                errorMsg = "This receipt is from the production environment, but it was sent to the test environment for verification.";
+                throw new Exception(errorMsg);
+            }
 
             if (Status == 21009)
-                throw new InvalidDataException("Internal data access error. Try again later.");
+            {
+                errorMsg = "IAP Error 21009 - Internal data access error. Try again later.";
+                throw new Exception(errorMsg);
+            }
 
             if (Status == 21010)
-                throw new InvalidDataException("The user account cannot be found or has been deleted.");
+            {
+                errorMsg = "IAP Error 21010 - The user account cannot be found or has been deleted.";
+                throw new Exception(errorMsg);
+            }
 
             Console.WriteLine("#ReceiptValidation returns status: " + Status.ToString());
 

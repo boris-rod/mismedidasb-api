@@ -5,6 +5,7 @@ using MismeAPI.Service.Utils;
 using PayPalCheckoutSdk.Orders;
 using PayPalCheckoutSdk.Payments;
 using PayPalHttp;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -36,9 +37,23 @@ namespace MismeAPI.Service.Impls
 
             if (!string.IsNullOrEmpty(post))
             {
-                try { result = new AppleReceipt(post); }
-                catch (InvalidDataException e) { throw e; }
-                catch (Exception) { result = null; }
+                try
+                {
+                    result = new AppleReceipt(post);
+                }
+                catch (Exception e)
+                {
+                    Log.Error(e.Message);
+
+                    if (e.Message.Contains("IAP Error 21005"))
+                    {
+                        // TODO Retry pending
+
+                        // Log.Information("Operation scheduled for retry");
+                    }
+
+                    result = null;
+                }
             }
 
             return result;
