@@ -32,19 +32,19 @@ namespace MismeAPI.Utils
             await _soloQuestionService.SeedSoloQuestionsAsync();
             await _subscriptionService.SeedSubscriptionAsync();
             await _productService.SeedProductsAsync();
-            try
-            {
-                //ImportDishesAsync(_uow, serviceProvider).Wait();
-                //UpdateDishesAsync(_uow, serviceProvider).Wait();
-                //RemoveDishesAsync(serviceProvider).Wait();
-                //UploadHandCode(_uow, serviceProvider).Wait();
-                //ImportHandCodeConversionValues(_uow, serviceProvider).Wait();
-                ChangeColumns(_uow, serviceProvider).Wait();
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+            //try
+            //{
+            //    //ImportDishesAsync(_uow, serviceProvider).Wait();
+            //    //UpdateDishesAsync(_uow, serviceProvider).Wait();
+            //    //RemoveDishesAsync(serviceProvider).Wait();
+            //    //UploadHandCode(_uow, serviceProvider).Wait();
+            //    //ImportHandCodeConversionValues(_uow, serviceProvider).Wait();
+            //    //ChangeColumns(_uow, serviceProvider).Wait();
+            //}
+            //catch (Exception ex)
+            //{
+            //    throw ex;
+            //}
         }
 
         private static async Task ChangeColumns(IUnitOfWork uow, IServiceProvider serviceProvider)
