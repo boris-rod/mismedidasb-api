@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MismeAPI.Common.DTO.Response;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -9,6 +10,7 @@ namespace MismeAPI.Common.DTO.Group
         public int Id { get; set; }
         public int GroupId { get; set; }
         public int UserId { get; set; }
+        public UserResponse User { get; set; }
         public int StatusId { get; set; }
         public string Status { get; set; }
         public DateTime CreatedAt { get; set; }

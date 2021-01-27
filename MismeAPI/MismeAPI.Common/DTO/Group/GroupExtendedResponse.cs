@@ -1,6 +1,6 @@
-﻿using System;
+﻿using MismeAPI.Common.DTO.Response;
+using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace MismeAPI.Common.DTO.Group
 {
@@ -14,5 +14,6 @@ namespace MismeAPI.Common.DTO.Group
         public DateTime ModifiedAt { get; set; }
 
         public ICollection<GroupInvitationResponse> Invitations { get; set; }
+        public ICollection<UserResponse> Users { get; set; }
     }
 }

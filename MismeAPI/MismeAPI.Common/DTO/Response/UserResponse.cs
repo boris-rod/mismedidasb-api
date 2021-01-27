@@ -1,4 +1,5 @@
-﻿using MismeAPI.Common.DTO.Response.Subscription;
+﻿using MismeAPI.Common.DTO.Group;
+using MismeAPI.Common.DTO.Response.Subscription;
 using System;
 using System.Collections.Generic;
 
@@ -26,5 +27,6 @@ namespace MismeAPI.Common.DTO.Response
         public DateTime? FirstHealthMeasured { get; set; }
         public string Language { get; set; }
         public bool TermsAndConditionsAccepted { get; set; }
+        public GroupResponse Group { get; set; }
     }
 }

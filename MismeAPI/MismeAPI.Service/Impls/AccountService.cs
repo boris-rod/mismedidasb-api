@@ -35,10 +35,9 @@ namespace MismeAPI.Services.Impls
         private readonly IFileService _fileService;
         private readonly ISubscriptionService _subscriptionService;
         private readonly IProfileHelthHelper _profileHelthHelper;
-        private readonly IGroupService _groupService;
 
         public AccountService(IConfiguration configuration, IUnitOfWork uow, IDetection detection,
-            IFileService fileService, ISubscriptionService subscriptionService, IProfileHelthHelper profileHelthHelper, IGroupService groupService)
+            IFileService fileService, ISubscriptionService subscriptionService, IProfileHelthHelper profileHelthHelper)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _uow = uow ?? throw new ArgumentNullException(nameof(uow));
@@ -46,7 +45,6 @@ namespace MismeAPI.Services.Impls
             _fileService = fileService ?? throw new ArgumentNullException(nameof(fileService));
             _subscriptionService = subscriptionService ?? throw new ArgumentNullException(nameof(subscriptionService));
             _profileHelthHelper = profileHelthHelper ?? throw new ArgumentNullException(nameof(profileHelthHelper));
-            _groupService = groupService ?? throw new ArgumentNullException(nameof(groupService));
         }
 
         public async Task<(User user, string accessToken, string refreshToken, double kcal, double IMC, DateTime? firstHealtMeasured)> LoginAsync(LoginRequest loginRequest)
@@ -71,7 +69,7 @@ namespace MismeAPI.Services.Impls
 
             if (user.Role == RoleEnum.GROUP_ADMIN && user.Group == null)
             {
-                await _groupService.ValidateGroupAdminFirstLoginAsync(user);
+                await ValidateGroupAdminFirstLoginAsync(user);
             }
 
             if (user.Status != StatusEnum.ACTIVE)
@@ -1085,6 +1083,30 @@ namespace MismeAPI.Services.Impls
                 return 0;
             }
             return 0;
+        }
+
+        public async Task<bool> ValidateGroupAdminFirstLoginAsync(User user)
+        {
+            var invitation = await _uow.GroupInvitationRepository.GetAll()
+                .FirstOrDefaultAsync(gi => gi.UserId == user.Id && gi.Status == StatusInvitationEnum.PENDING);
+
+            if (invitation != null)
+            {
+                var group = await _uow.GroupRepository.GetAll().FirstOrDefaultAsync(g => g.Id == invitation.GroupId);
+                invitation.Status = StatusInvitationEnum.ACCEPTED;
+                invitation.ModifiedAt = DateTime.UtcNow;
+                await _uow.GroupInvitationRepository.UpdateAsync(invitation, invitation.Id);
+
+                user.ActivatedAt = DateTime.UtcNow;
+                user.Status = StatusEnum.ACTIVE;
+                user.Group = group;
+                await _uow.UserRepository.UpdateAsync(user, user.Id);
+                await _uow.CommitAsync();
+
+                return true;
+            }
+
+            return false;
         }
     }
 }

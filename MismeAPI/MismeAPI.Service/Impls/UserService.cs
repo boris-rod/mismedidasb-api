@@ -767,6 +767,7 @@ namespace MismeAPI.Service.Impls
         {
             var user = await _uow.UserRepository.GetAll()
                 .Include(u => u.Devices)
+                .Include(u => u.Group)
                 .Where(u => u.Id == userId)
                 .FirstOrDefaultAsync();
 

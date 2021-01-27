@@ -1,5 +1,6 @@
 using AutoMapper;
 using Hangfire;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
@@ -12,6 +13,7 @@ using MismeAPI.Data.Repository;
 using MismeAPI.Data.UoW;
 using MismeAPI.Filters;
 using MismeAPI.Middlewares;
+using MismeAPI.Middlewares.Security;
 using MismeAPI.Service;
 using MismeAPI.Service.Hubs;
 using MismeAPI.Service.Impls;
@@ -103,6 +105,7 @@ namespace MismeAPI
             services.AddTransient<IProductService, Services.Impls.ProductService>();
             services.AddTransient<IReportService, ReportService>();
             services.AddTransient<IProfileHelthHelper, ProfileHelthHelper>();
+            services.AddTransient<IGroupService, GroupService>();
 
             var provider = services.BuildServiceProvider();
             var amazonS3Service = provider.GetService<IAmazonS3Service>();
@@ -114,6 +117,14 @@ namespace MismeAPI
 
             var stripeApiKey = Configuration.GetSection("Stripe")["ApiKey"];
             StripeConfiguration.ApiKey = stripeApiKey;
+
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("EditPolicy", policy =>
+                    policy.Requirements.Add(new SameAuthorRequirement()));
+            });
+
+            services.AddSingleton<IAuthorizationHandler, GroupAuthorizationCrudHandler>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

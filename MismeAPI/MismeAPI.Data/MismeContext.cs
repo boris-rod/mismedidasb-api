@@ -91,6 +91,7 @@ namespace MismeAPI.Data
             modelBuilder.Entity<Product>().HasMany(p => p.Orders).WithOne(b => b.Product).OnDelete(DeleteBehavior.SetNull);
 
             modelBuilder.Entity<User>().HasMany(p => p.GroupInvitations).WithOne(b => b.User).OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<Group>().HasMany(p => p.Invitations).WithOne(b => b.Group).OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

@@ -43,11 +43,25 @@ namespace MismeAPI.Utils
                 return resource.Replace("#AMINURL#", adminUrl);
         }
 
+        public static string ToSendInvitationGroupEmail(this string resource, string fullname, string groupName, string acceptUrl, string declineUrl)
+        {
+            return resource.Replace("#FULLNAME#", fullname).Replace("#GROUPNAME#", groupName)
+                .Replace("#ACCEPTINVIATIONURL#", acceptUrl)
+                .Replace("#DECLINEINVIATIONURL#", declineUrl);
+        }
+
         public static int GetUserIdFromToken(this ClaimsPrincipal user)
         {
             var claimsIdentity = user.Identity as ClaimsIdentity;
             var userId = claimsIdentity.FindFirst(ClaimTypes.UserData)?.Value;
             return int.Parse(userId);
+        }
+
+        public static string GetUserRoleFromToken(this ClaimsPrincipal user)
+        {
+            var claimsIdentity = user.Identity as ClaimsIdentity;
+            var role = claimsIdentity.FindFirst(ClaimTypes.Role)?.Value;
+            return role;
         }
 
         public static DateTime FromUTCToLocalTime(this DateTime dt, int timezoneOffset)

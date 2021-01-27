@@ -48,7 +48,7 @@ namespace MismeAPI.Controllers
         [ProducesResponseType(typeof(UserReferralResponse), (int)HttpStatusCode.Created)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Unauthorized)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
-        public async Task<IActionResult> AddReferrals([FromBody]IEnumerable<CreateUserReferralRequest> request)
+        public async Task<IActionResult> AddReferrals([FromBody] IEnumerable<CreateUserReferralRequest> request)
         {
             var loggedUser = User.GetUserIdFromToken();
 
@@ -58,24 +58,19 @@ namespace MismeAPI.Controllers
             {
                 var to = new List<string>();
                 var fullName = result.First().User.FullName;
+                var subject = "Invitation to join planifive";
 
                 foreach (var item in result)
                 {
                     to.Add(item.Email);
                 }
-                var resource = _env.ContentRootPath
-                           + Path.DirectorySeparatorChar.ToString()
-                           + "Templates"
-                           + Path.DirectorySeparatorChar.ToString()
-                           + "SendInvitation.html";
-                var reader = new StreamReader(resource);
+
+                var emailBody = EmailTemplateHelper.GetEmailTemplateString("SendInvitation.html", subject, _env);
+
                 var iOSLink = _configuration.GetValue<string>("CustomSetting:ApkLinkIOS");
                 var androidLink = _configuration.GetValue<string>("CustomSetting:ApkLinkAndroid");
 
-                var emailBody = reader.ReadToEnd().ToSendInvitationEmail(fullName, iOSLink, androidLink);
-                reader.Dispose();
-
-                var subject = "PlaniFive Invitation";
+                emailBody = emailBody.ToSendInvitationEmail(fullName, iOSLink, androidLink);
 
                 /*Commeting the try catch due to there my be different exceptions that doesnt mean that all users where not notified*/
                 //try

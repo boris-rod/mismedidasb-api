@@ -1,6 +1,6 @@
 ﻿namespace MismeAPI.Data.Entities.Enums
 {
-    public enum StatusInvitatonEnum
+    public enum StatusInvitationEnum
     {
         PENDING, ACCEPTED, REJECTED
     }

@@ -72,6 +72,7 @@ namespace MismeAPI.Data.Entities
         public int DinnerKCalPercentage { get; set; }
         public UserStatistics UserStatistics { get; set; }
         public UserReferral Invitation { get; set; }
+        public int? GroupId { get; set; }
         public Group Group { get; set; }
         public virtual ICollection<UserToken> UserTokens { get; set; }
         public virtual ICollection<Eat> Eats { get; set; }

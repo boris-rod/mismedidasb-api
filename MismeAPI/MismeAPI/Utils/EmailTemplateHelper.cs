@@ -37,7 +37,7 @@ namespace MismeAPI.Utils
 
         private static string GetFooterString(IWebHostEnvironment _env)
         {
-            var templateName = "_header.html";
+            var templateName = "_footer.html";
             var stringTemplate = GetStringTemplate(templateName, _env);
 
             return stringTemplate;
