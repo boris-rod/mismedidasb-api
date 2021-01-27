@@ -69,19 +69,13 @@ namespace MismeAPI.Controllers
         {
             var user = await _accountService.SignUpAsync(register);
 
-            var resource = _env.ContentRootPath
-                       + Path.DirectorySeparatorChar.ToString()
-                       + "Templates"
-                       + Path.DirectorySeparatorChar.ToString()
-                       + "AccountActivation.html";
-            var reader = new StreamReader(resource);
-            var emailBody = reader.ReadToEnd().ToActivationAccountEmail(user.VerificationCode.ToString());
-            reader.Dispose();
-
-            var subject = "Activation Account";
-
+            var subject = "Activate your Account";
+            var emailBody = EmailTemplateHelper.GetEmailTemplateString("AccountActivation.html", "Activation Code", _env);
+            emailBody = emailBody.ToActivationAccountEmail(user.VerificationCode.ToString());
             var to = new List<string> { user.Email };
+
             await _emailService.SendEmailResponseAsync(subject, emailBody, to);
+
             var mapped = _mapper.Map<UserResponse>(user);
             await _hub.Clients.All.SendAsync(HubConstants.USER_REGISTERED, mapped);
 
@@ -278,16 +272,9 @@ namespace MismeAPI.Controllers
         {
             var newPass = await _accountService.ForgotPasswordAsync(email);
 
-            var resource = _env.ContentRootPath
-                       + Path.DirectorySeparatorChar.ToString()
-                       + "Templates"
-                       + Path.DirectorySeparatorChar.ToString()
-                       + "ForgotPassword.html";
-            var reader = new StreamReader(resource);
-            var emailBody = reader.ReadToEnd().ToForgotPasswordEmail(newPass);
-            reader.Dispose();
-
             var subject = "Password Reset";
+            var emailBody = EmailTemplateHelper.GetEmailTemplateString("ForgotPassword.html", subject, _env);
+            emailBody = emailBody.ToForgotPasswordEmail(newPass);
 
             var to = new List<string> { email };
             await _emailService.SendEmailResponseAsync(subject, emailBody, to);
@@ -325,18 +312,12 @@ namespace MismeAPI.Controllers
         public async Task<IActionResult> ResendVerificationCode(string email)
         {
             var code = await _accountService.ResendVerificationCodeAsync(email);
-            var resource = _env.ContentRootPath
-                       + Path.DirectorySeparatorChar.ToString()
-                       + "Templates"
-                       + Path.DirectorySeparatorChar.ToString()
-                       + "AccountActivation.html";
-            var reader = new StreamReader(resource);
-            var emailBody = reader.ReadToEnd().ToActivationAccountEmail(code.ToString());
-            reader.Dispose();
 
             var subject = "Resend Verification Code";
-
+            var emailBody = EmailTemplateHelper.GetEmailTemplateString("AccountActivation.html", "Activation Code", _env);
+            emailBody = emailBody.ToActivationAccountEmail(code.ToString());
             var to = new List<string> { email };
+
             await _emailService.SendEmailResponseAsync(subject, emailBody, to);
 
             return Ok();
