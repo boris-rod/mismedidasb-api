@@ -101,7 +101,7 @@ namespace MismeAPI.Service.Impls
                 }
             }
 
-            return await PaginatedList<User>.CreateAsync(result, pag, perPag);
+            return await PaginatedList<User>.CreateAsync(result, pag == -1 ? 1 : pag, pag == -1 ? result.Count() : perPag);
         }
 
         public async Task<dynamic> GetUsersStatsAsync(int loggedUser)
