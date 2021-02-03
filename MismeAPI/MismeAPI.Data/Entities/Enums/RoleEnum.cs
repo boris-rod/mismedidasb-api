@@ -2,6 +2,6 @@ namespace MismeAPI.Data.Entities.Enums
 {
     public enum RoleEnum
     {
-        NORMAL, ADMIN
+        NORMAL, ADMIN, GROUP_ADMIN
     }
 }

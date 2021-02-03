@@ -52,6 +52,7 @@ namespace MismeAPI.Services.Impls
             var hashedPass = GetSha256Hash(loginRequest.Password);
 
             var user = await _uow.UserRepository.FindBy(u => u.Email == loginRequest.Email)
+                .Include(u => u.Group)
                 .Include(u => u.UserSettings)
                     .ThenInclude(s => s.Setting)
                 .FirstOrDefaultAsync();
@@ -65,6 +66,12 @@ namespace MismeAPI.Services.Impls
             {
                 throw new UnauthorizedException(ExceptionConstants.UNAUTHORIZED);
             }
+
+            if (user.Role == RoleEnum.GROUP_ADMIN && user.Group == null)
+            {
+                await ValidateGroupAdminFirstLoginAsync(user);
+            }
+
             if (user.Status != StatusEnum.ACTIVE)
             {
                 throw new NotAllowedException(ExceptionConstants.NOT_ALLOWED);
@@ -1076,6 +1083,30 @@ namespace MismeAPI.Services.Impls
                 return 0;
             }
             return 0;
+        }
+
+        public async Task<bool> ValidateGroupAdminFirstLoginAsync(User user)
+        {
+            var invitation = await _uow.GroupInvitationRepository.GetAll()
+                .FirstOrDefaultAsync(gi => gi.UserId == user.Id && gi.Status == StatusInvitationEnum.PENDING);
+
+            if (invitation != null)
+            {
+                var group = await _uow.GroupRepository.GetAll().FirstOrDefaultAsync(g => g.Id == invitation.GroupId);
+                invitation.Status = StatusInvitationEnum.ACCEPTED;
+                invitation.ModifiedAt = DateTime.UtcNow;
+                await _uow.GroupInvitationRepository.UpdateAsync(invitation, invitation.Id);
+
+                user.ActivatedAt = DateTime.UtcNow;
+                user.Status = StatusEnum.ACTIVE;
+                user.Group = group;
+                await _uow.UserRepository.UpdateAsync(user, user.Id);
+                await _uow.CommitAsync();
+
+                return true;
+            }
+
+            return false;
         }
     }
 }

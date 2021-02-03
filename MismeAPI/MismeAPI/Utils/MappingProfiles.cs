@@ -2,6 +2,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using MismeAPI.Common;
+using MismeAPI.Common.DTO.Group;
 using MismeAPI.Common.DTO.Response;
 using MismeAPI.Common.DTO.Response.CompoundDish;
 using MismeAPI.Common.DTO.Response.ContactUs;
@@ -299,6 +300,12 @@ namespace MismeAPI.Utils
                        .ForMember(d => d.Status, opts => opts.MapFrom(source => source.Status.ToString()))
                        .ForMember(d => d.PaymentMethodId, opts => opts.MapFrom(source => (int)source.PaymentMethod))
                        .ForMember(d => d.PaymentMethod, opts => opts.MapFrom(source => source.PaymentMethod.ToString()));
+
+            CreateMap<Group, GroupResponse>();
+            CreateMap<Group, GroupExtendedResponse>();
+            CreateMap<GroupInvitation, GroupInvitationResponse>()
+                .ForMember(d => d.StatusId, opts => opts.MapFrom(source => (int)source.Status))
+                .ForMember(d => d.Status, opts => opts.MapFrom(source => source.Status.ToString()));
         }
 
         private int GetLastAnswer(Question src, IDictionary<string, object> items = null)

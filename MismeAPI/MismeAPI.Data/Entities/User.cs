@@ -72,6 +72,8 @@ namespace MismeAPI.Data.Entities
         public int DinnerKCalPercentage { get; set; }
         public UserStatistics UserStatistics { get; set; }
         public UserReferral Invitation { get; set; }
+        public int? GroupId { get; set; }
+        public Group Group { get; set; }
         public virtual ICollection<UserToken> UserTokens { get; set; }
         public virtual ICollection<Eat> Eats { get; set; }
         public virtual ICollection<Device> Devices { get; set; }
@@ -87,6 +89,7 @@ namespace MismeAPI.Data.Entities
         public virtual ICollection<LackSelfControlDish> LackSelfControlDishes { get; set; }
         public virtual ICollection<FavoriteCompoundDishes> FavoriteCompoundDishes { get; set; }
         public virtual ICollection<LackSelfControlCompoundDish> LackSelfControlCompoundDishes { get; set; }
+        public virtual ICollection<GroupInvitation> GroupInvitations { get; set; }
         public virtual ICollection<Order> Orders { get; set; }
     }
 }

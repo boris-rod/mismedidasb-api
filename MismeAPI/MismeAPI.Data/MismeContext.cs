@@ -56,6 +56,8 @@ namespace MismeAPI.Data
         public DbSet<LackSelfControlDish> LackSelfControlDishes { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<Order> Order { get; set; }
+        public DbSet<Group> Group { get; set; }
+        public DbSet<GroupInvitation> GroupInvitation { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -87,6 +89,9 @@ namespace MismeAPI.Data
 
             modelBuilder.Entity<User>().HasMany(p => p.Orders).WithOne(b => b.User).OnDelete(DeleteBehavior.SetNull);
             modelBuilder.Entity<Product>().HasMany(p => p.Orders).WithOne(b => b.Product).OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<User>().HasMany(p => p.GroupInvitations).WithOne(b => b.User).OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<Group>().HasMany(p => p.Invitations).WithOne(b => b.Group).OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

@@ -59,5 +59,7 @@ namespace MismeAPI.Services
         Task<int> GetHeightAsync(int userId);
 
         Task<int> GetSexAsync(int userId);
+
+        Task<bool> ValidateGroupAdminFirstLoginAsync(User user);
     }
 }

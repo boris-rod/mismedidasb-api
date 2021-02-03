@@ -142,20 +142,13 @@ namespace MismeAPI.Controllers.Admin
 
         private SendEmailRequest PrepareEmailBody(SendEmailRequest request)
         {
-            var resource = _env.ContentRootPath
-                       + Path.DirectorySeparatorChar.ToString()
-                       + "Templates"
-                       + Path.DirectorySeparatorChar.ToString()
-                       + "ManualEmail.html";
-            var reader = new StreamReader(resource);
+            var emailBody = EmailTemplateHelper.GetEmailTemplateString("ManualEmail.html", request.Subject, _env);
+            var emailBodyIT = EmailTemplateHelper.GetEmailTemplateString("ManualEmail.html", request.SubjectIT, _env);
+            var emailBodyEN = EmailTemplateHelper.GetEmailTemplateString("ManualEmail.html", request.SubjectEN, _env);
 
-            var stringTemplate = reader.ReadToEnd();
-
-            request.Body = stringTemplate.ToManualEmail(request.Subject, request.Body);
-            request.BodyIT = stringTemplate.ToManualEmail(request.SubjectIT, request.BodyIT);
-            request.BodyEN = stringTemplate.ToManualEmail(request.SubjectEN, request.BodyEN);
-
-            reader.Dispose();
+            request.Body = emailBody.ToManualEmail(request.Subject, request.Body);
+            request.BodyIT = emailBodyIT.ToManualEmail(request.SubjectIT, request.BodyIT);
+            request.BodyEN = emailBodyEN.ToManualEmail(request.SubjectEN, request.BodyEN);
 
             return request;
         }
