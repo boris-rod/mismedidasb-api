@@ -93,7 +93,10 @@ namespace MismeAPI.Controllers
         {
             var loggedUser = User.GetUserIdFromToken();
             var result = await _pollService.CreatePollAsync(loggedUser, poll);
-            var mapped = _mapper.Map<PollResponse>(result);
+            var mapped = _mapper.Map<PollResponse>(result, opt =>
+            {
+                opt.Items["lang"] = "ES";
+            });
             return Created("", new ApiOkResponse(mapped));
         }
 
@@ -111,7 +114,10 @@ namespace MismeAPI.Controllers
         {
             var loggedUser = User.GetUserIdFromToken();
             var result = await _pollService.UpdatePollDataAsync(loggedUser, poll);
-            var mapped = _mapper.Map<PollResponse>(result);
+            var mapped = _mapper.Map<PollResponse>(result, opt =>
+            {
+                opt.Items["lang"] = "ES";
+            });
             return Ok(new ApiOkResponse(mapped));
         }
 
@@ -160,7 +166,10 @@ namespace MismeAPI.Controllers
         {
             var loggedUser = User.GetUserIdFromToken();
             var result = await _pollService.UpdatePollTitleAsync(loggedUser, title, id);
-            var mapped = _mapper.Map<PollResponse>(result);
+            var mapped = _mapper.Map<PollResponse>(result, opt =>
+            {
+                opt.Items["lang"] = "ES";
+            });
             return Ok(new ApiOkResponse(mapped));
         }
 
@@ -241,7 +250,10 @@ namespace MismeAPI.Controllers
         {
             var loggedUser = User.GetUserIdFromToken();
             var tip = await _pollService.AddTipRequestAsync(loggedUser, tipRequest);
-            var mapped = _mapper.Map<TipResponse>(tip);
+            var mapped = _mapper.Map<TipResponse>(tip, opt =>
+            {
+                opt.Items["lang"] = "ES";
+            });
             return Created("", new ApiOkResponse(mapped));
         }
 
@@ -275,7 +287,10 @@ namespace MismeAPI.Controllers
         {
             var loggedUser = User.GetUserIdFromToken();
             var result = await _pollService.UpdateTipContentAsync(loggedUser, content, id);
-            var mapped = _mapper.Map<TipResponse>(result);
+            var mapped = _mapper.Map<TipResponse>(result, opt =>
+            {
+                opt.Items["lang"] = "ES";
+            });
             return Ok(new ApiOkResponse(mapped));
         }
 
@@ -312,10 +327,7 @@ namespace MismeAPI.Controllers
 
             //var mapped = _mapper.Map<IEnumerable<PollAdminResponse>>(result);
 
-            var mapped = _mapper.Map<IEnumerable<PollAdminResponse>>(result, opt =>
-            {
-                opt.Items["lang"] = language;
-            });
+            var mapped = _mapper.Map<IEnumerable<PollAdminResponse>>(result);
 
             mapped = mapped.OrderBy(m => m.Order);
             return Ok(new ApiOkResponse(mapped));

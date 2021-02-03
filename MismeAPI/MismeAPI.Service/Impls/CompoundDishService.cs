@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using MismeAPI.Common;
 using MismeAPI.Common.DTO.Request;
 using MismeAPI.Common.DTO.Request.CompoundDish;
@@ -7,10 +8,12 @@ using MismeAPI.Data.Entities;
 using MismeAPI.Data.Entities.Enums;
 using MismeAPI.Data.UoW;
 using MismeAPI.Services;
+using MismeAPI.Services.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Z.EntityFramework.Plus;
 
 namespace MismeAPI.Service.Impls
 {
@@ -18,11 +21,13 @@ namespace MismeAPI.Service.Impls
     {
         private readonly IUnitOfWork _uow;
         private readonly IFileService _fileService;
+        private readonly IConfiguration _config;
 
-        public CompoundDishService(IUnitOfWork uow, IFileService fileService)
+        public CompoundDishService(IUnitOfWork uow, IFileService fileService, IConfiguration config)
         {
             _uow = uow ?? throw new ArgumentNullException(nameof(uow));
             _fileService = fileService ?? throw new ArgumentNullException(nameof(fileService));
+            _config = config ?? throw new ArgumentNullException(nameof(config));
         }
 
         public async Task ConvertUserDishAsync(int loggedUser, UpdateDishRequest dish)
@@ -164,6 +169,7 @@ namespace MismeAPI.Service.Impls
 
             await _uow.DishRepository.AddAsync(dishh);
             await _uow.CommitAsync();
+            QueryCacheManager.ExpireTag(_config.GetSection("AWS")["CachePrefix"] + CacheEntries.ALL_DISHES);
         }
 
         public async Task<CompoundDish> CreateCompoundDishAsync(int ownerId, CreateCompoundDishRequest dish)
@@ -209,10 +215,10 @@ namespace MismeAPI.Service.Impls
             await _uow.CommitAsync();
         }
 
-        public async Task<IEnumerable<CompoundDish>> GetAllCompoundDishesAsync(int adminId, string search, int filter)
+        public async Task<PaginatedList<CompoundDish>> GetAllCompoundDishesAsync(int adminId, string search, int filter, int page, int perPage, string sort)
         {
-            var user = await _uow.UserRepository.FindByAsync(u => u.Id == adminId && u.Role == RoleEnum.ADMIN);
-            if (user.Count == 0)
+            var user = await _uow.UserRepository.GetAll().Where(u => u.Id == adminId && u.Role == RoleEnum.ADMIN).FirstOrDefaultAsync();
+            if (user == null)
             {
                 throw new NotAllowedException(ExceptionConstants.NOT_ALLOWED);
             }
@@ -244,7 +250,26 @@ namespace MismeAPI.Service.Impls
                 }
             }
 
-            return await results.ToListAsync();
+            if (!string.IsNullOrWhiteSpace(sort))
+            {
+                // sort order section
+                switch (sort)
+                {
+                    case "name_desc":
+                        results = results.OrderByDescending(i => i.Name);
+                        break;
+
+                    case "name_asc":
+                        results = results.OrderBy(i => i.Name);
+                        break;
+
+                    default:
+                        break;
+                }
+            }
+
+            //return await results.ToListAsync();
+            return await PaginatedList<CompoundDish>.CreateAsync(results.AsQueryable(), page, perPage);
         }
 
         public async Task<IEnumerable<CompoundDish>> GetUserCompoundDishesAsync(int ownerId, string search, bool? favorites, bool? lackSelfControl)

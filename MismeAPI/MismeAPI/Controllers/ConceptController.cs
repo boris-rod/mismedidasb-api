@@ -70,7 +70,7 @@ namespace MismeAPI.Controllers
         [HttpGet("{id}/polls")]
         [Authorize]
         [ProducesResponseType(typeof(IEnumerable<PollResponse>), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> GetAll([FromRoute]int id)
+        public async Task<IActionResult> GetAll([FromRoute] int id)
         {
             var loggedUser = User.GetUserIdFromToken();
             var language = await _userService.GetUserLanguageFromUserIdAsync(loggedUser);
@@ -96,7 +96,7 @@ namespace MismeAPI.Controllers
         [ProducesResponseType(typeof(ConceptResponse), (int)HttpStatusCode.Created)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
-        public async Task<IActionResult> AddConcept([FromBody]AddConceptRequest concept)
+        public async Task<IActionResult> AddConcept([FromBody] AddConceptRequest concept)
         {
             var loggedUser = User.GetUserIdFromToken();
             var result = await _conceptService.AddConceptAsync(loggedUser, concept);
@@ -113,7 +113,7 @@ namespace MismeAPI.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> DeleteConcept([FromRoute]int id)
+        public async Task<IActionResult> DeleteConcept([FromRoute] int id)
         {
             var loggedUser = User.GetUserIdFromToken();
             await _conceptService.DeleteConceptAsync(loggedUser, id);
@@ -127,15 +127,15 @@ namespace MismeAPI.Controllers
         /// <param name="id">Concept id to update.</param>
         [HttpPut("{id}")]
         [Authorize]
-        [ProducesResponseType(typeof(ConceptResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ConceptAdminResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
-        public async Task<IActionResult> EditConcept([FromRoute]int id, UpdateConceptRequest concept)
+        public async Task<IActionResult> EditConcept([FromRoute] int id, UpdateConceptRequest concept)
         {
             var loggedUser = User.GetUserIdFromToken();
             var result = await _conceptService.EditConceptAsync(loggedUser, concept, id);
-            var mapped = _mapper.Map<ConceptResponse>(result);
+            var mapped = _mapper.Map<ConceptAdminResponse>(result);
             return Created("", new ApiOkResponse(mapped));
         }
 
@@ -148,7 +148,7 @@ namespace MismeAPI.Controllers
         [Authorize]
         [ProducesResponseType(typeof(ConceptResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
-        public async Task<IActionResult> ChangeConceptPollOrder([FromRoute] int id, [FromBody]PollOrderRequest pollOrderRequest)
+        public async Task<IActionResult> ChangeConceptPollOrder([FromRoute] int id, [FromBody] PollOrderRequest pollOrderRequest)
         {
             var loggedUser = User.GetUserIdFromToken();
             await _conceptService.ChangeConceptPollOrderAsync(loggedUser, pollOrderRequest, id);
@@ -165,7 +165,7 @@ namespace MismeAPI.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> ConceptTranslation([FromRoute] int id, [FromBody]ConceptTranslationRequest concetpTranslationRequest)
+        public async Task<IActionResult> ConceptTranslation([FromRoute] int id, [FromBody] ConceptTranslationRequest concetpTranslationRequest)
         {
             var loggedUser = User.GetUserIdFromToken();
             await _conceptService.ChangeConceptTranslationAsync(loggedUser, concetpTranslationRequest, id);

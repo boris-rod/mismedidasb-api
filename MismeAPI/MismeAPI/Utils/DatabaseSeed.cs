@@ -39,11 +39,27 @@ namespace MismeAPI.Utils
             //    //RemoveDishesAsync(serviceProvider).Wait();
             //    //UploadHandCode(_uow, serviceProvider).Wait();
             //    //ImportHandCodeConversionValues(_uow, serviceProvider).Wait();
+            //    //ChangeColumns(_uow, serviceProvider).Wait();
             //}
             //catch (Exception ex)
             //{
             //    throw ex;
             //}
+        }
+
+        private static async Task ChangeColumns(IUnitOfWork uow, IServiceProvider serviceProvider)
+        {
+            var dishes = uow.DishRepository.GetAll();
+            foreach (var item in dishes)
+            {
+                var tempProteinsChanged = item.Carbohydrates;
+                var tempCarboChanged = item.Proteins;
+                item.Carbohydrates = tempCarboChanged;
+                item.Proteins = tempProteinsChanged;
+                await uow.DishRepository.UpdateAsync(item, item.Id);
+            }
+
+            await uow.CommitAsync();
         }
 
         private static async Task ImportHandCodeConversionValues(IUnitOfWork _uow, IServiceProvider serviceProvider)
@@ -176,12 +192,12 @@ namespace MismeAPI.Utils
 
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             //using (var package = new ExcelPackage(new FileInfo("D:/Projects/Mismes/BD Alimentos Saira/Envido  nuevos solo y para eliminar.xlsx")))
-            using (var package = new ExcelPackage(new FileInfo("D:/Projects/Mismes/BD Alimentos Saira/Modificada final.xlsx")))
+            using (var package = new ExcelPackage(new FileInfo("D:/Projects/Mismes/BD Alimentos Saira/Finalizada 23012021.xlsx")))
             {
                 var sheetCount = package.Workbook.Worksheets.Count;
-                var firstSheet = package.Workbook.Worksheets["Hoja1"];
+                var firstSheet = package.Workbook.Worksheets["PLATOS 23-01-2021"];
                 //for (int i = 2; i <= 3829; i++)
-                for (int i = 3501; i <= 3829; i++)
+                for (int i = 3701; i <= 3829; i++)
                 {
                     var id = int.Parse(firstSheet.Cells[i, 1].Text.Trim());
                     var dishDB = await _uow.DishRepository.GetAsync(id);
@@ -196,8 +212,9 @@ namespace MismeAPI.Utils
                         //var dishClasifi = firstSheet.Cells[i, 7].Text.Trim();
                         //var category = firstSheet.Cells[i, 8].Text.Trim();
                         var calories = double.Parse(firstSheet.Cells[i, 9].Text.Trim());
-                        var proteins = double.Parse(firstSheet.Cells[i, 10].Text.Trim());
-                        var carbohidrates = double.Parse(firstSheet.Cells[i, 11].Text.Trim());
+
+                        var carbohidrates = double.Parse(firstSheet.Cells[i, 10].Text.Trim());
+                        var proteins = double.Parse(firstSheet.Cells[i, 11].Text.Trim());
                         var fiber = double.Parse(firstSheet.Cells[i, 12].Text.Trim());
                         var fat = double.Parse(firstSheet.Cells[i, 13].Text.Trim());
                         var staurated = double.Parse(firstSheet.Cells[i, 14].Text.Trim());
@@ -408,8 +425,9 @@ namespace MismeAPI.Utils
                     var dishClasifi = firstSheet.Cells[i, 7].Text.Trim();
                     var category = firstSheet.Cells[i, 8].Text.Trim();
                     var calories = double.Parse(firstSheet.Cells[i, 9].Text.Trim());
-                    var proteins = double.Parse(firstSheet.Cells[i, 10].Text.Trim());
-                    var carbohidrates = double.Parse(firstSheet.Cells[i, 11].Text.Trim());
+
+                    var carbohidrates = double.Parse(firstSheet.Cells[i, 10].Text.Trim());
+                    var proteins = double.Parse(firstSheet.Cells[i, 11].Text.Trim());
                     var fiber = double.Parse(firstSheet.Cells[i, 12].Text.Trim());
                     var fat = double.Parse(firstSheet.Cells[i, 13].Text.Trim());
                     var staurated = double.Parse(firstSheet.Cells[i, 14].Text.Trim());

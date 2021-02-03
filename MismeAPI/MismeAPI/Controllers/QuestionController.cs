@@ -35,10 +35,13 @@ namespace MismeAPI.Controllers
         [Authorize]
         [ProducesResponseType(typeof(IEnumerable<QuestionResponse>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> GetQuestionsByPoll([FromQuery]int pollId)
+        public async Task<IActionResult> GetQuestionsByPoll([FromQuery] int pollId)
         {
             var result = await _questionService.GetQuestionsByPollIdAsync(pollId);
-            var mapped = _mapper.Map<IEnumerable<QuestionResponse>>(result);
+            var mapped = _mapper.Map<IEnumerable<QuestionResponse>>(result, opt =>
+            {
+                opt.Items["lang"] = "ES";
+            });
             mapped = mapped.OrderBy(m => m.Order);
             return Ok(new ApiOkResponse(mapped));
         }
@@ -51,10 +54,13 @@ namespace MismeAPI.Controllers
         [Authorize]
         [ProducesResponseType(typeof(QuestionResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> GetById([FromRoute]int id)
+        public async Task<IActionResult> GetById([FromRoute] int id)
         {
             var result = await _questionService.GetQuestionByIdAsync(id);
-            var mapped = _mapper.Map<QuestionResponse>(result);
+            var mapped = _mapper.Map<QuestionResponse>(result, opt =>
+            {
+                opt.Items["lang"] = "ES";
+            });
             return Ok(new ApiOkResponse(mapped));
         }
 
@@ -71,7 +77,10 @@ namespace MismeAPI.Controllers
         {
             var loggedUser = User.GetUserIdFromToken();
             var result = await _questionService.CreateQuestionAsync(loggedUser, question);
-            var mapped = _mapper.Map<QuestionResponse>(result);
+            var mapped = _mapper.Map<QuestionResponse>(result, opt =>
+            {
+                opt.Items["lang"] = "ES";
+            });
             return Created("", new ApiOkResponse(mapped));
         }
 
@@ -89,7 +98,10 @@ namespace MismeAPI.Controllers
         {
             var loggedUser = User.GetUserIdFromToken();
             var result = await _questionService.UpdateQuestionAsync(loggedUser, question);
-            var mapped = _mapper.Map<QuestionResponse>(result);
+            var mapped = _mapper.Map<QuestionResponse>(result, opt =>
+            {
+                opt.Items["lang"] = "ES";
+            });
             return Ok(new ApiOkResponse(mapped));
         }
 
@@ -102,7 +114,7 @@ namespace MismeAPI.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> Delete([FromRoute]int id)
+        public async Task<IActionResult> Delete([FromRoute] int id)
         {
             var loggedUser = User.GetUserIdFromToken();
             await _questionService.DeleteQuestionAsync(loggedUser, id);
@@ -124,7 +136,10 @@ namespace MismeAPI.Controllers
         {
             var loggedUser = User.GetUserIdFromToken();
             var result = await _questionService.UpdateQuestionTitleAsync(loggedUser, id, title);
-            var mapped = _mapper.Map<QuestionResponse>(result);
+            var mapped = _mapper.Map<QuestionResponse>(result, opt =>
+            {
+                opt.Items["lang"] = "ES";
+            });
             return Ok(new ApiOkResponse(mapped));
         }
 
@@ -140,7 +155,10 @@ namespace MismeAPI.Controllers
         {
             var loggedUser = User.GetUserIdFromToken();
             var result = await _questionService.AddOrUpdateQuestionWithAnswersAsync(loggedUser, question);
-            var mapped = _mapper.Map<QuestionResponse>(result);
+            var mapped = _mapper.Map<QuestionResponse>(result, opt =>
+            {
+                opt.Items["lang"] = "ES";
+            });
             return Created("", new ApiOkResponse(mapped));
         }
 
@@ -168,7 +186,7 @@ namespace MismeAPI.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> QuestionTranslation([FromRoute] int id, [FromBody]QuestionTranslationRequest questionTranslationRequest)
+        public async Task<IActionResult> QuestionTranslation([FromRoute] int id, [FromBody] QuestionTranslationRequest questionTranslationRequest)
         {
             var loggedUser = User.GetUserIdFromToken();
             await _questionService.ChangeQuestionTranslationAsync(loggedUser, questionTranslationRequest, id);

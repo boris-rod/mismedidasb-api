@@ -2,6 +2,6 @@
 {
     public enum PaymentMethodEnum
     {
-        STRIPE, PAYPAL
+        STRIPE, PAYPAL, IN_APP_PURSHASE_APPLE
     }
 }

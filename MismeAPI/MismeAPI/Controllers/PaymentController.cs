@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using MismeAPI.BasicResponses;
+using MismeAPI.Common.DTO.Response.Order;
 using MismeAPI.Common.DTO.Response.Payment;
 using MismeAPI.Services;
 using MismeAPI.Utils;
@@ -133,6 +134,30 @@ namespace MismeAPI.Controllers
             await _paymentService.DeleteStripeCustomerPaymentMethod(loggedUser, paymentMethodId);
 
             return NoContent();
+        }
+
+        /// <summary>
+        /// Verify a success Apple In App Purshase
+        /// </summary>
+        /// <param name="receipt">Receipt in Base64 string sent by apple in the payment process</param>
+        /// <returns>
+        /// List of Orders generated in this verification process after processed and give the
+        /// points to the user. Use ExternalId as the TransactionId that need to be completed.
+        /// </returns>
+        [Authorize]
+        [HttpPost("verify-apple-in-app-purshase")]
+        [ProducesResponseType(typeof(IEnumerable<OrderResponse>), (int)HttpStatusCode.Created)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.InternalServerError)]
+        public async Task<IActionResult> VirifyAppleInAppPurshase([FromBody] string receipt)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+
+            var orders = await _paymentService.ValidateAppleReceiptAsync(loggedUser, receipt);
+            var mapped = _mapper.Map<IEnumerable<OrderResponse>>(orders);
+
+            return Created("Verified", new ApiOkResponse(mapped));
         }
     }
 }

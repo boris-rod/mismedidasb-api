@@ -129,29 +129,36 @@ namespace MismeAPI.Service.Impls
 
         public async Task<Question> UpdateQuestionTitleAsync(int loggedUser, int id, string title)
         {
-            // not found question?
-            var pd = await _uow.QuestionRepository.GetAsync(id);
-            if (pd == null)
+            try
             {
-                throw new NotFoundException(ExceptionConstants.NOT_FOUND, "Question");
-            }
+                // not found question?
+                var pd = await _uow.QuestionRepository.GetAll().Where(q => q.Id == id).FirstOrDefaultAsync();
+                if (pd == null)
+                {
+                    throw new NotFoundException(ExceptionConstants.NOT_FOUND, "Question");
+                }
 
-            // validate admin user
-            var user = await _uow.UserRepository.FindByAsync(u => u.Id == loggedUser && u.Role == RoleEnum.ADMIN);
-            if (user.Count == 0)
-            {
-                throw new NotAllowedException(ExceptionConstants.NOT_ALLOWED);
-            }
+                // validate admin user
+                var user = await _uow.UserRepository.FindByAsync(u => u.Id == loggedUser && u.Role == RoleEnum.ADMIN);
+                if (user.Count == 0)
+                {
+                    throw new NotAllowedException(ExceptionConstants.NOT_ALLOWED);
+                }
 
-            var exist = await _uow.QuestionRepository.FindByAsync(q => q.Title.ToLower() == title && q.PollId == pd.PollId);
-            if (exist.Count > 0)
-            {
-                throw new InvalidDataException(ExceptionConstants.INVALID_DATA);
+                var exist = await _uow.QuestionRepository.FindByAsync(q => q.Title.ToLower() == title && q.PollId == pd.PollId);
+                if (exist.Count > 0)
+                {
+                    throw new InvalidDataException(ExceptionConstants.INVALID_DATA);
+                }
+                pd.Title = title;
+                await _uow.QuestionRepository.UpdateAsync(pd, pd.Id);
+                await _uow.CommitAsync();
+                return pd;
             }
-            pd.Title = title;
-            await _uow.QuestionRepository.UpdateAsync(pd, pd.Id);
-            await _uow.CommitAsync();
-            return pd;
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
 
         public async Task<Question> AddOrUpdateQuestionWithAnswersAsync(int loggedUser, AddOrUpdateQuestionWithAnswersRequest question)

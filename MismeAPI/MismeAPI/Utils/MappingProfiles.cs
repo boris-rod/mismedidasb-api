@@ -8,6 +8,7 @@ using MismeAPI.Common.DTO.Response.CompoundDish;
 using MismeAPI.Common.DTO.Response.ContactUs;
 using MismeAPI.Common.DTO.Response.CutPoint;
 using MismeAPI.Common.DTO.Response.GeneralContent;
+using MismeAPI.Common.DTO.Response.Order;
 using MismeAPI.Common.DTO.Response.Product;
 using MismeAPI.Common.DTO.Response.Reminder;
 using MismeAPI.Common.DTO.Response.Result;
@@ -293,6 +294,12 @@ namespace MismeAPI.Utils
             CreateMap<Product, ProductResponse>()
                        .ForMember(d => d.TypeId, opts => opts.MapFrom(source => (int)source.Type))
                        .ForMember(d => d.Type, opts => opts.MapFrom(source => source.Type.ToString()));
+
+            CreateMap<Order, OrderResponse>()
+                       .ForMember(d => d.StatusId, opts => opts.MapFrom(source => (int)source.Status))
+                       .ForMember(d => d.Status, opts => opts.MapFrom(source => source.Status.ToString()))
+                       .ForMember(d => d.PaymentMethodId, opts => opts.MapFrom(source => (int)source.PaymentMethod))
+                       .ForMember(d => d.PaymentMethod, opts => opts.MapFrom(source => source.PaymentMethod.ToString()));
 
             CreateMap<Group, GroupResponse>();
             CreateMap<Group, GroupExtendedResponse>();

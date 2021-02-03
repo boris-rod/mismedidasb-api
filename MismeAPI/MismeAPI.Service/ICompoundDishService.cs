@@ -1,6 +1,7 @@
 ﻿using MismeAPI.Common.DTO.Request;
 using MismeAPI.Common.DTO.Request.CompoundDish;
 using MismeAPI.Data.Entities;
+using MismeAPI.Services.Utils;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -10,7 +11,7 @@ namespace MismeAPI.Service
     {
         Task<IEnumerable<CompoundDish>> GetUserCompoundDishesAsync(int ownerId, string search, bool? favorites, bool? lackSelfControl);
 
-        Task<IEnumerable<CompoundDish>> GetAllCompoundDishesAsync(int adminId, string search, int filter);
+        Task<PaginatedList<CompoundDish>> GetAllCompoundDishesAsync(int adminId, string search, int filter, int page, int perPage, string sort);
 
         Task<CompoundDish> CreateCompoundDishAsync(int ownerId, CreateCompoundDishRequest dish);
 

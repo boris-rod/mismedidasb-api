@@ -105,6 +105,7 @@ namespace MismeAPI
             services.AddTransient<IProductService, Services.Impls.ProductService>();
             services.AddTransient<IReportService, ReportService>();
             services.AddTransient<IProfileHelthHelper, ProfileHelthHelper>();
+            services.AddTransient<IAppleAppStoreService, AppleAppStoreService>();
             services.AddTransient<IGroupService, GroupService>();
 
             var provider = services.BuildServiceProvider();

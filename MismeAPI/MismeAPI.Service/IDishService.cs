@@ -9,7 +9,7 @@ namespace MismeAPI.Service
 {
     public interface IDishService
     {
-        Task<PaginatedList<Dish>> GetDishesAsync(string search, List<int> tags, int? page, int? perPage, int? harvardFilter);
+        Task<PaginatedList<Dish>> GetDishesAsync(string search, List<int> tags, int? page, int? perPage, int? harvardFilter, string sort);
 
         Task<Dish> GetDishByIdAsync(int id);
 

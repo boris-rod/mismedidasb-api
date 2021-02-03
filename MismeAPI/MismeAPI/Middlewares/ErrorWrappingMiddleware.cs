@@ -73,6 +73,12 @@ namespace MismeAPI.Middlewares
                 context.Response.StatusCode = (int)HttpStatusCode.UnprocessableEntity;
                 Message = ex.Message;
             }
+            catch (BadGateway ex)
+            {
+                Log.Error(ex, ex.Message);
+                context.Response.StatusCode = (int)HttpStatusCode.BadGateway;
+                Message = ex.Message;
+            }
             catch (Exception ex)
             {
                 Log.Error(ex, ex.Message);
