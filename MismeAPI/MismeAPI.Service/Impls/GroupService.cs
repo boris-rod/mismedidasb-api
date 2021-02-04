@@ -38,6 +38,7 @@ namespace MismeAPI.Service.Impls
         public async Task<PaginatedList<Group>> GetGroupsAsync(int pag, int perPag, string sortOrder)
         {
             var result = _uow.GroupRepository.GetAll()
+                .Include(g => g.Users)
                 .AsQueryable();
 
             // define sort order

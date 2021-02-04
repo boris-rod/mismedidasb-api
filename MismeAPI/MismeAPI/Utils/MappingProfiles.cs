@@ -301,7 +301,8 @@ namespace MismeAPI.Utils
                        .ForMember(d => d.PaymentMethodId, opts => opts.MapFrom(source => (int)source.PaymentMethod))
                        .ForMember(d => d.PaymentMethod, opts => opts.MapFrom(source => source.PaymentMethod.ToString()));
 
-            CreateMap<Group, GroupResponse>();
+            CreateMap<Group, GroupResponse>()
+                .ForMember(d => d.UsersCount, opts => opts.MapFrom(source => source.Users.Count()));
             CreateMap<Group, GroupExtendedResponse>();
             CreateMap<GroupInvitation, GroupInvitationResponse>()
                 .ForMember(d => d.StatusId, opts => opts.MapFrom(source => (int)source.Status))

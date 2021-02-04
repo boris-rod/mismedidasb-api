@@ -46,6 +46,32 @@ namespace MismeAPI.Utils
             //    throw ex;
             //}
         }
+        private static async Task CreateAdminUserAsync(IUnitOfWork uow)
+        {
+            var admin = await uow.UserRepository.FindBy(u => u.Email == "admin@mismedidas.com").FirstOrDefaultAsync();
+
+            if (admin == null)
+            {
+                using (var hashAlgorithm = new SHA256CryptoServiceProvider())
+                {
+                    var byteValue = Encoding.UTF8.GetBytes("P@ssw0rd");
+                    var byteHash = hashAlgorithm.ComputeHash(byteValue);
+
+                    admin = new User()
+                    {
+                        FullName = "Mismedidas Admin",
+                        Email = "admin@mismedidas.com",
+                        Password = Convert.ToBase64String(byteHash),
+                        CreatedAt = DateTime.UtcNow,
+                        ModifiedAt = DateTime.UtcNow,
+                        Role = RoleEnum.ADMIN,
+                        Status = StatusEnum.ACTIVE
+                    };
+                    await uow.UserRepository.AddAsync(admin);
+                    await uow.CommitAsync();
+                }
+            }
+        }
 
         private static async Task ChangeColumns(IUnitOfWork uow, IServiceProvider serviceProvider)
         {
@@ -138,32 +164,6 @@ namespace MismeAPI.Utils
             }
         }
 
-        private static async Task CreateAdminUserAsync(IUnitOfWork uow)
-        {
-            var admin = await uow.UserRepository.FindBy(u => u.Email == "admin@mismedidas.com").FirstOrDefaultAsync();
-
-            if (admin == null)
-            {
-                using (var hashAlgorithm = new SHA256CryptoServiceProvider())
-                {
-                    var byteValue = Encoding.UTF8.GetBytes("P@ssw0rd");
-                    var byteHash = hashAlgorithm.ComputeHash(byteValue);
-
-                    admin = new User()
-                    {
-                        FullName = "Mismedidas Admin",
-                        Email = "admin@mismedidas.com",
-                        Password = Convert.ToBase64String(byteHash),
-                        CreatedAt = DateTime.UtcNow,
-                        ModifiedAt = DateTime.UtcNow,
-                        Role = RoleEnum.ADMIN,
-                        Status = StatusEnum.ACTIVE
-                    };
-                    await uow.UserRepository.AddAsync(admin);
-                    await uow.CommitAsync();
-                }
-            }
-        }
 
         private static async Task UpdateDishesAsync(IUnitOfWork _uow, IServiceProvider serviceProvider)
         {
