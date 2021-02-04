@@ -40,6 +40,12 @@ namespace MismeAPI.Services.Impls
                         Text = message
                     };
 
+                    // Different approach to send html
+                    //var builder = new BodyBuilder();
+                    //builder.HtmlBody = message;
+
+                    //mess.Body = builder.ToMessageBody();
+
                     await client.SendAsync(mess);
                     client.Disconnect(true);
                 }

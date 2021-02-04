@@ -21,8 +21,10 @@ namespace MismeAPI.Utils
             var header = GetHeaderString(_env);
             header = header.ToHeaderEmail(headerSubject);
             var footer = GetFooterString(_env);
+            var styles = GetStyleString(_env);
 
             var templateString = GetStringTemplate(templateName, _env);
+            templateString = templateString.SetStylesToTemplate(styles);
 
             return templateString.SetHeaderFooterToTemplate(header, footer);
         }
@@ -38,6 +40,14 @@ namespace MismeAPI.Utils
         private static string GetFooterString(IWebHostEnvironment _env)
         {
             var templateName = "_footer.html";
+            var stringTemplate = GetStringTemplate(templateName, _env);
+
+            return stringTemplate;
+        }
+
+        private static string GetStyleString(IWebHostEnvironment _env)
+        {
+            var templateName = "_styles.html";
             var stringTemplate = GetStringTemplate(templateName, _env);
 
             return stringTemplate;

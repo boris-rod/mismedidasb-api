@@ -35,6 +35,11 @@ namespace MismeAPI.Utils
             return resource.Replace("#HEADER#", header).Replace("#FOOTER#", footer);
         }
 
+        public static string SetStylesToTemplate(this string resource, string styles)
+        {
+            return resource.Replace("#STYLE#", styles);
+        }
+
         public static string ToGroupAdminInviteEmail(this string resource, bool isNewUser, string adminUrl, string email = "", string password = "")
         {
             if (isNewUser)
