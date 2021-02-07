@@ -193,7 +193,7 @@ namespace MismeAPI.Service.Impls
                 }
             }
             double[] xs1 = { 0.0, 1.0, 2.0, 3.0 };
-            double[] ys1 = { Math.Round(fiber, 2), Math.Round(fats, 2), Math.Round(carbos, 2), Math.Round(proteins, 2) };
+            double[] ys1 = { Math.Round(alcohol, 2), Math.Round(fats, 2), Math.Round(carbos, 2), Math.Round(proteins, 2) };
             string[] labels1 = { "Alcohol", "Grasas", "Carbohidratos", "Proteinas" };
 
             var plt1 = new ScottPlot.Plot(500, 300);
