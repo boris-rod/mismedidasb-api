@@ -896,5 +896,18 @@ namespace MismeAPI.Service.Impls
                 }
             }
         }
+
+        public async Task SetUserLatestAccessAsync(int userId)
+        {
+            var user = await _uow.UserRepository.GetAll().FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user != null)
+            {
+                user.LastAccessAt = DateTime.UtcNow;
+
+                await _uow.UserRepository.UpdateAsync(user, userId);
+                await _uow.CommitAsync();
+            }
+        }
     }
 }

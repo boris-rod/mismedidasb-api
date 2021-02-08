@@ -165,6 +165,7 @@ namespace MismeAPI
             app.UseAuthorization();
 
             app.UseMiddleware(typeof(ErrorWrappingMiddleware));
+            app.UseMiddleware(typeof(UserActivityMiddleware));
             app.UseResponseCompression();
             app.UseEndpoints(endpoints =>
             {

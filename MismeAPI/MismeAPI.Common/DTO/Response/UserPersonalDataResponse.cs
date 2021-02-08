@@ -8,5 +8,6 @@ namespace MismeAPI.Common.DTO.Response
         public PersonalDataResponse PersonalData { get; set; }
         public string Value { get; set; }
         public DateTime MeasuredAt { get; set; }
+        public DateTime? LastAccessAt { get; set; }
     }
 }

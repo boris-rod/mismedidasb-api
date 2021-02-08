@@ -57,6 +57,7 @@ namespace MismeAPI.Data.Entities
         public DateTime ModifiedAt { get; set; }
         public DateTime? ActivatedAt { get; set; }
         public DateTime? DisabledAt { get; set; }
+        public DateTime? LastAccessAt { get; set; }
         public bool MarkedForDeletion { get; set; }
         public int VerificationCode { get; set; }
         public bool TermsAndConditionsAccepted { get; set; }

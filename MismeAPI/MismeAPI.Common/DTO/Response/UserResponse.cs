@@ -22,6 +22,7 @@ namespace MismeAPI.Common.DTO.Response
         public DateTime ModifiedAt { get; set; }
         public DateTime? ActivatedAt { get; set; }
         public DateTime? DisabledAt { get; set; }
+        public DateTime? LastAccessAt { get; set; }
         public double KCal { get; set; }
         public double IMC { get; set; }
         public DateTime? FirstHealthMeasured { get; set; }
