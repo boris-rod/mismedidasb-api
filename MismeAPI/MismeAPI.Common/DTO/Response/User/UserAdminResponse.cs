@@ -30,5 +30,6 @@ namespace MismeAPI.Common.DTO.Response.User
         public DateTime? ValueMeasuresLastUpdate { get; set; }
         public DateTime? WellnessMeasuresLastUpdate { get; set; }
         public DateTime? LastPlanedEat { get; set; }
+        public DateTime? LastAccessAt { get; set; }
     }
 }
