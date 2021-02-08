@@ -33,12 +33,9 @@ namespace MismeAPI.Middlewares
             if (context.User.Identity.IsAuthenticated)
             {
                 var id = context.User?.GetUserIdFromToken();
-                var userId = id.HasValue ? id.Value : 0;
-                //retrieve user
-
-                if (userId != 0)
+                if (id.HasValue)
                 {
-                    await userService.SetUserLatestAccessAsync(userId);
+                    await userService.SetUserLatestAccessAsync(id.Value);
                 }
             }
         }
