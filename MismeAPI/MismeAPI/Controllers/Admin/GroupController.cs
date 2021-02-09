@@ -41,17 +41,18 @@ namespace MismeAPI.Controllers.Admin
         /// <param name="page">Page for pagination purposes.</param>
         /// <param name="perPage">How many items per page.</param>
         /// <param name="sortOrder">For sortering purposes.</param>
+        /// <param name="search">Search groups by name or admin email</param>
         /// <returns></returns>
         [HttpGet]
         [ProducesResponseType(typeof(GroupResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
-        public async Task<IActionResult> Index(int? page, int? perPage, string sortOrder)
+        public async Task<IActionResult> Index(int? page, int? perPage, string sortOrder, string search)
         {
             var pag = page ?? 1;
             var perPag = perPage ?? 10;
 
-            var result = await _groupService.GetGroupsAsync(pag, perPag, sortOrder);
+            var result = await _groupService.GetGroupsAsync(pag, perPag, sortOrder, search);
 
             HttpContext.Response.Headers.Add("PagingData", JsonConvert.SerializeObject(result.GetPaginationData));
             HttpContext.Response.Headers["Access-Control-Expose-Headers"] = "PagingData";
@@ -116,7 +117,7 @@ namespace MismeAPI.Controllers.Admin
         /// Update a group. Requires authentication. Only Admin access
         /// </summary>
         [HttpPut("{id}")]
-        [ProducesResponseType(typeof(GroupExtendedResponse), (int)HttpStatusCode.Created)]
+        [ProducesResponseType(typeof(GroupExtendedResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
         public async Task<IActionResult> Update(int id, [FromBody] AdminUpdateGroupRequest request)
@@ -147,6 +148,38 @@ namespace MismeAPI.Controllers.Admin
             }
 
             var mapped = _mapper.Map<GroupExtendedResponse>(result.Group);
+
+            return Ok(new ApiOkResponse(mapped));
+        }
+
+        /// <summary>
+        /// Activate a group. Requires authentication. Only Admin access
+        /// </summary>
+        [HttpPatch("{id}/active")]
+        [ProducesResponseType(typeof(GroupExtendedResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> Active(int id)
+        {
+            var result = await _groupService.UpdateGroupActiveStatusAsync(id, true);
+
+            var mapped = _mapper.Map<GroupExtendedResponse>(result);
+
+            return Ok(new ApiOkResponse(mapped));
+        }
+
+        /// <summary>
+        /// Deactivate a group. Requires authentication. Only Admin access
+        /// </summary>
+        [HttpPatch("{id}/deactivate")]
+        [ProducesResponseType(typeof(GroupExtendedResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> Deactivate(int id)
+        {
+            var result = await _groupService.UpdateGroupActiveStatusAsync(id, false);
+
+            var mapped = _mapper.Map<GroupExtendedResponse>(result);
 
             return Ok(new ApiOkResponse(mapped));
         }
