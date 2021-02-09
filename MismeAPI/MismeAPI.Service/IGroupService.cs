@@ -10,7 +10,7 @@ namespace MismeAPI.Service
 {
     public interface IGroupService
     {
-        Task<PaginatedList<Group>> GetGroupsAsync(int pag, int perPag, string sortOrder);
+        Task<PaginatedList<Group>> GetGroupsAsync(int pag, int perPag, string sortOrder, string search);
 
         Task<Group> GetGroupAsync(int groupId);
 
@@ -23,6 +23,8 @@ namespace MismeAPI.Service
         Task<(Group Group, string GeneratedPassword)> UpdateGroupAsync(int groupId, AdminUpdateGroupRequest request);
 
         Task<Group> UpdateGroupLimitedAsync(int groupId, UpdateGroupRequest request);
+
+        Task<Group> UpdateGroupActiveStatusAsync(int groupId, bool isActive);
 
         Task DeleteGroupAsync(int groupId);
 

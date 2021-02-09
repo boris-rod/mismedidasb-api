@@ -35,11 +35,16 @@ namespace MismeAPI.Service.Impls
             _accountService = accountService ?? throw new ArgumentNullException(nameof(accountService));
         }
 
-        public async Task<PaginatedList<Group>> GetGroupsAsync(int pag, int perPag, string sortOrder)
+        public async Task<PaginatedList<Group>> GetGroupsAsync(int pag, int perPag, string sortOrder, string search)
         {
             var result = _uow.GroupRepository.GetAll()
                 .Include(g => g.Users)
                 .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                result = result.Where(i => i.Name.ToLower().Contains(search.ToLower()) || i.AdminEmail.ToLower().Contains(search.ToLower()));
+            }
 
             // define sort order
             if (!string.IsNullOrWhiteSpace(sortOrder))
@@ -77,6 +82,22 @@ namespace MismeAPI.Service.Impls
 
                     case "isActive_asc":
                         result = result.OrderBy(i => i.IsActive);
+                        break;
+
+                    case "adminEmail_desc":
+                        result = result.OrderByDescending(i => i.AdminEmail);
+                        break;
+
+                    case "adminEmail_asc":
+                        result = result.OrderBy(i => i.AdminEmail);
+                        break;
+
+                    case "usersCount_desc":
+                        result = result.OrderByDescending(i => i.Users.Count());
+                        break;
+
+                    case "usersCount_asc":
+                        result = result.OrderBy(i => i.Users.Count());
                         break;
 
                     default:
@@ -210,6 +231,18 @@ namespace MismeAPI.Service.Impls
 
             group.Name = request.Name;
             group.Description = request.Description;
+
+            await _uow.GroupRepository.UpdateAsync(group, groupId);
+            await _uow.CommitAsync();
+
+            return group;
+        }
+
+        public async Task<Group> UpdateGroupActiveStatusAsync(int groupId, bool isActive)
+        {
+            var group = await GetGroupAsync(groupId);
+            group.IsActive = isActive;
+            group.ModifiedAt = DateTime.UtcNow;
 
             await _uow.GroupRepository.UpdateAsync(group, groupId);
             await _uow.CommitAsync();
