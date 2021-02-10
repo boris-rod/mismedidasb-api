@@ -10,7 +10,7 @@ namespace MismeAPI.Service
 {
     public interface IGroupService
     {
-        Task<PaginatedList<Group>> GetGroupsAsync(int pag, int perPag, string sortOrder, string search);
+        Task<PaginatedList<Group>> GetGroupsAsync(int pag, int perPag, string sortOrder, string search, bool? isActive);
 
         Task<Group> GetGroupAsync(int groupId);
 

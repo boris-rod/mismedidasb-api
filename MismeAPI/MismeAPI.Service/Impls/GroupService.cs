@@ -35,7 +35,7 @@ namespace MismeAPI.Service.Impls
             _accountService = accountService ?? throw new ArgumentNullException(nameof(accountService));
         }
 
-        public async Task<PaginatedList<Group>> GetGroupsAsync(int pag, int perPag, string sortOrder, string search)
+        public async Task<PaginatedList<Group>> GetGroupsAsync(int pag, int perPag, string sortOrder, string search, bool? isActive)
         {
             var result = _uow.GroupRepository.GetAll()
                 .Include(g => g.Users)
@@ -44,6 +44,11 @@ namespace MismeAPI.Service.Impls
             if (!string.IsNullOrWhiteSpace(search))
             {
                 result = result.Where(i => i.Name.ToLower().Contains(search.ToLower()) || i.AdminEmail.ToLower().Contains(search.ToLower()));
+            }
+
+            if (isActive.HasValue)
+            {
+                result = result.Where(i => i.IsActive == isActive.Value);
             }
 
             // define sort order
