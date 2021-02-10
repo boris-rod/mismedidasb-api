@@ -42,17 +42,18 @@ namespace MismeAPI.Controllers.Admin
         /// <param name="perPage">How many items per page.</param>
         /// <param name="sortOrder">For sortering purposes.</param>
         /// <param name="search">Search groups by name or admin email</param>
+        /// <param name="isActive">Filter groups by its active status</param>
         /// <returns></returns>
         [HttpGet]
         [ProducesResponseType(typeof(GroupResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
-        public async Task<IActionResult> Index(int? page, int? perPage, string sortOrder, string search)
+        public async Task<IActionResult> Index(int? page, int? perPage, string sortOrder, string search, bool? isActive)
         {
             var pag = page ?? 1;
             var perPag = perPage ?? 10;
 
-            var result = await _groupService.GetGroupsAsync(pag, perPag, sortOrder, search);
+            var result = await _groupService.GetGroupsAsync(pag, perPag, sortOrder, search, isActive);
 
             HttpContext.Response.Headers.Add("PagingData", JsonConvert.SerializeObject(result.GetPaginationData));
             HttpContext.Response.Headers["Access-Control-Expose-Headers"] = "PagingData";
