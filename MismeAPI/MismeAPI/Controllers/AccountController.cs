@@ -69,8 +69,8 @@ namespace MismeAPI.Controllers
         {
             var user = await _accountService.SignUpAsync(register);
 
-            var subject = "Activate your Account";
-            var emailBody = EmailTemplateHelper.GetEmailTemplateString("AccountActivation.html", "Activation Code", _env);
+            var subject = "Activar su Cuenta";
+            var emailBody = EmailTemplateHelper.GetEmailTemplateString("AccountActivation.html", "Código de Activación", _env);
             emailBody = emailBody.ToActivationAccountEmail(user.VerificationCode.ToString());
             var to = new List<string> { user.Email };
 
@@ -272,7 +272,7 @@ namespace MismeAPI.Controllers
         {
             var newPass = await _accountService.ForgotPasswordAsync(email);
 
-            var subject = "Password Reset";
+            var subject = "Resetear Contraseña";
             var emailBody = EmailTemplateHelper.GetEmailTemplateString("ForgotPassword.html", subject, _env);
             emailBody = emailBody.ToForgotPasswordEmail(newPass);
 
@@ -313,8 +313,8 @@ namespace MismeAPI.Controllers
         {
             var code = await _accountService.ResendVerificationCodeAsync(email);
 
-            var subject = "Resend Verification Code";
-            var emailBody = EmailTemplateHelper.GetEmailTemplateString("AccountActivation.html", "Activation Code", _env);
+            var subject = "Reenviar Codigo de Verificación";
+            var emailBody = EmailTemplateHelper.GetEmailTemplateString("AccountActivation.html", "Codigo de Activación", _env);
             emailBody = emailBody.ToActivationAccountEmail(code.ToString());
             var to = new List<string> { email };
 

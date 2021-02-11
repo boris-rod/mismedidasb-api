@@ -91,7 +91,7 @@ namespace MismeAPI.Controllers.Admin
         {
             var result = await _groupService.CreateGroupAsync(request);
 
-            var subject = "Welcome to group " + result.Group?.Name;
+            var subject = "Bienvenido al grupo " + result.Group?.Name;
             var adminUrl = _configuration.GetValue<string>("CustomSetting:AdminUrl");
             var isNewUser = !string.IsNullOrEmpty(result.GeneratedPassword);
             var emailString = "";
@@ -129,7 +129,7 @@ namespace MismeAPI.Controllers.Admin
 
             if (isAdminUpdate)
             {
-                var subject = "Welcome to group " + result.Group?.Name;
+                var subject = "Bienvenido al grupo " + result.Group?.Name;
                 var adminUrl = _configuration.GetValue<string>("CustomSetting:AdminUrl");
                 var isNewUser = string.IsNullOrEmpty(result.GeneratedPassword);
                 var emailString = "";

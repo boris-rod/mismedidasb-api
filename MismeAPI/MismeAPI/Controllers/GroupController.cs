@@ -129,7 +129,7 @@ namespace MismeAPI.Controllers
 
             foreach (var invite in result.invitations)
             {
-                var subject = "Invitation to join planifive";
+                var subject = "Invitación para unirte a Planifive";
                 var emailBody = "";
 
                 if (invite.User == null)
@@ -146,7 +146,7 @@ namespace MismeAPI.Controllers
                     to = new List<string> { invite.User.Email };
                 }
 
-                subject = "Join a group in planifive";
+                subject = "Únete a un grupo en Planifive";
                 var acceptUrlToken = acceptUrl + invite.SecurityToken;
                 var declineUrlToken = declineUrl + invite.SecurityToken;
 

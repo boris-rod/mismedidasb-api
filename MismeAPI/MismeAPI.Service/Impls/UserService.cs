@@ -32,7 +32,8 @@ namespace MismeAPI.Service.Impls
             _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
         }
 
-        public async Task<PaginatedList<User>> GetUsersAsync(int loggedUser, int pag, int perPag, string sortOrder, int statusFilter, string search)
+        public async Task<PaginatedList<User>> GetUsersAsync(int loggedUser, int pag, int perPag, string sortOrder, int statusFilter,
+            string search, int? minPlannedEats, int? maxPlannedEats)
         {
             var user = await _uow.UserRepository.GetAsync(loggedUser);
             if (user.Role == RoleEnum.NORMAL)
@@ -41,6 +42,7 @@ namespace MismeAPI.Service.Impls
             }
 
             var result = _uow.UserRepository.GetAll()
+                .Include(u => u.UserStatistics)
                 .Where(u => u.Role == RoleEnum.NORMAL)
                 .AsQueryable();
 
@@ -56,6 +58,16 @@ namespace MismeAPI.Service.Impls
             if (statusFilter > -1)
             {
                 result = result.Where(i => (StatusEnum)statusFilter == i.Status);
+            }
+
+            if (minPlannedEats.HasValue)
+            {
+                result = result.Where(u => (u.UserStatistics.TotalBalancedEatsPlanned + u.UserStatistics.TotalNonBalancedEatsPlanned) >= minPlannedEats.Value);
+            }
+
+            if (maxPlannedEats.HasValue)
+            {
+                result = result.Where(u => (u.UserStatistics.TotalBalancedEatsPlanned + u.UserStatistics.TotalNonBalancedEatsPlanned) <= maxPlannedEats.Value);
             }
 
             // define sort order

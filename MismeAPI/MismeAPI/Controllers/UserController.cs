@@ -43,18 +43,26 @@ namespace MismeAPI.Controllers
         /// <param name="perPage">How many issues per page.</param>
         /// <param name="sortOrder">For sortering purposes.</param>
         /// <param name="statusFilter">For filtering for status.</param>
+        /// <param name="minPlannedEats">
+        /// Filter users by their amount of planned eats. More than or equal
+        /// </param>
+        /// <param name="maxPlannedEats">
+        /// Filter users by their amount of planned eats. Less than or equal
+        /// </param>
         /// <param name="search">For searching purposes.</param>
         [HttpGet()]
         [ProducesResponseType(typeof(IEnumerable<UserResponse>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
-        public async Task<IActionResult> GetUsers(int? page, int? perPage, string sortOrder, string search, int? statusFilter)
+        public async Task<IActionResult> GetUsers(int? page, int? perPage, string sortOrder, string search,
+            int? statusFilter, int? minPlannedEats, int? maxPlannedEats)
         {
             var loggedUser = User.GetUserIdFromToken();
             var pag = page ?? 1;
             var perPag = perPage ?? 10;
             var statusF = statusFilter ?? -1;
 
-            var result = await _userService.GetUsersAsync(loggedUser, pag, perPag, sortOrder, statusF, search);
+            var result = await _userService.GetUsersAsync(loggedUser, pag, perPag, sortOrder,
+                statusF, search, minPlannedEats, maxPlannedEats);
 
             HttpContext.Response.Headers.Add("PagingData", JsonConvert.SerializeObject(result.GetPaginationData));
             HttpContext.Response.Headers["Access-Control-Expose-Headers"] = "PagingData";
