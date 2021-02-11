@@ -67,7 +67,7 @@ namespace MismeAPI.Service.Impls
 
             if (maxPlannedEats.HasValue)
             {
-                result = result.Where(u => (u.UserStatistics.TotalBalancedEatsPlanned + u.UserStatistics.TotalNonBalancedEatsPlanned) <= minPlannedEats.Value);
+                result = result.Where(u => (u.UserStatistics.TotalBalancedEatsPlanned + u.UserStatistics.TotalNonBalancedEatsPlanned) <= maxPlannedEats.Value);
             }
 
             // define sort order
