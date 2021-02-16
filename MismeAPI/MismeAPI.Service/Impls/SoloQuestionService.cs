@@ -4,10 +4,12 @@ using MismeAPI.Common;
 using MismeAPI.Common.DTO.Request;
 using MismeAPI.Common.DTO.Request.SoloAnswer;
 using MismeAPI.Common.DTO.Request.SoloQuestion;
+using MismeAPI.Common.DTO.Response.SoloQuestion;
 using MismeAPI.Common.Exceptions;
 using MismeAPI.Data.Entities;
 using MismeAPI.Data.Entities.NonDatabase;
 using MismeAPI.Data.UoW;
+using MismeAPI.Service.Utils;
 using MismeAPI.Services.Utils;
 using System;
 using System.Collections.Generic;
@@ -268,8 +270,25 @@ namespace MismeAPI.Service.Impls
                 }
             }
 
-            result.TotalDaysPlannedSport = await _uow.UserSoloAnswerRepository.GetAll()
-                .CountAsync(u => u.UserId == userId && u.CreatedAt >= startDate && u.CreatedAt <= today && u.AnswerCode == "SQ-3-SA-1");
+            var sportPlannedDays = await _uow.UserSoloAnswerRepository.GetAll()
+                .Where(u => u.UserId == userId && u.CreatedAt >= startDate && u.CreatedAt <= today && u.AnswerCode == "SQ-3-SA-1")
+                .ToListAsync();
+
+            foreach (var answer in sportPlannedDays)
+            {
+                result.WillDoSportReportedDays.Add(answer.ToUserSoloAnswerResponse());
+            }
+
+            var sportAccomplishedPlanDays = await _uow.UserSoloAnswerRepository.GetAll()
+                .Where(u => u.UserId == userId && u.CreatedAt >= startDate && u.CreatedAt <= today && u.QuestionCode == "SQ-4")
+                .ToListAsync();
+
+            foreach (var answer in sportAccomplishedPlanDays)
+            {
+                result.AccomplishSportPlannedReportedDays.Add(answer.ToUserSoloAnswerResponse());
+            }
+
+            result.TotalDaysPlannedSport = sportPlannedDays.Count();
             result.TotalDaysComplySportPlan = await _uow.UserSoloAnswerRepository.GetAll()
                 .CountAsync(u => u.UserId == userId && u.CreatedAt >= startDate && u.CreatedAt <= today && u.AnswerCode == "SQ-4-SA-1");
 
@@ -277,6 +296,9 @@ namespace MismeAPI.Service.Impls
                 .FindAllAsync(u => u.UserId == userId && u.CreatedAt >= startDate && u.CreatedAt <= today && u.QuestionCode == "SQ-2" && u.AnswerCode == "SQ-2-SA-1");
 
             var dict = new Dictionary<int, int>();
+            var sumEmotionsReported = 0;
+            var amountEmotionsReported = 0;
+            var lastEmotions = new List<UserSoloAnswerResponse>();
             foreach (var answer in wellnessAnswers)
             {
                 int value;
@@ -296,6 +318,10 @@ namespace MismeAPI.Service.Impls
                     {
                         dict.Add(value, 1);
                     }
+
+                    sumEmotionsReported += value;
+                    amountEmotionsReported++;
+                    lastEmotions.Add(answer.ToUserSoloAnswerResponse());
                 }
             }
 
@@ -323,6 +349,8 @@ namespace MismeAPI.Service.Impls
             result.BestComplyEatStreak = fitEatPlanBestStreak;
             result.MostFrequentEmotions = mostFrequentEmotions;
             result.MostFrequentEmotionCount = wellnessCount;
+            result.EmotionMedia = sumEmotionsReported / amountEmotionsReported;
+            result.LastEmotionsReported = lastEmotions;
 
             return result;
         }

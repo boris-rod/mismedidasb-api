@@ -33,7 +33,7 @@ namespace MismeAPI.Service.Impls
         }
 
         public async Task<PaginatedList<User>> GetUsersAsync(int loggedUser, int pag, int perPag, string sortOrder, int statusFilter,
-            string search, int? minPlannedEats, int? maxPlannedEats)
+            string search, int? minPlannedEats, int? maxPlannedEats, int? minEmotionMedia, int? maxEmotionMedia)
         {
             var user = await _uow.UserRepository.GetAsync(loggedUser);
             if (user.Role == RoleEnum.NORMAL)
@@ -43,6 +43,7 @@ namespace MismeAPI.Service.Impls
 
             var result = _uow.UserRepository.GetAll()
                 .Include(u => u.UserStatistics)
+                .Include(u => u.UserSoloAnswers)
                 .Where(u => u.Role == RoleEnum.NORMAL)
                 .AsQueryable();
 
@@ -68,6 +69,22 @@ namespace MismeAPI.Service.Impls
             if (maxPlannedEats.HasValue)
             {
                 result = result.Where(u => (u.UserStatistics.TotalBalancedEatsPlanned + u.UserStatistics.TotalNonBalancedEatsPlanned) <= maxPlannedEats.Value);
+            }
+
+            if (minEmotionMedia.HasValue)
+            {
+                result = result
+                    .Where(u => u.UserSoloAnswers
+                        .Where(usa => usa.QuestionCode == "SQ-2" && usa.AnswerCode == "SQ-2-SA-1" && !string.IsNullOrEmpty(usa.AnswerValue))
+                        .Average(usa => int.Parse(usa.AnswerValue)) >= minEmotionMedia.Value);
+            }
+
+            if (maxEmotionMedia.HasValue)
+            {
+                result = result
+                    .Where(u => u.UserSoloAnswers
+                        .Where(usa => usa.QuestionCode == "SQ-2" && usa.AnswerCode == "SQ-2-SA-1" && !string.IsNullOrEmpty(usa.AnswerValue))
+                        .Average(usa => int.Parse(usa.AnswerValue)) <= maxEmotionMedia.Value);
             }
 
             // define sort order
@@ -106,6 +123,18 @@ namespace MismeAPI.Service.Impls
 
                     case "status_asc":
                         result = result.OrderBy(i => i.Status);
+                        break;
+
+                    case "emotionMedia_desc":
+                        result = result.OrderByDescending(i =>
+                            i.UserSoloAnswers.Where(usa => usa.QuestionCode == "SQ-2" && usa.AnswerCode == "SQ-2-SA-1" && !string.IsNullOrEmpty(usa.AnswerValue))
+                            .Average(usa => int.Parse(usa.AnswerValue)));
+                        break;
+
+                    case "emotionMedia_asc":
+                        result = result.OrderBy(i =>
+                            i.UserSoloAnswers.Where(usa => usa.QuestionCode == "SQ-2" && usa.AnswerCode == "SQ-2-SA-1" && !string.IsNullOrEmpty(usa.AnswerValue))
+                            .Average(usa => int.Parse(usa.AnswerValue)));
                         break;
 
                     default:

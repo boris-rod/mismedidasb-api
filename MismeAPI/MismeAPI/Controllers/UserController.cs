@@ -49,12 +49,19 @@ namespace MismeAPI.Controllers
         /// <param name="maxPlannedEats">
         /// Filter users by their amount of planned eats. Less than or equal
         /// </param>
+        /// <param name="minEmotionMedia">
+        /// Filter users by their reported emotion media. More than or equal
+        /// </param>
+        /// <param name="maxEmotionMedia">
+        /// Filter users by their reported emotion media. Less than or equal
+        /// </param>
         /// <param name="search">For searching purposes.</param>
-        [HttpGet()]
+        [HttpGet]
+        [Authorize(Roles = "ADMIN")]
         [ProducesResponseType(typeof(IEnumerable<UserResponse>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
         public async Task<IActionResult> GetUsers(int? page, int? perPage, string sortOrder, string search,
-            int? statusFilter, int? minPlannedEats, int? maxPlannedEats)
+            int? statusFilter, int? minPlannedEats, int? maxPlannedEats, int? minEmotionMedia, int? maxEmotionMedia)
         {
             var loggedUser = User.GetUserIdFromToken();
             var pag = page ?? 1;
@@ -62,7 +69,7 @@ namespace MismeAPI.Controllers
             var statusF = statusFilter ?? -1;
 
             var result = await _userService.GetUsersAsync(loggedUser, pag, perPag, sortOrder,
-                statusF, search, minPlannedEats, maxPlannedEats);
+                statusF, search, minPlannedEats, maxPlannedEats, minEmotionMedia, maxEmotionMedia);
 
             HttpContext.Response.Headers.Add("PagingData", JsonConvert.SerializeObject(result.GetPaginationData));
             HttpContext.Response.Headers["Access-Control-Expose-Headers"] = "PagingData";
