@@ -1,5 +1,6 @@
 ﻿using MismeAPI.Common.DTO.Request;
 using MismeAPI.Common.DTO.Response;
+using MismeAPI.Common.DTO.Response.PersonalData;
 using MismeAPI.Data.Entities;
 using MismeAPI.Services.Utils;
 using System;
@@ -10,7 +11,8 @@ namespace MismeAPI.Service
 {
     public interface IUserService
     {
-        Task<PaginatedList<User>> GetUsersAsync(int loggedUser, int pag, int perPag, string sortOrder, int statusFilter, string search, int? minPlannedEats, int? maxPlannedEats);
+        Task<PaginatedList<User>> GetUsersAsync(int loggedUser, int pag, int perPag, string sortOrder, int statusFilter, string search,
+            int? minPlannedEats, int? maxPlannedEats, int? minEmotionMedia, int? maxEmotionMedia);
 
         Task<dynamic> GetUsersStatsAsync(int loggedUser);
 
@@ -41,5 +43,7 @@ namespace MismeAPI.Service
         Task SendManualEmailAsync(SendEmailRequest request);
 
         Task SetUserLatestAccessAsync(int userId);
+
+        Task<UserDataSummary> GetUsersSummaryAsync();
     }
 }

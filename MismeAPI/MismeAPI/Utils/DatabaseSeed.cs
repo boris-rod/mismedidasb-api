@@ -25,6 +25,8 @@ namespace MismeAPI.Utils
             var _soloQuestionService = serviceProvider.GetRequiredService<ISoloQuestionService>();
             var _subscriptionService = serviceProvider.GetRequiredService<ISubscriptionService>();
             var _productService = serviceProvider.GetRequiredService<IProductService>();
+            var _personalDataService = serviceProvider.GetRequiredService<IPersonalDataService>();
+            var _pollService = serviceProvider.GetRequiredService<IPollService>();
 
             await CreateAdminUserAsync(_uow);
 
@@ -32,6 +34,8 @@ namespace MismeAPI.Utils
             await _soloQuestionService.SeedSoloQuestionsAsync();
             await _subscriptionService.SeedSubscriptionAsync();
             await _productService.SeedProductsAsync();
+
+            await SeedPersonalDataAsync(_uow, _personalDataService, _pollService);
             //try
             //{
             //    //ImportDishesAsync(_uow, serviceProvider).Wait();
@@ -46,6 +50,7 @@ namespace MismeAPI.Utils
             //    throw ex;
             //}
         }
+
         private static async Task CreateAdminUserAsync(IUnitOfWork uow)
         {
             var admin = await uow.UserRepository.FindBy(u => u.Email == "admin@mismedidas.com").FirstOrDefaultAsync();
@@ -163,7 +168,6 @@ namespace MismeAPI.Utils
                 await _uow.CommitAsync();
             }
         }
-
 
         private static async Task UpdateDishesAsync(IUnitOfWork _uow, IServiceProvider serviceProvider)
         {
@@ -651,6 +655,37 @@ namespace MismeAPI.Utils
                     }
                 }
                 await _uow.CommitAsync();
+            }
+        }
+
+        private static async Task SeedPersonalDataAsync(IUnitOfWork uow, IPersonalDataService personalDataService, IPollService pollService)
+        {
+            var admin = await uow.UserRepository.GetAll()
+                .Include(u => u.PersonalDatas)
+                .FirstOrDefaultAsync(u => u.Email == "admin@mismedidas.com");
+
+            if (admin != null && admin.PersonalDatas.Count() == 0)
+            {
+                var users = await uow.UserRepository.GetAll()
+                    .Where(u => u.Status == StatusEnum.ACTIVE)
+                    .ToListAsync();
+
+                foreach (var user in users)
+                {
+                    var pollResult = await pollService.GetUserPollsInfoAsync(user.Id);
+
+                    await personalDataService.AddPersonalDataAsync(user.Id, PersonalDataEnum.WEIGHT, pollResult.weight.ToString());
+                    await personalDataService.AddPersonalDataAsync(user.Id, PersonalDataEnum.HEIGHT, pollResult.height.ToString());
+                    await personalDataService.AddPersonalDataAsync(user.Id, PersonalDataEnum.AGE, pollResult.age.ToString());
+
+                    user.Age = pollResult.age;
+                    user.Height = pollResult.height;
+                    user.Weight = pollResult.weight;
+
+                    await uow.UserRepository.UpdateAsync(user, user.Id);
+
+                    await uow.CommitAsync();
+                }
             }
         }
     }

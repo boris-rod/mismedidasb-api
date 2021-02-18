@@ -6,13 +6,15 @@ using MismeAPI.BasicResponses;
 using MismeAPI.Common.DTO.Request;
 using MismeAPI.Common.DTO.Request.Reward;
 using MismeAPI.Common.DTO.Response;
+using MismeAPI.Common.DTO.Response.PersonalData;
 using MismeAPI.Common.DTO.Response.User;
+using MismeAPI.Data.Entities.Enums;
 using MismeAPI.Service;
 using MismeAPI.Service.Utils;
 using MismeAPI.Utils;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -28,10 +30,11 @@ namespace MismeAPI.Controllers.Admin
         private readonly IPollService _pollService;
         private readonly INotificationService _notificationService;
         private readonly IUserStatisticsService _userStatisticsService;
+        private readonly IPersonalDataService _personalDataService;
         private IWebHostEnvironment _env;
 
         public UserController(IUserService userService, IMapper mapper, IProfileHelthHelper profileHelthHelper, IPollService pollService,
-            INotificationService notificationService, IUserStatisticsService userStatisticsService, IWebHostEnvironment env)
+            INotificationService notificationService, IUserStatisticsService userStatisticsService, IWebHostEnvironment env, IPersonalDataService personalDataService)
         {
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
@@ -40,6 +43,7 @@ namespace MismeAPI.Controllers.Admin
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
             _userStatisticsService = userStatisticsService ?? throw new ArgumentNullException(nameof(userStatisticsService));
             _env = env ?? throw new ArgumentNullException(nameof(env));
+            _personalDataService = personalDataService ?? throw new ArgumentNullException(nameof(personalDataService));
         }
 
         /// <summary>
@@ -138,6 +142,34 @@ namespace MismeAPI.Controllers.Admin
             await _notificationService.SendFirebaseNotificationAsync(title, body, user.Devices, externalUrl);
 
             return Ok();
+        }
+
+        [HttpGet("{id}/personal-data")]
+        [ProducesResponseType(typeof(ICollection<PersonalDataResponse>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> GetUserPersonalData([FromRoute] int id, int? page, int? perPage, string sortOrder, ICollection<PersonalDataEnum> keys)
+        {
+            var pag = page ?? 1;
+            var perPag = perPage ?? 10;
+
+            var result = await _personalDataService.GetUserPersonalDataAsync(id, pag, perPag, sortOrder, keys);
+
+            HttpContext.Response.Headers.Add("PagingData", JsonConvert.SerializeObject(result.GetPaginationData));
+            HttpContext.Response.Headers["Access-Control-Expose-Headers"] = "PagingData";
+            HttpContext.Response.Headers["Access-Control-Allow-Headers"] = "PagingData";
+
+            var mapped = _mapper.Map<ICollection<PersonalDataResponse>>(result);
+            return Ok(new ApiOkResponse(mapped));
+        }
+
+        [HttpGet("statistics-summary")]
+        [ProducesResponseType(typeof(UserDataSummary), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
+        public async Task<IActionResult> GetUsersSummary()
+        {
+            var result = await _userService.GetUsersSummaryAsync();
+            return Ok(new ApiOkResponse(result));
         }
 
         private SendEmailRequest PrepareEmailBody(SendEmailRequest request)

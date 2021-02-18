@@ -28,6 +28,7 @@ namespace MismeAPI.Data.Entities
             Orders = new HashSet<Order>();
             FavoriteCompoundDishes = new HashSet<FavoriteCompoundDishes>();
             LackSelfControlCompoundDishes = new HashSet<LackSelfControlCompoundDish>();
+            PersonalDatas = new HashSet<PersonalData>();
         }
 
         public int Id { get; set; }
@@ -71,6 +72,9 @@ namespace MismeAPI.Data.Entities
         public int LunchKCalPercentage { get; set; }
         public int Snack2KCalPercentage { get; set; }
         public int DinnerKCalPercentage { get; set; }
+        public int Weight { get; set; }
+        public int Height { get; set; }
+        public int Age { get; set; }
         public UserStatistics UserStatistics { get; set; }
         public UserReferral Invitation { get; set; }
         public int? GroupId { get; set; }
@@ -92,5 +96,6 @@ namespace MismeAPI.Data.Entities
         public virtual ICollection<LackSelfControlCompoundDish> LackSelfControlCompoundDishes { get; set; }
         public virtual ICollection<GroupInvitation> GroupInvitations { get; set; }
         public virtual ICollection<Order> Orders { get; set; }
+        public virtual ICollection<PersonalData> PersonalDatas { get; set; }
     }
 }
