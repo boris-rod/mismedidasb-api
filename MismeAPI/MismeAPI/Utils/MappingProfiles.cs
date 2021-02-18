@@ -9,6 +9,7 @@ using MismeAPI.Common.DTO.Response.ContactUs;
 using MismeAPI.Common.DTO.Response.CutPoint;
 using MismeAPI.Common.DTO.Response.GeneralContent;
 using MismeAPI.Common.DTO.Response.Order;
+using MismeAPI.Common.DTO.Response.PersonalData;
 using MismeAPI.Common.DTO.Response.Product;
 using MismeAPI.Common.DTO.Response.Reminder;
 using MismeAPI.Common.DTO.Response.Result;
@@ -307,6 +308,10 @@ namespace MismeAPI.Utils
             CreateMap<GroupInvitation, GroupInvitationResponse>()
                 .ForMember(d => d.StatusId, opts => opts.MapFrom(source => (int)source.Status))
                 .ForMember(d => d.Status, opts => opts.MapFrom(source => source.Status.ToString()));
+
+            CreateMap<PersonalData, PersonalDataResponse>()
+                .ForMember(d => d.KeyId, opts => opts.MapFrom(source => (int)source.Key))
+                .ForMember(d => d.Key, opts => opts.MapFrom(source => source.Key.ToString()));
         }
 
         private int GetLastAnswer(Question src, IDictionary<string, object> items = null)

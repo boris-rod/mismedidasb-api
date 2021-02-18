@@ -58,6 +58,7 @@ namespace MismeAPI.Data.UoW
         IGenericRepository<LackSelfControlCompoundDish> LackSelfControlCompoundDishRepository { get; set; }
         IGenericRepository<Group> GroupRepository { get; set; }
         IGenericRepository<GroupInvitation> GroupInvitationRepository { get; set; }
+        IGenericRepository<PersonalData> PersonalDataRepository { get; set; }
 
         Task<int> CommitAsync();
     }

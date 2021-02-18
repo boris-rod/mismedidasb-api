@@ -63,6 +63,7 @@ namespace MismeAPI.Data.UoW
             OrderRepository = OrderRepository ?? new GenericRepository<Order>(_context);
             GroupRepository = GroupRepository ?? new GenericRepository<Group>(_context);
             GroupInvitationRepository = GroupInvitationRepository ?? new GenericRepository<GroupInvitation>(_context);
+            PersonalDataRepository = PersonalDataRepository ?? new GenericRepository<PersonalData>(_context);
         }
 
         public IGenericRepository<User> UserRepository { get; set; }
@@ -115,6 +116,7 @@ namespace MismeAPI.Data.UoW
         public IGenericRepository<LackSelfControlCompoundDish> LackSelfControlCompoundDishRepository { get; set; }
         public IGenericRepository<Group> GroupRepository { get; set; }
         public IGenericRepository<GroupInvitation> GroupInvitationRepository { get; set; }
+        public IGenericRepository<PersonalData> PersonalDataRepository { get; set; }
 
         public async Task<int> CommitAsync()
         {

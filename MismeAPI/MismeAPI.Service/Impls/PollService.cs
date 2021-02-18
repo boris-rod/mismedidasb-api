@@ -19,11 +19,13 @@ namespace MismeAPI.Service.Impls
     {
         private readonly IUnitOfWork _uow;
         private readonly IQuestionService _questionService;
+        private readonly IPersonalDataService _personalDataService;
 
-        public PollService(IUnitOfWork uow, IQuestionService questionService)
+        public PollService(IUnitOfWork uow, IQuestionService questionService, IPersonalDataService personalDataService)
         {
             _uow = uow ?? throw new ArgumentNullException(nameof(uow));
             _questionService = questionService ?? throw new ArgumentNullException(nameof(questionService));
+            _personalDataService = personalDataService ?? throw new ArgumentNullException(nameof(personalDataService));
         }
 
         public async Task ActivateTipAsync(int loggedUser, int id, int pollId, int position)
@@ -356,6 +358,8 @@ namespace MismeAPI.Service.Impls
                     await _uow.UserConceptRepository.AddAsync(conc);
                     await _uow.CommitAsync();
                 }
+
+                await SetPersonalDataFromPollAsync(loggedUser);
             }
 
             return message;
@@ -3140,6 +3144,24 @@ namespace MismeAPI.Service.Impls
             }
 
             return polls;
+        }
+
+        private async Task SetPersonalDataFromPollAsync(int userId)
+        {
+            var pollResult = await GetUserPollsInfoAsync(userId);
+
+            await _personalDataService.AddPersonalDataAsync(userId, PersonalDataEnum.WEIGHT, pollResult.weight.ToString());
+            await _personalDataService.AddPersonalDataAsync(userId, PersonalDataEnum.HEIGHT, pollResult.height.ToString());
+            await _personalDataService.AddPersonalDataAsync(userId, PersonalDataEnum.AGE, pollResult.age.ToString());
+
+            var user = await _uow.UserRepository.FindAsync(u => u.Id == userId);
+
+            user.Age = pollResult.age;
+            user.Height = pollResult.height;
+            user.Weight = pollResult.weight;
+
+            await _uow.UserRepository.UpdateAsync(user, user.Id);
+            await _uow.CommitAsync();
         }
     }
 }

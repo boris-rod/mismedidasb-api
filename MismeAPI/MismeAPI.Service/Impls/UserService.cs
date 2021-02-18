@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using MismeAPI.Common;
 using MismeAPI.Common.DTO.Request;
 using MismeAPI.Common.DTO.Response;
+using MismeAPI.Common.DTO.Response.PersonalData;
 using MismeAPI.Common.Exceptions;
 using MismeAPI.Data.Entities;
 using MismeAPI.Data.Entities.Enums;
@@ -949,6 +950,68 @@ namespace MismeAPI.Service.Impls
                 await _uow.UserRepository.UpdateAsync(user, userId);
                 await _uow.CommitAsync();
             }
+        }
+
+        public async Task<UserDataSummary> GetUsersSummaryAsync()
+        {
+            var result = new UserDataSummary();
+
+            var ageRange1 = GetUserByAgeRangeQuery(18, 24);
+            var ageRange2 = GetUserByAgeRangeQuery(25, 34);
+            var ageRange3 = GetUserByAgeRangeQuery(35, 44);
+            var ageRange4 = GetUserByAgeRangeQuery(45, 54);
+            var ageRange5 = GetUserByAgeRangeQuery(55, 64);
+            var ageRange6 = GetUserByAgeRangeQuery(65, null);
+
+            var countAgeRange1 = await ageRange1.CountAsync();
+            var countAgeRange2 = await ageRange2.CountAsync();
+            var countAgeRange3 = await ageRange3.CountAsync();
+            var countAgeRange4 = await ageRange4.CountAsync();
+            var countAgeRange5 = await ageRange5.CountAsync();
+            var countAgeRange6 = await ageRange6.CountAsync();
+
+            result.TotalActiveUsers = await _uow.UserRepository.GetAll().Where(u => u.Status == StatusEnum.ACTIVE).CountAsync();
+            result.TotalUsers = await _uow.UserRepository.GetAll().CountAsync();
+
+            result.AgeRange = new AgeRanges
+            {
+                CountRange18To24 = countAgeRange1,
+                CountRange25To34 = countAgeRange2,
+                CountRange35To44 = countAgeRange3,
+                CountRange45To54 = countAgeRange4,
+                CountRange55To64 = countAgeRange5,
+                CountRangeMin65 = countAgeRange6,
+                PercentageRange18To24 = GetPorciento(result.TotalActiveUsers, countAgeRange1),
+                PercentageRange25To34 = GetPorciento(result.TotalActiveUsers, countAgeRange2),
+                PercentageRange35To44 = GetPorciento(result.TotalActiveUsers, countAgeRange3),
+                PercentageRange45To54 = GetPorciento(result.TotalActiveUsers, countAgeRange4),
+                PercentageRange55To64 = GetPorciento(result.TotalActiveUsers, countAgeRange5),
+                PercentageRangeMin65 = GetPorciento(result.TotalActiveUsers, countAgeRange6),
+            };
+
+            return result;
+        }
+
+        private IQueryable<User> GetUserByAgeRangeQuery(int? minAge, int? maxAge)
+        {
+            var query = _uow.UserRepository.GetAll().Where(u => u.Status == StatusEnum.ACTIVE).AsQueryable();
+
+            if (minAge.HasValue)
+            {
+                query = query.Where(u => u.Age >= minAge.Value);
+            }
+
+            if (maxAge.HasValue)
+            {
+                query = query.Where(u => u.Age <= maxAge.Value);
+            }
+
+            return query;
+        }
+
+        private int GetPorciento(int total, int part)
+        {
+            return part * 100 / total;
         }
     }
 }

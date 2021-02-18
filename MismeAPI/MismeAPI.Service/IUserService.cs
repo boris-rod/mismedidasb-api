@@ -1,5 +1,6 @@
 ﻿using MismeAPI.Common.DTO.Request;
 using MismeAPI.Common.DTO.Response;
+using MismeAPI.Common.DTO.Response.PersonalData;
 using MismeAPI.Data.Entities;
 using MismeAPI.Services.Utils;
 using System;
@@ -42,5 +43,7 @@ namespace MismeAPI.Service
         Task SendManualEmailAsync(SendEmailRequest request);
 
         Task SetUserLatestAccessAsync(int userId);
+
+        Task<UserDataSummary> GetUsersSummaryAsync();
     }
 }
