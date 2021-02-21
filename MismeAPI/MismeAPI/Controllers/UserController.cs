@@ -61,7 +61,7 @@ namespace MismeAPI.Controllers
         [ProducesResponseType(typeof(IEnumerable<UserResponse>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
         public async Task<IActionResult> GetUsers(int? page, int? perPage, string sortOrder, string search,
-            int? statusFilter, int? minPlannedEats, int? maxPlannedEats, int? minEmotionMedia, int? maxEmotionMedia)
+            int? statusFilter, int? minPlannedEats, int? maxPlannedEats, double? minEmotionMedia, double? maxEmotionMedia)
         {
             var loggedUser = User.GetUserIdFromToken();
             var pag = page ?? 1;
