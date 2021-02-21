@@ -336,17 +336,17 @@ namespace MismeAPI.Service.Impls
                 throw new UnprocessableEntityException("La invitacion ya fue procesada por el usuario.");
         }
 
-        public async Task<GroupInvitation> UpdateGroupInvitationAsync(int invitationId, StatusInvitationEnum status, string token)
+        public async Task<GroupInvitation> UpdateGroupInvitationAsync(StatusInvitationEnum status, string token)
         {
-            var invitation = await GetGroupInvitationAsync(invitationId);
+            var invitation = await GetGroupInvitationByTokenAsync(token);
 
-            if (token == invitation.SecurityToken)
+            if (invitation != null)
             {
                 invitation.Status = status;
                 invitation.SecurityToken = "";
                 invitation.ModifiedAt = DateTime.UtcNow;
 
-                await _uow.GroupInvitationRepository.UpdateAsync(invitation, invitationId);
+                await _uow.GroupInvitationRepository.UpdateAsync(invitation, invitation.Id);
             }
             else
             {
@@ -478,6 +478,19 @@ namespace MismeAPI.Service.Impls
                .Include(g => g.Group)
                .Include(g => g.User)
                .FirstOrDefaultAsync(g => g.Id == id);
+
+            if (invitation == null)
+                throw new NotFoundException(ExceptionConstants.NOT_FOUND, "Invitation");
+
+            return invitation;
+        }
+
+        private async Task<GroupInvitation> GetGroupInvitationByTokenAsync(string token)
+        {
+            var invitation = await _uow.GroupInvitationRepository.GetAll()
+               .Include(g => g.Group)
+               .Include(g => g.User)
+               .FirstOrDefaultAsync(g => g.SecurityToken == token);
 
             if (invitation == null)
                 throw new NotFoundException(ExceptionConstants.NOT_FOUND, "Invitation");

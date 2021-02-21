@@ -171,7 +171,7 @@ namespace MismeAPI.Controllers
         /// <returns></returns>
         [HttpGet("{id}/group-invitations")]
         [Authorize(Roles = "GROUP_ADMIN,ADMIN")]
-        [ProducesResponseType(typeof(GroupInvitationResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ICollection<GroupInvitationResponse>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
         public async Task<IActionResult> GetInvitations(int id, int? page, int? perPage, string sortOrder, string search, ICollection<StatusInvitationEnum> statuses)
@@ -237,7 +237,7 @@ namespace MismeAPI.Controllers
         /// <returns></returns>
         [HttpGet("{id}/users")]
         [Authorize(Roles = "GROUP_ADMIN,ADMIN")]
-        [ProducesResponseType(typeof(UserResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ICollection<UserResponse>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
         public async Task<IActionResult> GetUsers(int id, int? page, int? perPage, string sortOrder, string search, ICollection<StatusInvitationEnum> statuses)
@@ -267,19 +267,17 @@ namespace MismeAPI.Controllers
         /// <summary>
         /// Accept an invitation to a group.
         /// </summary>
-        /// <param name="id">Group id</param>
-        /// <param name="inviteId"></param>
         /// <param name="token"></param>
         /// <returns>Group Invitation</returns>
         [AllowAnonymous]
-        [HttpPatch("{id}/group-invitations/{inviteId}/accept")]
+        [HttpPatch("group-invitations/accept")]
         [ProducesResponseType(typeof(GroupInviteActionResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.UnprocessableEntity)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> AcceptInvitation([FromRoute] int id, [FromRoute] int inviteId, string token)
+        public async Task<IActionResult> AcceptInvitation(string token)
         {
-            var result = await _groupService.UpdateGroupInvitationAsync(inviteId, StatusInvitationEnum.ACCEPTED, token);
+            var result = await _groupService.UpdateGroupInvitationAsync(StatusInvitationEnum.ACCEPTED, token);
             var mapped = _mapper.Map<GroupInvitationResponse>(result);
 
             return Ok(new ApiOkResponse(mapped));
@@ -288,19 +286,17 @@ namespace MismeAPI.Controllers
         /// <summary>
         /// Decline an invitation to a group.
         /// </summary>
-        /// <param name="id">Group id</param>
-        /// <param name="inviteId"></param>
         /// <param name="token"></param>
         /// <returns>Group Invitation</returns>
         [AllowAnonymous]
-        [HttpPatch("{id}/group-invitations/{inviteId}/decline")]
+        [HttpPatch("group-invitations/decline")]
         [ProducesResponseType(typeof(GroupInviteActionResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.UnprocessableEntity)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> DeclineInvitation([FromRoute] int id, [FromRoute] int inviteId, string token)
+        public async Task<IActionResult> DeclineInvitation(string token)
         {
-            var result = await _groupService.UpdateGroupInvitationAsync(inviteId, StatusInvitationEnum.REJECTED, token);
+            var result = await _groupService.UpdateGroupInvitationAsync(StatusInvitationEnum.REJECTED, token);
             var mapped = _mapper.Map<GroupInvitationResponse>(result);
 
             return Ok(new ApiOkResponse(mapped));
