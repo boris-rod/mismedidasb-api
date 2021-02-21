@@ -47,7 +47,7 @@ namespace MismeAPI.Controllers
         /// </summary>
         /// <returns>Group</returns>
         [HttpGet]
-        [Authorize(Roles = "GROUP_ADMIN")]
+        [Authorize(Roles = "GROUP_ADMIN,ADMIN")]
         [ProducesResponseType(typeof(GroupExtendedResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
@@ -66,7 +66,7 @@ namespace MismeAPI.Controllers
         /// </summary>
         /// <returns>Group</returns>
         [HttpPut]
-        [Authorize(Roles = "GROUP_ADMIN")]
+        [Authorize(Roles = "GROUP_ADMIN,ADMIN")]
         [ProducesResponseType(typeof(GroupExtendedResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
@@ -170,7 +170,7 @@ namespace MismeAPI.Controllers
         /// <param name="statuses">Filter result by status</param>
         /// <returns></returns>
         [HttpGet("{id}/group-invitations")]
-        [Authorize(Roles = "GROUP_ADMIN")]
+        [Authorize(Roles = "GROUP_ADMIN,ADMIN")]
         [ProducesResponseType(typeof(GroupInvitationResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
@@ -204,7 +204,7 @@ namespace MismeAPI.Controllers
         /// </summary>
         /// <returns>Group</returns>
         [HttpDelete("{id}/group-invitations/{inviteId}")]
-        [Authorize(Roles = "GROUP_ADMIN")]
+        [Authorize(Roles = "GROUP_ADMIN,ADMIN")]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.UnprocessableEntity)]
@@ -236,7 +236,7 @@ namespace MismeAPI.Controllers
         /// <param name="statuses"></param>
         /// <returns></returns>
         [HttpGet("{id}/users")]
-        [Authorize(Roles = "GROUP_ADMIN")]
+        [Authorize(Roles = "GROUP_ADMIN,ADMIN")]
         [ProducesResponseType(typeof(UserResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
