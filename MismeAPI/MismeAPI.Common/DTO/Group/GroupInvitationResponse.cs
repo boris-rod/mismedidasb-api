@@ -11,6 +11,7 @@ namespace MismeAPI.Common.DTO.Group
         public int GroupId { get; set; }
         public int UserId { get; set; }
         public UserResponse User { get; set; }
+        public string UserEmail { get; set; }
         public int StatusId { get; set; }
         public string Status { get; set; }
         public DateTime CreatedAt { get; set; }

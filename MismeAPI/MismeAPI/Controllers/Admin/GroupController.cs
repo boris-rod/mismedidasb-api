@@ -45,7 +45,7 @@ namespace MismeAPI.Controllers.Admin
         /// <param name="isActive">Filter groups by its active status</param>
         /// <returns></returns>
         [HttpGet]
-        [ProducesResponseType(typeof(GroupResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ICollection<GroupResponse>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
         public async Task<IActionResult> Index(int? page, int? perPage, string sortOrder, string search, bool? isActive)
