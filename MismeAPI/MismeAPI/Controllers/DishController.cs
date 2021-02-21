@@ -40,6 +40,7 @@ namespace MismeAPI.Controllers
         /// <param name="page">Page to be listed. If null all the dishes will be returned.</param>
         /// <param name="perPage">By defaul 10 but only will take effect if the page param is specified.</param>
         /// <param name="harvardFilter">0- proteic, 1- caloric, 2- fruitVegetable.</param>
+        /// <param name="sort">Sort diches</param>
         [HttpGet]
         [Authorize]
         [ProducesResponseType(typeof(IEnumerable<DishResponse>), (int)HttpStatusCode.OK)]

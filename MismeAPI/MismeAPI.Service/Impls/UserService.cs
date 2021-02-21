@@ -34,7 +34,7 @@ namespace MismeAPI.Service.Impls
         }
 
         public async Task<PaginatedList<User>> GetUsersAsync(int loggedUser, int pag, int perPag, string sortOrder, int statusFilter,
-            string search, int? minPlannedEats, int? maxPlannedEats, int? minEmotionMedia, int? maxEmotionMedia)
+            string search, int? minPlannedEats, int? maxPlannedEats, double? minEmotionMedia, double? maxEmotionMedia)
         {
             var user = await _uow.UserRepository.GetAsync(loggedUser);
             if (user.Role == RoleEnum.NORMAL)
@@ -136,6 +136,14 @@ namespace MismeAPI.Service.Impls
                         result = result.OrderBy(i =>
                             i.UserSoloAnswers.Where(usa => usa.QuestionCode == "SQ-2" && usa.AnswerCode == "SQ-2-SA-1" && !string.IsNullOrEmpty(usa.AnswerValue))
                             .Average(usa => int.Parse(usa.AnswerValue)));
+                        break;
+
+                    case "plannedEats_desc":
+                        result = result.OrderByDescending(i => (i.UserStatistics.TotalBalancedEatsPlanned + i.UserStatistics.TotalNonBalancedEatsPlanned));
+                        break;
+
+                    case "plannedEats_asc":
+                        result = result.OrderBy(i => (i.UserStatistics.TotalBalancedEatsPlanned + i.UserStatistics.TotalNonBalancedEatsPlanned));
                         break;
 
                     default:
@@ -1003,15 +1011,16 @@ namespace MismeAPI.Service.Impls
 
             if (maxAge.HasValue)
             {
-                query = query.Where(u => u.Age <= maxAge.Value);
+                query = query.Where(u => u.Age < maxAge.Value);
             }
 
             return query;
         }
 
-        private int GetPorciento(int total, int part)
+        private decimal GetPorciento(int total, int part)
         {
-            return part * 100 / total;
+            decimal percentage = part * 100 / total;
+            return Math.Round(percentage, 2);
         }
     }
 }

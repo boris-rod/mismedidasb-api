@@ -178,6 +178,7 @@ namespace MismeAPI.Service.Impls
 
             await _uow.GroupRepository.AddAsync(group);
 
+            // CommitAsync method is called inside this helper method.
             var generatedPasword = await SetGroupAdminAsyn(group, request.AdminEmail, request.Language);
 
             return (group, generatedPasword);
@@ -331,9 +332,14 @@ namespace MismeAPI.Service.Impls
             var invitation = await GetGroupInvitationAsync(invitationId);
 
             if (invitation.Status == StatusInvitationEnum.PENDING)
+            {
                 _uow.GroupInvitationRepository.Delete(invitation);
+                await _uow.CommitAsync();
+            }
             else
+            {
                 throw new UnprocessableEntityException("La invitacion ya fue procesada por el usuario.");
+            }
         }
 
         public async Task<GroupInvitation> UpdateGroupInvitationAsync(StatusInvitationEnum status, string token)
@@ -347,6 +353,7 @@ namespace MismeAPI.Service.Impls
                 invitation.ModifiedAt = DateTime.UtcNow;
 
                 await _uow.GroupInvitationRepository.UpdateAsync(invitation, invitation.Id);
+                await _uow.CommitAsync();
             }
             else
             {

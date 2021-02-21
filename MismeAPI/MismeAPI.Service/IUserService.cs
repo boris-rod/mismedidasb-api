@@ -12,7 +12,7 @@ namespace MismeAPI.Service
     public interface IUserService
     {
         Task<PaginatedList<User>> GetUsersAsync(int loggedUser, int pag, int perPag, string sortOrder, int statusFilter, string search,
-            int? minPlannedEats, int? maxPlannedEats, int? minEmotionMedia, int? maxEmotionMedia);
+            int? minPlannedEats, int? maxPlannedEats, double? minEmotionMedia, double? maxEmotionMedia);
 
         Task<dynamic> GetUsersStatsAsync(int loggedUser);
 
