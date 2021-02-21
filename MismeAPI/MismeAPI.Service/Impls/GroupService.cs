@@ -298,7 +298,7 @@ namespace MismeAPI.Service.Impls
                 {
                     if (user.Group == null)
                     {
-                        var groupInvitation = await CreateGroupInvitationAsync(group, user);
+                        var groupInvitation = await CreateGroupInvitationAsync(group, user, user.Email);
                         invitations.Add(groupInvitation);
 
                         var response = new GroupInviteActionResponse
@@ -517,7 +517,7 @@ namespace MismeAPI.Service.Impls
                     throw new InvalidDataException("El usuario ya pertenece a un grupo, solo un grupo por usuario es permitido.", "AdminEmail");
             }
 
-            await CreateGroupInvitationAsync(group, user);
+            await CreateGroupInvitationAsync(group, user, user.Email);
 
             return generatedPassword;
         }
