@@ -349,8 +349,9 @@ namespace MismeAPI.Service.Impls
             result.BestComplyEatStreak = fitEatPlanBestStreak;
             result.MostFrequentEmotions = mostFrequentEmotions;
             result.MostFrequentEmotionCount = wellnessCount;
-            result.EmotionMedia = sumEmotionsReported / amountEmotionsReported;
             result.LastEmotionsReported = lastEmotions;
+            if (amountEmotionsReported > 0)
+                result.EmotionMedia = sumEmotionsReported / amountEmotionsReported;
 
             return result;
         }

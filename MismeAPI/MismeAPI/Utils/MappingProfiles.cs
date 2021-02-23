@@ -47,11 +47,11 @@ namespace MismeAPI.Utils
 
             CreateMap<User, UserResponse>()
                 .ForMember(d => d.Language, opts => opts.MapFrom(source => GetLanguage(source.UserSettings)))
-                        .ForMember(d => d.StatusId, opts => opts.MapFrom(source => (int)source.Status))
-                        .ForMember(d => d.Status, opts => opts.MapFrom(source => source.Status.ToString()))
-                        .ForMember(d => d.PlannedEats, opts => opts.MapFrom(source => GetPlannedEats(source)))
-                        .ForMember(d => d.EmotionMedia, opts => opts.MapFrom(source => GetEmotionMedia(source)))
-                        .ForMember(d => d.Avatar, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Avatar) ? "" : _amazonS3Service.GetPublicUrl(source.Avatar)));
+                .ForMember(d => d.StatusId, opts => opts.MapFrom(source => (int)source.Status))
+                .ForMember(d => d.Role, opts => opts.MapFrom(source => source.Role.ToString()))
+                .ForMember(d => d.RoleId, opts => opts.MapFrom(source => (int)source.Role))
+                .ForMember(d => d.Status, opts => opts.MapFrom(source => source.Status.ToString()))
+                .ForMember(d => d.Avatar, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Avatar) ? "" : _amazonS3Service.GetPublicUrl(source.Avatar)));
 
             CreateMap<User, UserWithSubscriptionResponse>()
                 .ForMember(d => d.Language, opts => opts.MapFrom(source => GetLanguage(source.UserSettings)))
@@ -60,6 +60,14 @@ namespace MismeAPI.Utils
                         .ForMember(d => d.Avatar, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Avatar) ? "" : _amazonS3Service.GetPublicUrl(source.Avatar)));
 
             CreateMap<User, UserAdminResponse>();
+
+            CreateMap<User, UserSimpleResponse>()
+               .ForMember(d => d.Language, opts => opts.MapFrom(source => GetLanguage(source.UserSettings)))
+                       .ForMember(d => d.Role, opts => opts.MapFrom(source => source.Role.ToString()))
+                       .ForMember(d => d.RoleId, opts => opts.MapFrom(source => (int)source.Role))
+                       .ForMember(d => d.StatusId, opts => opts.MapFrom(source => (int)source.Status))
+                       .ForMember(d => d.Status, opts => opts.MapFrom(source => source.Status.ToString()))
+                       .ForMember(d => d.Avatar, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Avatar) ? "" : _amazonS3Service.GetPublicUrl(source.Avatar)));
 
             CreateMap<Poll, PollResponse>()
                 //.ForMember(d => d.Tips, opts => opts.MapFrom((src, dest, destMember, context) => GetPollTips(src, context.Items["lang"].ToString())))
@@ -573,19 +581,6 @@ namespace MismeAPI.Utils
             var item = dish.LackSelfControlDishes.FirstOrDefault(fd => fd.UserId == loggedUser);
 
             return item != null ? item.Intensity : 0;
-        }
-
-        private double GetEmotionMedia(User user)
-        {
-            var media = user.UserSoloAnswers
-                .Where(usa => usa.QuestionCode == "SQ-2" && usa.AnswerCode == "SQ-2-SA-1" && !string.IsNullOrEmpty(usa.AnswerValue)).Average(usa => int.Parse(usa.AnswerValue));
-
-            return media;
-        }
-
-        private int GetPlannedEats(User user)
-        {
-            return user.UserStatistics.TotalBalancedEatsPlanned + user.UserStatistics.TotalNonBalancedEatsPlanned;
         }
     }
 }

@@ -379,6 +379,7 @@ namespace MismeAPI.Service.Impls
                 result = result.Where(gi => statuses.Contains(gi.Status));
             }
 
+
             // define sort order
             if (!string.IsNullOrWhiteSpace(sortOrder))
             {

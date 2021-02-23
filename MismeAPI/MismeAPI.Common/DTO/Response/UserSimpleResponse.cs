@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace MismeAPI.Common.DTO.Response
 {
-    public class UserResponse
+    public class UserSimpleResponse
     {
         public int Id { get; set; }
         public string FullName { get; set; }
@@ -28,8 +28,5 @@ namespace MismeAPI.Common.DTO.Response
         public DateTime? FirstHealthMeasured { get; set; }
         public string Language { get; set; }
         public bool TermsAndConditionsAccepted { get; set; }
-        public int PlannedEats { get; set; }
-        public double? EmotionMedia { get; set; }
-        public GroupResponse Group { get; set; }
     }
 }

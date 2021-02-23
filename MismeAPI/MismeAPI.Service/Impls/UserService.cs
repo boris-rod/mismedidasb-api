@@ -77,7 +77,7 @@ namespace MismeAPI.Service.Impls
                 result = result
                     .Where(u => u.UserSoloAnswers
                         .Where(usa => usa.QuestionCode == "SQ-2" && usa.AnswerCode == "SQ-2-SA-1" && !string.IsNullOrEmpty(usa.AnswerValue))
-                        .Average(usa => int.Parse(usa.AnswerValue)) >= minEmotionMedia.Value);
+                        .Average(usa => Convert.ToInt32(usa.AnswerValue)) >= minEmotionMedia.Value);
             }
 
             if (maxEmotionMedia.HasValue)
@@ -85,7 +85,7 @@ namespace MismeAPI.Service.Impls
                 result = result
                     .Where(u => u.UserSoloAnswers
                         .Where(usa => usa.QuestionCode == "SQ-2" && usa.AnswerCode == "SQ-2-SA-1" && !string.IsNullOrEmpty(usa.AnswerValue))
-                        .Average(usa => int.Parse(usa.AnswerValue)) <= maxEmotionMedia.Value);
+                        .Average(usa => Convert.ToInt32(usa.AnswerValue)) <= maxEmotionMedia.Value);
             }
 
             // define sort order
