@@ -18,7 +18,7 @@ namespace MismeAPI.Data.Entities.NonDatabase
         public int TotalDaysComplySportPlan { get; set; }
         public ICollection<int> MostFrequentEmotions { get; set; }
         public int MostFrequentEmotionCount { get; set; }
-        public int EmotionMedia { get; set; }
+        public double? EmotionMedia { get; set; }
 
         /// <summary>
         /// Last answers of the user saying his emotions, how I felt today

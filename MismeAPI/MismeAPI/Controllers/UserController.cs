@@ -58,7 +58,7 @@ namespace MismeAPI.Controllers
         /// <param name="search">For searching purposes.</param>
         [HttpGet]
         [Authorize(Roles = "ADMIN")]
-        [ProducesResponseType(typeof(IEnumerable<UserResponse>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ICollection<UserResponse>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
         public async Task<IActionResult> GetUsers(int? page, int? perPage, string sortOrder, string search,
             int? statusFilter, int? minPlannedEats, int? maxPlannedEats, double? minEmotionMedia, double? maxEmotionMedia)
@@ -75,7 +75,7 @@ namespace MismeAPI.Controllers
             HttpContext.Response.Headers["Access-Control-Expose-Headers"] = "PagingData";
             HttpContext.Response.Headers["Access-Control-Allow-Headers"] = "PagingData";
 
-            var mapped = _mapper.Map<IEnumerable<UserResponse>>(result);
+            var mapped = _mapper.Map<ICollection<UserResponse>>(result);
             return Ok(new ApiOkResponse(mapped));
         }
 
