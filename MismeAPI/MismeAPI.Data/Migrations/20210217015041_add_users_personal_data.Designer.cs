@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MismeAPI.Data;
 
 namespace MismeAPI.Data.Migrations
 {
     [DbContext(typeof(MismeContext))]
-    partial class MismeContextModelSnapshot : ModelSnapshot
+    [Migration("20210217015041_add_users_personal_data")]
+    partial class add_users_personal_data
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1320,9 +1322,6 @@ namespace MismeAPI.Data.Migrations
                     b.Property<DateTime?>("ActivatedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<int>("Age")
-                        .HasColumnType("int");
-
                     b.Property<string>("Avatar")
                         .HasColumnType("longtext CHARACTER SET utf8mb4");
 
@@ -1362,9 +1361,6 @@ namespace MismeAPI.Data.Migrations
                         .HasColumnType("longtext CHARACTER SET utf8mb4");
 
                     b.Property<int?>("GroupId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Height")
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("LastAccessAt")
@@ -1426,9 +1422,6 @@ namespace MismeAPI.Data.Migrations
                         .HasColumnType("longtext CHARACTER SET utf8mb4");
 
                     b.Property<int>("VerificationCode")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Weight")
                         .HasColumnType("int");
 
                     b.HasKey("Id");

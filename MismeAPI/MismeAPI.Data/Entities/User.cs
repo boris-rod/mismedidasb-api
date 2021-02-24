@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
 
 namespace MismeAPI.Data.Entities
 {
@@ -28,6 +29,7 @@ namespace MismeAPI.Data.Entities
             Orders = new HashSet<Order>();
             FavoriteCompoundDishes = new HashSet<FavoriteCompoundDishes>();
             LackSelfControlCompoundDishes = new HashSet<LackSelfControlCompoundDish>();
+            PersonalDatas = new HashSet<PersonalData>();
         }
 
         public int Id { get; set; }
@@ -71,10 +73,47 @@ namespace MismeAPI.Data.Entities
         public int LunchKCalPercentage { get; set; }
         public int Snack2KCalPercentage { get; set; }
         public int DinnerKCalPercentage { get; set; }
+        public int Weight { get; set; }
+        public int Height { get; set; }
+        public int Age { get; set; }
         public UserStatistics UserStatistics { get; set; }
         public UserReferral Invitation { get; set; }
         public int? GroupId { get; set; }
         public Group Group { get; set; }
+
+        [NotMapped]
+        public double? EmotionMedia
+        {
+            get
+            {
+                if (this.UserSoloAnswers == null || this.UserSoloAnswers.Count() == 0)
+                {
+                    return null;
+                }
+
+                var elements = this.UserSoloAnswers
+                    .Where(usa => usa.QuestionCode == "SQ-2" && usa.AnswerCode == "SQ-2-SA-1" && !string.IsNullOrEmpty(usa.AnswerValue))
+                    .Select(e => new { AnswerValue = Convert.ToInt32(e.AnswerValue) })
+                    .ToList();
+
+                if (elements.Count() > 0)
+                {
+                    return elements.Average(e => e.AnswerValue);
+                }
+
+                return null;
+            }
+        }
+
+        [NotMapped]
+        public int PlannedEats
+        {
+            get
+            {
+                return this.UserStatistics != null ? this.UserStatistics.TotalBalancedEatsPlanned + this.UserStatistics.TotalNonBalancedEatsPlanned : 0;
+            }
+        }
+
         public virtual ICollection<UserToken> UserTokens { get; set; }
         public virtual ICollection<Eat> Eats { get; set; }
         public virtual ICollection<Device> Devices { get; set; }
@@ -92,5 +131,6 @@ namespace MismeAPI.Data.Entities
         public virtual ICollection<LackSelfControlCompoundDish> LackSelfControlCompoundDishes { get; set; }
         public virtual ICollection<GroupInvitation> GroupInvitations { get; set; }
         public virtual ICollection<Order> Orders { get; set; }
+        public virtual ICollection<PersonalData> PersonalDatas { get; set; }
     }
 }

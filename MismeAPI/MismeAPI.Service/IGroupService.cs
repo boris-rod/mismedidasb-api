@@ -10,7 +10,7 @@ namespace MismeAPI.Service
 {
     public interface IGroupService
     {
-        Task<PaginatedList<Group>> GetGroupsAsync(int pag, int perPag, string sortOrder, string search);
+        Task<PaginatedList<Group>> GetGroupsAsync(int pag, int perPag, string sortOrder, string search, bool? isActive);
 
         Task<Group> GetGroupAsync(int groupId);
 
@@ -32,7 +32,7 @@ namespace MismeAPI.Service
 
         Task DeleteGroupInvitationAsync(int invitationId);
 
-        Task<GroupInvitation> UpdateGroupInvitationAsync(int invitationId, StatusInvitationEnum status, string token);
+        Task<GroupInvitation> UpdateGroupInvitationAsync(StatusInvitationEnum status, string token);
 
         Task<PaginatedList<GroupInvitation>> GetInvitationsAsync(int groupId, int pag, int perPag, string sortOrder, string search, ICollection<StatusInvitationEnum> statuses);
 

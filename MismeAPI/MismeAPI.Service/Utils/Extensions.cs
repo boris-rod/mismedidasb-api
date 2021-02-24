@@ -1,4 +1,6 @@
-﻿using System;
+﻿using MismeAPI.Common.DTO.Response.SoloQuestion;
+using MismeAPI.Data.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -55,6 +57,24 @@ namespace MismeAPI.Service.Utils
 
             // Simple case
             return new DateTimeOffset(dt, tz.GetUtcOffset(dt));
+        }
+
+        public static UserSoloAnswerResponse ToUserSoloAnswerResponse(this UserSoloAnswer answer)
+        {
+            var result = new UserSoloAnswerResponse
+            {
+                Id = answer.Id,
+                UserId = answer.UserId,
+                SoloAnswerId = answer.SoloAnswerId,
+                AnswerCode = answer.AnswerCode,
+                AnswerValue = answer.AnswerValue,
+                QuestionCode = answer.QuestionCode,
+                Coins = answer.Coins,
+                Points = answer.Points,
+                CreatedAt = answer.CreatedAt
+            };
+
+            return result;
         }
     }
 }

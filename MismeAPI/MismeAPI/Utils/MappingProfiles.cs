@@ -9,6 +9,7 @@ using MismeAPI.Common.DTO.Response.ContactUs;
 using MismeAPI.Common.DTO.Response.CutPoint;
 using MismeAPI.Common.DTO.Response.GeneralContent;
 using MismeAPI.Common.DTO.Response.Order;
+using MismeAPI.Common.DTO.Response.PersonalData;
 using MismeAPI.Common.DTO.Response.Product;
 using MismeAPI.Common.DTO.Response.Reminder;
 using MismeAPI.Common.DTO.Response.Result;
@@ -46,9 +47,11 @@ namespace MismeAPI.Utils
 
             CreateMap<User, UserResponse>()
                 .ForMember(d => d.Language, opts => opts.MapFrom(source => GetLanguage(source.UserSettings)))
-                        .ForMember(d => d.StatusId, opts => opts.MapFrom(source => (int)source.Status))
-                        .ForMember(d => d.Status, opts => opts.MapFrom(source => source.Status.ToString()))
-                        .ForMember(d => d.Avatar, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Avatar) ? "" : _amazonS3Service.GetPublicUrl(source.Avatar)));
+                .ForMember(d => d.StatusId, opts => opts.MapFrom(source => (int)source.Status))
+                .ForMember(d => d.Role, opts => opts.MapFrom(source => source.Role.ToString()))
+                .ForMember(d => d.RoleId, opts => opts.MapFrom(source => (int)source.Role))
+                .ForMember(d => d.Status, opts => opts.MapFrom(source => source.Status.ToString()))
+                .ForMember(d => d.Avatar, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Avatar) ? "" : _amazonS3Service.GetPublicUrl(source.Avatar)));
 
             CreateMap<User, UserWithSubscriptionResponse>()
                 .ForMember(d => d.Language, opts => opts.MapFrom(source => GetLanguage(source.UserSettings)))
@@ -57,6 +60,14 @@ namespace MismeAPI.Utils
                         .ForMember(d => d.Avatar, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Avatar) ? "" : _amazonS3Service.GetPublicUrl(source.Avatar)));
 
             CreateMap<User, UserAdminResponse>();
+
+            CreateMap<User, UserSimpleResponse>()
+               .ForMember(d => d.Language, opts => opts.MapFrom(source => GetLanguage(source.UserSettings)))
+                       .ForMember(d => d.Role, opts => opts.MapFrom(source => source.Role.ToString()))
+                       .ForMember(d => d.RoleId, opts => opts.MapFrom(source => (int)source.Role))
+                       .ForMember(d => d.StatusId, opts => opts.MapFrom(source => (int)source.Status))
+                       .ForMember(d => d.Status, opts => opts.MapFrom(source => source.Status.ToString()))
+                       .ForMember(d => d.Avatar, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Avatar) ? "" : _amazonS3Service.GetPublicUrl(source.Avatar)));
 
             CreateMap<Poll, PollResponse>()
                 //.ForMember(d => d.Tips, opts => opts.MapFrom((src, dest, destMember, context) => GetPollTips(src, context.Items["lang"].ToString())))
@@ -307,6 +318,10 @@ namespace MismeAPI.Utils
             CreateMap<GroupInvitation, GroupInvitationResponse>()
                 .ForMember(d => d.StatusId, opts => opts.MapFrom(source => (int)source.Status))
                 .ForMember(d => d.Status, opts => opts.MapFrom(source => source.Status.ToString()));
+
+            CreateMap<PersonalData, PersonalDataResponse>()
+                .ForMember(d => d.KeyId, opts => opts.MapFrom(source => (int)source.Key))
+                .ForMember(d => d.Key, opts => opts.MapFrom(source => source.Key.ToString()));
         }
 
         private int GetLastAnswer(Question src, IDictionary<string, object> items = null)

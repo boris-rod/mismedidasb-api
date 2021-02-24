@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using MismeAPI.Common;
 using MismeAPI.Common.DTO.Request;
 using MismeAPI.Common.DTO.Response;
+using MismeAPI.Common.DTO.Response.PersonalData;
 using MismeAPI.Common.Exceptions;
 using MismeAPI.Data.Entities;
 using MismeAPI.Data.Entities.Enums;
@@ -32,7 +33,8 @@ namespace MismeAPI.Service.Impls
             _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
         }
 
-        public async Task<PaginatedList<User>> GetUsersAsync(int loggedUser, int pag, int perPag, string sortOrder, int statusFilter, string search)
+        public async Task<PaginatedList<User>> GetUsersAsync(int loggedUser, int pag, int perPag, string sortOrder, int statusFilter,
+            string search, int? minPlannedEats, int? maxPlannedEats, double? minEmotionMedia, double? maxEmotionMedia)
         {
             var user = await _uow.UserRepository.GetAsync(loggedUser);
             if (user.Role == RoleEnum.NORMAL)
@@ -41,6 +43,8 @@ namespace MismeAPI.Service.Impls
             }
 
             var result = _uow.UserRepository.GetAll()
+                .Include(u => u.UserStatistics)
+                .Include(u => u.UserSoloAnswers)
                 .Where(u => u.Role == RoleEnum.NORMAL)
                 .AsQueryable();
 
@@ -56,6 +60,32 @@ namespace MismeAPI.Service.Impls
             if (statusFilter > -1)
             {
                 result = result.Where(i => (StatusEnum)statusFilter == i.Status);
+            }
+
+            if (minPlannedEats.HasValue)
+            {
+                result = result.Where(u => (u.UserStatistics.TotalBalancedEatsPlanned + u.UserStatistics.TotalNonBalancedEatsPlanned) >= minPlannedEats.Value);
+            }
+
+            if (maxPlannedEats.HasValue)
+            {
+                result = result.Where(u => (u.UserStatistics.TotalBalancedEatsPlanned + u.UserStatistics.TotalNonBalancedEatsPlanned) <= maxPlannedEats.Value);
+            }
+
+            if (minEmotionMedia.HasValue)
+            {
+                result = result
+                    .Where(u => u.UserSoloAnswers
+                        .Where(usa => usa.QuestionCode == "SQ-2" && usa.AnswerCode == "SQ-2-SA-1" && !string.IsNullOrEmpty(usa.AnswerValue))
+                        .Average(usa => Convert.ToInt32(usa.AnswerValue)) >= minEmotionMedia.Value);
+            }
+
+            if (maxEmotionMedia.HasValue)
+            {
+                result = result
+                    .Where(u => u.UserSoloAnswers
+                        .Where(usa => usa.QuestionCode == "SQ-2" && usa.AnswerCode == "SQ-2-SA-1" && !string.IsNullOrEmpty(usa.AnswerValue))
+                        .Average(usa => Convert.ToInt32(usa.AnswerValue)) <= maxEmotionMedia.Value);
             }
 
             // define sort order
@@ -94,6 +124,26 @@ namespace MismeAPI.Service.Impls
 
                     case "status_asc":
                         result = result.OrderBy(i => i.Status);
+                        break;
+
+                    case "emotionMedia_desc":
+                        result = result.OrderByDescending(i =>
+                            i.UserSoloAnswers.Where(usa => usa.QuestionCode == "SQ-2" && usa.AnswerCode == "SQ-2-SA-1" && !string.IsNullOrEmpty(usa.AnswerValue))
+                            .Average(usa => int.Parse(usa.AnswerValue)));
+                        break;
+
+                    case "emotionMedia_asc":
+                        result = result.OrderBy(i =>
+                            i.UserSoloAnswers.Where(usa => usa.QuestionCode == "SQ-2" && usa.AnswerCode == "SQ-2-SA-1" && !string.IsNullOrEmpty(usa.AnswerValue))
+                            .Average(usa => int.Parse(usa.AnswerValue)));
+                        break;
+
+                    case "plannedEats_desc":
+                        result = result.OrderByDescending(i => (i.UserStatistics.TotalBalancedEatsPlanned + i.UserStatistics.TotalNonBalancedEatsPlanned));
+                        break;
+
+                    case "plannedEats_asc":
+                        result = result.OrderBy(i => (i.UserStatistics.TotalBalancedEatsPlanned + i.UserStatistics.TotalNonBalancedEatsPlanned));
                         break;
 
                     default:
@@ -908,6 +958,69 @@ namespace MismeAPI.Service.Impls
                 await _uow.UserRepository.UpdateAsync(user, userId);
                 await _uow.CommitAsync();
             }
+        }
+
+        public async Task<UserDataSummary> GetUsersSummaryAsync()
+        {
+            var result = new UserDataSummary();
+
+            var ageRange1 = GetUserByAgeRangeQuery(18, 24);
+            var ageRange2 = GetUserByAgeRangeQuery(25, 34);
+            var ageRange3 = GetUserByAgeRangeQuery(35, 44);
+            var ageRange4 = GetUserByAgeRangeQuery(45, 54);
+            var ageRange5 = GetUserByAgeRangeQuery(55, 64);
+            var ageRange6 = GetUserByAgeRangeQuery(65, null);
+
+            var countAgeRange1 = await ageRange1.CountAsync();
+            var countAgeRange2 = await ageRange2.CountAsync();
+            var countAgeRange3 = await ageRange3.CountAsync();
+            var countAgeRange4 = await ageRange4.CountAsync();
+            var countAgeRange5 = await ageRange5.CountAsync();
+            var countAgeRange6 = await ageRange6.CountAsync();
+
+            result.TotalActiveUsers = await _uow.UserRepository.GetAll().Where(u => u.Status == StatusEnum.ACTIVE).CountAsync();
+            result.TotalUsers = await _uow.UserRepository.GetAll().CountAsync();
+
+            result.AgeRange = new AgeRanges
+            {
+                CountRange18To24 = countAgeRange1,
+                CountRange25To34 = countAgeRange2,
+                CountRange35To44 = countAgeRange3,
+                CountRange45To54 = countAgeRange4,
+                CountRange55To64 = countAgeRange5,
+                CountRangeMin65 = countAgeRange6,
+                PercentageRange18To24 = GetPorciento(result.TotalActiveUsers, countAgeRange1),
+                PercentageRange25To34 = GetPorciento(result.TotalActiveUsers, countAgeRange2),
+                PercentageRange35To44 = GetPorciento(result.TotalActiveUsers, countAgeRange3),
+                PercentageRange45To54 = GetPorciento(result.TotalActiveUsers, countAgeRange4),
+                PercentageRange55To64 = GetPorciento(result.TotalActiveUsers, countAgeRange5),
+                PercentageRangeMin65 = GetPorciento(result.TotalActiveUsers, countAgeRange6),
+            };
+
+            return result;
+        }
+
+        private IQueryable<User> GetUserByAgeRangeQuery(int? minAge, int? maxAge)
+        {
+            var query = _uow.UserRepository.GetAll().Where(u => u.Status == StatusEnum.ACTIVE).AsQueryable();
+
+            if (minAge.HasValue)
+            {
+                query = query.Where(u => u.Age >= minAge.Value);
+            }
+
+            if (maxAge.HasValue)
+            {
+                query = query.Where(u => u.Age < maxAge.Value);
+            }
+
+            return query;
+        }
+
+        private decimal GetPorciento(int total, int part)
+        {
+            decimal percentage = part * 100 / total;
+            return Math.Round(percentage, 2);
         }
     }
 }

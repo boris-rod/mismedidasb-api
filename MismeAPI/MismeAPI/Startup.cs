@@ -107,6 +107,7 @@ namespace MismeAPI
             services.AddTransient<IProfileHelthHelper, ProfileHelthHelper>();
             services.AddTransient<IAppleAppStoreService, AppleAppStoreService>();
             services.AddTransient<IGroupService, GroupService>();
+            services.AddTransient<IPersonalDataService, PersonalDataService>();
 
             var provider = services.BuildServiceProvider();
             var amazonS3Service = provider.GetService<IAmazonS3Service>();

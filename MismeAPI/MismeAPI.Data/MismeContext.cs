@@ -58,6 +58,7 @@ namespace MismeAPI.Data
         public DbSet<Order> Order { get; set; }
         public DbSet<Group> Group { get; set; }
         public DbSet<GroupInvitation> GroupInvitation { get; set; }
+        public DbSet<PersonalData> PersonalData { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -92,6 +93,8 @@ namespace MismeAPI.Data
 
             modelBuilder.Entity<User>().HasMany(p => p.GroupInvitations).WithOne(b => b.User).OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<Group>().HasMany(p => p.Invitations).WithOne(b => b.Group).OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<User>().HasMany(p => p.PersonalDatas).WithOne(b => b.User).OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

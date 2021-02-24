@@ -35,7 +35,7 @@ namespace MismeAPI.Service.Impls
             _accountService = accountService ?? throw new ArgumentNullException(nameof(accountService));
         }
 
-        public async Task<PaginatedList<Group>> GetGroupsAsync(int pag, int perPag, string sortOrder, string search)
+        public async Task<PaginatedList<Group>> GetGroupsAsync(int pag, int perPag, string sortOrder, string search, bool? isActive)
         {
             var result = _uow.GroupRepository.GetAll()
                 .Include(g => g.Users)
@@ -44,6 +44,11 @@ namespace MismeAPI.Service.Impls
             if (!string.IsNullOrWhiteSpace(search))
             {
                 result = result.Where(i => i.Name.ToLower().Contains(search.ToLower()) || i.AdminEmail.ToLower().Contains(search.ToLower()));
+            }
+
+            if (isActive.HasValue)
+            {
+                result = result.Where(i => i.IsActive == isActive.Value);
             }
 
             // define sort order
@@ -173,6 +178,7 @@ namespace MismeAPI.Service.Impls
 
             await _uow.GroupRepository.AddAsync(group);
 
+            // CommitAsync method is called inside this helper method.
             var generatedPasword = await SetGroupAdminAsyn(group, request.AdminEmail, request.Language);
 
             return (group, generatedPasword);
@@ -293,7 +299,7 @@ namespace MismeAPI.Service.Impls
                 {
                     if (user.Group == null)
                     {
-                        var groupInvitation = await CreateGroupInvitationAsync(group, user);
+                        var groupInvitation = await CreateGroupInvitationAsync(group, user, user.Email);
                         invitations.Add(groupInvitation);
 
                         var response = new GroupInviteActionResponse
@@ -326,22 +332,28 @@ namespace MismeAPI.Service.Impls
             var invitation = await GetGroupInvitationAsync(invitationId);
 
             if (invitation.Status == StatusInvitationEnum.PENDING)
+            {
                 _uow.GroupInvitationRepository.Delete(invitation);
+                await _uow.CommitAsync();
+            }
             else
+            {
                 throw new UnprocessableEntityException("La invitacion ya fue procesada por el usuario.");
+            }
         }
 
-        public async Task<GroupInvitation> UpdateGroupInvitationAsync(int invitationId, StatusInvitationEnum status, string token)
+        public async Task<GroupInvitation> UpdateGroupInvitationAsync(StatusInvitationEnum status, string token)
         {
-            var invitation = await GetGroupInvitationAsync(invitationId);
+            var invitation = await GetGroupInvitationByTokenAsync(token);
 
-            if (token == invitation.SecurityToken)
+            if (invitation != null)
             {
                 invitation.Status = status;
                 invitation.SecurityToken = "";
                 invitation.ModifiedAt = DateTime.UtcNow;
 
-                await _uow.GroupInvitationRepository.UpdateAsync(invitation, invitationId);
+                await _uow.GroupInvitationRepository.UpdateAsync(invitation, invitation.Id);
+                await _uow.CommitAsync();
             }
             else
             {
@@ -366,6 +378,7 @@ namespace MismeAPI.Service.Impls
             {
                 result = result.Where(gi => statuses.Contains(gi.Status));
             }
+
 
             // define sort order
             if (!string.IsNullOrWhiteSpace(sortOrder))
@@ -480,6 +493,19 @@ namespace MismeAPI.Service.Impls
             return invitation;
         }
 
+        private async Task<GroupInvitation> GetGroupInvitationByTokenAsync(string token)
+        {
+            var invitation = await _uow.GroupInvitationRepository.GetAll()
+               .Include(g => g.Group)
+               .Include(g => g.User)
+               .FirstOrDefaultAsync(g => g.SecurityToken == token);
+
+            if (invitation == null)
+                throw new NotFoundException(ExceptionConstants.NOT_FOUND, "Invitation");
+
+            return invitation;
+        }
+
         private async Task<string> SetGroupAdminAsyn(Group group, string adminEmail, string lang)
         {
             var generatedPassword = "";
@@ -512,7 +538,7 @@ namespace MismeAPI.Service.Impls
                     throw new InvalidDataException("El usuario ya pertenece a un grupo, solo un grupo por usuario es permitido.", "AdminEmail");
             }
 
-            await CreateGroupInvitationAsync(group, user);
+            await CreateGroupInvitationAsync(group, user, user.Email);
 
             return generatedPassword;
         }
