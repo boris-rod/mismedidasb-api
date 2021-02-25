@@ -13,6 +13,11 @@ namespace MismeAPI.Common.DTO.Request
         public IEnumerable<int> UserIds { get; set; }
 
         /// <summary>
+        /// Id of the groups who will receipt the email
+        /// </summary>
+        public IEnumerable<int> GroupIds { get; set; }
+
+        /// <summary>
         /// Spanish email subject. Required
         /// </summary>
         [Required(AllowEmptyStrings = false)]
