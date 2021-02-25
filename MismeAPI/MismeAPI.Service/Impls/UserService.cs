@@ -869,6 +869,7 @@ namespace MismeAPI.Service.Impls
                 .Include(u => u.Group)
                 .Include(u => u.Devices)
                 .Include(u => u.UserSettings)
+                .Where(u => u.Status == StatusEnum.ACTIVE)
                 .AsQueryable();
 
             if (request.UserIds.Count() > 1 && request.UserIds.FirstOrDefault() != -1)
