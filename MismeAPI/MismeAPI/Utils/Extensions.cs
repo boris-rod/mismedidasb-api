@@ -43,9 +43,9 @@ namespace MismeAPI.Utils
         public static string ToGroupAdminInviteEmail(this string resource, bool isNewUser, string adminUrl, string email = "", string password = "")
         {
             if (isNewUser)
-                return resource.Replace("#EMAIL#", email).Replace("#PASSWORD#", password).Replace("#AMINURL#", adminUrl);
+                return resource.Replace("#EMAIL#", email).Replace("#PASSWORD#", password).Replace("#ADMINURL#", adminUrl);
             else
-                return resource.Replace("#AMINURL#", adminUrl);
+                return resource.Replace("#ADMINURL#", adminUrl);
         }
 
         public static string ToSendInvitationGroupEmail(this string resource, string fullname, string groupName, string acceptUrl, string declineUrl)
