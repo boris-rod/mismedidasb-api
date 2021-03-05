@@ -12,6 +12,11 @@ namespace MismeAPI.Common.DTO.Request.Reward
         public IEnumerable<int> UserIds { get; set; }
 
         /// <summary>
+        /// Id of the groups who will receipt the email
+        /// </summary>
+        public IEnumerable<int> GroupIds { get; set; }
+
+        /// <summary>
         /// Coins of the reward
         /// </summary>
         public int Coins { get; set; }
