@@ -379,7 +379,6 @@ namespace MismeAPI.Service.Impls
                 result = result.Where(gi => statuses.Contains(gi.Status));
             }
 
-
             // define sort order
             if (!string.IsNullOrWhiteSpace(sortOrder))
             {
@@ -536,6 +535,8 @@ namespace MismeAPI.Service.Impls
             {
                 if (user.Group != null)
                     throw new InvalidDataException("El usuario ya pertenece a un grupo, solo un grupo por usuario es permitido.", "AdminEmail");
+
+                user.Role = RoleEnum.GROUP_ADMIN;
             }
 
             await CreateGroupInvitationAsync(group, user, user.Email);

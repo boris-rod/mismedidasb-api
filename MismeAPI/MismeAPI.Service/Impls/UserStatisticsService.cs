@@ -304,23 +304,27 @@ namespace MismeAPI.Service.Impls
 
         public async Task RewardCoinsToUsersAsync(RewardManualCoinsRequest request)
         {
+            if (request.UserIds.Count() < 1 && request.GroupIds.Count() < 1)
+            {
+                throw new InvalidDataException("Users/Groups required");
+            }
+
             if (request.Coins < 1)
             {
                 throw new InvalidDataException("Coins");
             }
 
-            if (request.UserIds.Count() < 1)
-            {
-                throw new InvalidDataException("Users");
-            }
-
             var query = _uow.UserRepository.GetAll()
                 .Include(u => u.Devices)
                 .Include(u => u.UserSettings)
+                .Include(u => u.Group)
+                .Where(u => u.Status == StatusEnum.ACTIVE)
                 .AsQueryable();
 
-            if (request.UserIds.FirstOrDefault() != -1)
+            if (request.UserIds.Count() > 0 && request.UserIds.FirstOrDefault() != -1)
                 query = query.Where(u => request.UserIds.Contains(u.Id));
+            else if (request.GroupIds.Count() > 0)
+                query = query.Where(u => u.GroupId.HasValue && request.GroupIds.Contains(u.GroupId.Value));
 
             var users = await query.ToListAsync();
 
