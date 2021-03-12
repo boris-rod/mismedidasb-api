@@ -548,7 +548,6 @@ namespace MismeAPI.Services.Impls
         {
             var oldToken = await _uow.UserTokenRepository.FindBy(u => u.AccessToken == token && u.RefreshToken == refreshToken)
                 .Include(u => u.User)
-                .Include(u => u.User)
                     .ThenInclude(u => u.Group)
                 .FirstOrDefaultAsync();
 
