@@ -45,7 +45,7 @@ namespace MismeAPI.Service.Impls
             var result = _uow.UserRepository.GetAll()
                 .Include(u => u.UserStatistics)
                 .Include(u => u.UserSoloAnswers)
-                .Where(u => u.Role == RoleEnum.NORMAL)
+                .Where(u => u.Role != RoleEnum.ADMIN)
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(search))
