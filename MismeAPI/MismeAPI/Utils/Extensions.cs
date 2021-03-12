@@ -69,6 +69,15 @@ namespace MismeAPI.Utils
             return role;
         }
 
+        public static int GetUserGroupFromToken(this ClaimsPrincipal user)
+        {
+            var claimsIdentity = user.Identity as ClaimsIdentity;
+            var group = claimsIdentity.FindFirst(ClaimTypes.GroupSid)?.Value;
+            if (string.IsNullOrEmpty(group))
+                group = "0";
+            return int.Parse(group);
+        }
+
         public static DateTime FromUTCToLocalTime(this DateTime dt, int timezoneOffset)
         {
             // Convert a DateTime from UTC timezone into the user's timezone.

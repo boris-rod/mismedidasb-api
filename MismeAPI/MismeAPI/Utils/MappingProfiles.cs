@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using MismeAPI.Common;
 using MismeAPI.Common.DTO.Group;
+using MismeAPI.Common.DTO.Menu;
 using MismeAPI.Common.DTO.Response;
 using MismeAPI.Common.DTO.Response.CompoundDish;
 using MismeAPI.Common.DTO.Response.ContactUs;
@@ -322,6 +323,23 @@ namespace MismeAPI.Utils
             CreateMap<PersonalData, PersonalDataResponse>()
                 .ForMember(d => d.KeyId, opts => opts.MapFrom(source => (int)source.Key))
                 .ForMember(d => d.Key, opts => opts.MapFrom(source => source.Key.ToString()));
+
+            CreateMap<Menu, MenuResponse>();
+
+            CreateMap<MenuEatDish, MenuEatDishResponse>()
+                .ForMember(d => d.Qty, opts => opts.MapFrom(source => source.Qty))
+                .ForMember(d => d.Dish, opts => opts.MapFrom(source => source.Dish));
+
+            CreateMap<MenuEatCompoundDish, MenuEatCompoundDishResponse>()
+                .ForMember(d => d.Qty, opts => opts.MapFrom(source => source.Qty))
+                .ForMember(d => d.CompoundDish, opts => opts.MapFrom(source => source.CompoundDish));
+
+            CreateMap<MenuEat, MenuEatResponse>()
+                       .ForMember(d => d.EatTypeId, opts => opts.MapFrom(source => (int)source.EatType))
+                       .ForMember(d => d.EatType, opts => opts.MapFrom(source => source.EatType.ToString()))
+                       .ForMember(d => d.EatDishResponse, opts => opts.MapFrom(source => source.EatDishes))
+                       .ForMember(d => d.IsBalanced, opts => opts.MapFrom(source => source.IsBalanced))
+                       .ForMember(d => d.EatCompoundDishResponse, opts => opts.MapFrom(source => source.EatCompoundDishes));
         }
 
         private int GetLastAnswer(Question src, IDictionary<string, object> items = null)

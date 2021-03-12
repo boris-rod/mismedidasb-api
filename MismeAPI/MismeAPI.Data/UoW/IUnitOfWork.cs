@@ -9,7 +9,6 @@ namespace MismeAPI.Data.UoW
     {
         IGenericRepository<User> UserRepository { get; set; }
         IGenericRepository<UserToken> UserTokenRepository { get; set; }
-
         IGenericRepository<Poll> PollRepository { get; set; }
         IGenericRepository<Question> QuestionRepository { get; set; }
         IGenericRepository<Answer> AnswerRepository { get; set; }
@@ -46,7 +45,6 @@ namespace MismeAPI.Data.UoW
         IGenericRepository<UserSoloAnswer> UserSoloAnswerRepository { get; set; }
         IGenericRepository<Subscription> SubscriptionRepository { get; set; }
         IGenericRepository<UserSubscription> UserSubscriptionRepository { get; set; }
-
         IGenericRepository<UserSubscriptionSchedule> UserSubscriptionScheduleRepository { get; set; }
         IGenericRepository<App> AppRepository { get; set; }
         IGenericRepository<FavoriteDish> FavoriteDishRepository { get; set; }
@@ -59,6 +57,10 @@ namespace MismeAPI.Data.UoW
         IGenericRepository<Group> GroupRepository { get; set; }
         IGenericRepository<GroupInvitation> GroupInvitationRepository { get; set; }
         IGenericRepository<PersonalData> PersonalDataRepository { get; set; }
+        IGenericRepository<Menu> MenuRepository { get; set; }
+        IGenericRepository<MenuEat> MenuEatRepository { get; set; }
+        IGenericRepository<MenuEatDish> MenuEatDishRepository { get; set; }
+        IGenericRepository<MenuEatCompoundDish> MenuEatCompoundDishRepository { get; set; }
 
         Task<int> CommitAsync();
     }

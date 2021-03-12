@@ -23,9 +23,19 @@ namespace MismeAPI.Middlewares.Security
             }
             else
             {
-                if (resource.Users.Any(u => u.Id == userId) && (requirement.Name == Operations.Update.Name || requirement.Name == Operations.Delete.Name))
+                if (role == RoleEnum.GROUP_ADMIN.ToString())
                 {
-                    context.Succeed(requirement);
+                    if (resource.Users.Any(u => u.Id == userId) && (requirement.Name == Operations.Update.Name || requirement.Name == Operations.Delete.Name))
+                    {
+                        context.Succeed(requirement);
+                    }
+                }
+                else
+                {
+                    if (resource.Users.Any(u => u.Id == userId) && (requirement.Name == Operations.Read.Name))
+                    {
+                        context.Succeed(requirement);
+                    }
                 }
             }
 
