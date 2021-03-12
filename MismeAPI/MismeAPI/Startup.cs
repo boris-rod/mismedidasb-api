@@ -108,6 +108,7 @@ namespace MismeAPI
             services.AddTransient<IAppleAppStoreService, AppleAppStoreService>();
             services.AddTransient<IGroupService, GroupService>();
             services.AddTransient<IPersonalDataService, PersonalDataService>();
+            services.AddTransient<IMenuService, MenuService>();
 
             var provider = services.BuildServiceProvider();
             var amazonS3Service = provider.GetService<IAmazonS3Service>();
@@ -127,6 +128,7 @@ namespace MismeAPI
             });
 
             services.AddSingleton<IAuthorizationHandler, GroupAuthorizationCrudHandler>();
+            services.AddSingleton<IAuthorizationHandler, MenuAuthorizationHandler>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

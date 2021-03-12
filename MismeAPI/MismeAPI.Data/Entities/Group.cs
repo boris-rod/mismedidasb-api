@@ -11,6 +11,7 @@ namespace MismeAPI.Data.Entities
         {
             Invitations = new HashSet<GroupInvitation>();
             Users = new HashSet<User>();
+            Menues = new HashSet<Menu>();
         }
 
         public int Id { get; set; }
@@ -22,5 +23,6 @@ namespace MismeAPI.Data.Entities
         public DateTime ModifiedAt { get; set; }
         public virtual ICollection<GroupInvitation> Invitations { get; set; }
         public virtual ICollection<User> Users { get; set; }
+        public virtual ICollection<Menu> Menues { get; set; }
     }
 }

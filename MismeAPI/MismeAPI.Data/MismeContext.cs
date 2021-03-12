@@ -59,6 +59,10 @@ namespace MismeAPI.Data
         public DbSet<Group> Group { get; set; }
         public DbSet<GroupInvitation> GroupInvitation { get; set; }
         public DbSet<PersonalData> PersonalData { get; set; }
+        public DbSet<Menu> Menu { get; set; }
+        public DbSet<MenuEat> MenuEat { get; set; }
+        public DbSet<MenuEatDish> MenuEatDish { get; set; }
+        public DbSet<MenuEatCompoundDish> MenuEatCompoundDish { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -95,6 +99,9 @@ namespace MismeAPI.Data
             modelBuilder.Entity<Group>().HasMany(p => p.Invitations).WithOne(b => b.Group).OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<User>().HasMany(p => p.PersonalDatas).WithOne(b => b.User).OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<User>().HasMany(p => p.CreatedMenues).WithOne(b => b.CreatedBy).OnDelete(DeleteBehavior.SetNull);
+            modelBuilder.Entity<Group>().HasMany(p => p.Menues).WithOne(b => b.Group).OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

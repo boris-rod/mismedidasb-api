@@ -30,6 +30,7 @@ namespace MismeAPI.Data.Entities
             FavoriteCompoundDishes = new HashSet<FavoriteCompoundDishes>();
             LackSelfControlCompoundDishes = new HashSet<LackSelfControlCompoundDish>();
             PersonalDatas = new HashSet<PersonalData>();
+            CreatedMenues = new HashSet<Menu>();
         }
 
         public int Id { get; set; }
@@ -132,5 +133,6 @@ namespace MismeAPI.Data.Entities
         public virtual ICollection<GroupInvitation> GroupInvitations { get; set; }
         public virtual ICollection<Order> Orders { get; set; }
         public virtual ICollection<PersonalData> PersonalDatas { get; set; }
+        public virtual ICollection<Menu> CreatedMenues { get; set; }
     }
 }

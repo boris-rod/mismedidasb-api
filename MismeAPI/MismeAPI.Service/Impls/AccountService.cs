@@ -548,6 +548,8 @@ namespace MismeAPI.Services.Impls
         {
             var oldToken = await _uow.UserTokenRepository.FindBy(u => u.AccessToken == token && u.RefreshToken == refreshToken)
                 .Include(u => u.User)
+                .Include(u => u.User)
+                    .ThenInclude(u => u.Group)
                 .FirstOrDefaultAsync();
 
             if (oldToken == null)
@@ -579,6 +581,7 @@ namespace MismeAPI.Services.Impls
             claims.Add(new Claim(ClaimTypes.NameIdentifier, user.FullName, ClaimValueTypes.String, issuer));
             claims.Add(new Claim(ClaimTypes.UserData, user.Id.ToString(), ClaimValueTypes.String, issuer));
             claims.Add(new Claim(ClaimTypes.Role, user.Role.ToString(), ClaimValueTypes.String, issuer));
+            claims.Add(new Claim(ClaimTypes.GroupSid, user.GroupId.HasValue ? user.GroupId.ToString() : "", ClaimValueTypes.String, issuer));
             return claims;
         }
 
