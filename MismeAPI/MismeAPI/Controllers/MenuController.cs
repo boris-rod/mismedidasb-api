@@ -42,10 +42,11 @@ namespace MismeAPI.Controllers
         /// <param name="page">The page to be displayed. 1 by default.</param>
         /// <param name="perPage">The number of eats to be displayed per page. 10 by default.</param>
         /// <param name="groupId">Filter menues per group</param>
+        /// <param name="sortOrder">Order menues</param>
         [HttpGet]
         [Authorize]
         [ProducesResponseType(typeof(IEnumerable<MenuResponse>), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> Index(int? page, int? perPage, int? groupId)
+        public async Task<IActionResult> Index(int? page, int? perPage, int? groupId, string sortOrder)
         {
             var loggedUser = User.GetUserIdFromToken();
             var language = await _userService.GetUserLanguageFromUserIdAsync(loggedUser);
@@ -66,7 +67,7 @@ namespace MismeAPI.Controllers
             var pag = page ?? 1;
             var perPag = perPage ?? 10;
 
-            var result = await _menuService.GetMenuesAsync(groupId, pag, perPag, true, loggedUser);
+            var result = await _menuService.GetMenuesAsync(groupId, pag, perPag, true, loggedUser, sortOrder);
 
             HttpContext.Response.Headers.Add("PagingData", JsonConvert.SerializeObject(result.GetPaginationData));
             HttpContext.Response.Headers["Access-Control-Expose-Headers"] = "PagingData";
@@ -86,17 +87,18 @@ namespace MismeAPI.Controllers
         /// <param name="perPage">The number of eats to be displayed per page. 10 by default.</param>
         /// <param name="groupId">Filter menues per group</param>
         /// <param name="isActive">Filter menues by active status</param>
+        /// <param name="sortOrder">Order menues</param>
         [HttpGet("admin")]
         [Authorize(Roles = "ADMIN")]
         [ProducesResponseType(typeof(IEnumerable<MenuResponse>), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> GetAllAdmin(int? page, int? perPage, int? groupId, bool? isActive)
+        public async Task<IActionResult> GetAllAdmin(int? page, int? perPage, int? groupId, bool? isActive, string sortOrder)
         {
             var loggedUser = User.GetUserIdFromToken();
             var language = await _userService.GetUserLanguageFromUserIdAsync(loggedUser);
             var pag = page ?? 1;
             var perPag = perPage ?? 10;
 
-            var result = await _menuService.GetMenuesAsync(groupId, pag, perPag, isActive, loggedUser);
+            var result = await _menuService.GetMenuesAsync(groupId, pag, perPag, isActive, loggedUser, sortOrder);
 
             HttpContext.Response.Headers.Add("PagingData", JsonConvert.SerializeObject(result.GetPaginationData));
             HttpContext.Response.Headers["Access-Control-Expose-Headers"] = "PagingData";
@@ -116,10 +118,11 @@ namespace MismeAPI.Controllers
         /// <param name="perPage">The number of eats to be displayed per page. 10 by default.</param>
         /// <param name="id">Filter menues per group</param>
         /// <param name="isActive">Filter menues by active status</param>
+        /// <param name="sortOrder">Order menues</param>
         [HttpGet("group/{id}")]
         [Authorize(Roles = "ADMIN,GROUP_ADMIN")]
         [ProducesResponseType(typeof(IEnumerable<MenuResponse>), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> GetGroupMenues([FromRoute] int id, int? page, int? perPage, bool? isActive)
+        public async Task<IActionResult> GetGroupMenues([FromRoute] int id, int? page, int? perPage, bool? isActive, string sortOrder)
         {
             var loggedUser = User.GetUserIdFromToken();
             var language = await _userService.GetUserLanguageFromUserIdAsync(loggedUser);
@@ -136,7 +139,7 @@ namespace MismeAPI.Controllers
             var pag = page ?? 1;
             var perPag = perPage ?? 10;
 
-            var result = await _menuService.GetMenuesAsync(id, pag, perPag, isActive, loggedUser);
+            var result = await _menuService.GetMenuesAsync(id, pag, perPag, isActive, loggedUser, sortOrder);
 
             HttpContext.Response.Headers.Add("PagingData", JsonConvert.SerializeObject(result.GetPaginationData));
             HttpContext.Response.Headers["Access-Control-Expose-Headers"] = "PagingData";

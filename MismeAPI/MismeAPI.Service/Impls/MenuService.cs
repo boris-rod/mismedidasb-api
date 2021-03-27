@@ -26,15 +26,15 @@ namespace MismeAPI.Service.Impls
             _uow = uow ?? throw new ArgumentNullException(nameof(uow));
         }
 
-        public async Task<PaginatedList<Menu>> GetMenuesAsync(int? groupId, int pag, int perPag, bool? active, int currentUser)
+        public async Task<PaginatedList<Menu>> GetMenuesAsync(int? groupId, int pag, int perPag, bool? active, int currentUser, string sortOrder)
         {
-            var results = _uow.MenuRepository.GetAll()
+            var result = _uow.MenuRepository.GetAll()
               .Include(e => e.Group)
               .AsQueryable();
 
             if (groupId.HasValue)
             {
-                results = results.Where(e => e.GroupId.HasValue && e.GroupId.Value == groupId.Value);
+                result = result.Where(e => e.GroupId.HasValue && e.GroupId.Value == groupId.Value);
             }
             else
             {
@@ -48,19 +48,62 @@ namespace MismeAPI.Service.Impls
                 if (user.Role != RoleEnum.ADMIN)
                 {
                     if (user.GroupId.HasValue)
-                        results = results.Where(e => !e.GroupId.HasValue || (e.GroupId.HasValue && e.GroupId.Value == user.GroupId.Value));
+                        result = result.Where(e => !e.GroupId.HasValue || (e.GroupId.HasValue && e.GroupId.Value == user.GroupId.Value));
                     else
-                        results = results.Where(e => !e.GroupId.HasValue);
+                        result = result.Where(e => !e.GroupId.HasValue);
                 }
             }
 
             //filter by type if not -1(null equivalent)
             if (active.HasValue)
             {
-                results = results.Where(e => e.Active == active.Value);
+                result = result.Where(e => e.Active == active.Value);
             }
 
-            return await PaginatedList<Menu>.CreateAsync(results, pag, perPag);
+            // define sort order
+            if (!string.IsNullOrWhiteSpace(sortOrder))
+            {
+                // sort order section
+                switch (sortOrder)
+                {
+                    case "name_desc":
+                        result = result.OrderByDescending(i => i.Name);
+                        break;
+
+                    case "name_asc":
+                        result = result.OrderBy(i => i.Name);
+                        break;
+
+                    case "description_desc":
+                        result = result.OrderByDescending(i => i.Description);
+                        break;
+
+                    case "description_asc":
+                        result = result.OrderBy(i => i.Description);
+                        break;
+
+                    case "createdAt_desc":
+                        result = result.OrderByDescending(i => i.CreatedAt);
+                        break;
+
+                    case "createdAt_asc":
+                        result = result.OrderBy(i => i.CreatedAt);
+                        break;
+
+                    case "active_desc":
+                        result = result.OrderByDescending(i => i.Active);
+                        break;
+
+                    case "active_asc":
+                        result = result.OrderBy(i => i.Active);
+                        break;
+
+                    default:
+                        break;
+                }
+            }
+
+            return await PaginatedList<Menu>.CreateAsync(result, pag, perPag);
         }
 
         public async Task<Menu> GetMenuAsync(int menuId)

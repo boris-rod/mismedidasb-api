@@ -22,7 +22,11 @@ namespace MismeAPI.Common.DTO.Menu
         public UserSimpleResponse CreatedBy { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime ModifiedAt { get; set; }
-
+        public double? Calories { get; set; }
+        public double? Proteins { get; set; }
+        public double? Carbohydrates { get; set; }
+        public double? Fats { get; set; }
+        public double? Fibers { get; set; }
         public ICollection<MenuEatResponse> Eats { get; set; }
     }
 }
