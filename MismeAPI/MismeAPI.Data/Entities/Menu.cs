@@ -35,7 +35,7 @@ namespace MismeAPI.Data.Entities
         {
             get
             {
-                return Eats.Sum(ed => ed.Calories);
+                return Eats.Sum(ed => ed.Calories) ?? 0;
             }
         }
 
@@ -44,7 +44,7 @@ namespace MismeAPI.Data.Entities
         {
             get
             {
-                return Eats.Sum(ed => ed.Proteins);
+                return Eats.Sum(ed => ed.Proteins) ?? 0;
             }
         }
 
@@ -53,7 +53,7 @@ namespace MismeAPI.Data.Entities
         {
             get
             {
-                return Eats.Sum(ed => ed.Carbohydrates);
+                return Eats.Sum(ed => ed.Carbohydrates) ?? 0;
             }
         }
 
@@ -62,7 +62,7 @@ namespace MismeAPI.Data.Entities
         {
             get
             {
-                return Eats.Sum(ed => ed.Fats);
+                return Eats.Sum(ed => ed.Fats) ?? 0;
             }
         }
 
@@ -71,7 +71,7 @@ namespace MismeAPI.Data.Entities
         {
             get
             {
-                return Eats.Sum(ed => ed.Fibers);
+                return Eats.Sum(ed => ed.Fibers) ?? 0;
             }
         }
     }

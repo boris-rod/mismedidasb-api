@@ -26,10 +26,17 @@ namespace MismeAPI.Service.Impls
             _uow = uow ?? throw new ArgumentNullException(nameof(uow));
         }
 
-        public async Task<PaginatedList<Menu>> GetMenuesAsync(int? groupId, int pag, int perPag, bool? active, int currentUser, string sortOrder)
+        public async Task<PaginatedList<Menu>> GetMenuesAsync(int? groupId, int pag, int perPag, bool? active, int currentUser, string search, string sortOrder)
         {
             var result = _uow.MenuRepository.GetAll()
+              .Include(e => e.CreatedBy)
               .Include(e => e.Group)
+              .Include(m => m.Eats)
+                    .ThenInclude(e => e.EatDishes)
+                      .ThenInclude(d => d.Dish)
+                .Include(m => m.Eats)
+                    .ThenInclude(e => e.EatCompoundDishes)
+                      .ThenInclude(d => d.CompoundDish)
               .AsQueryable();
 
             if (groupId.HasValue)
@@ -52,6 +59,11 @@ namespace MismeAPI.Service.Impls
                     else
                         result = result.Where(e => !e.GroupId.HasValue);
                 }
+            }
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                result = result.Where(i => i.Name.ToLower().Contains(search.ToLower()));
             }
 
             //filter by type if not -1(null equivalent)
@@ -109,6 +121,14 @@ namespace MismeAPI.Service.Impls
         public async Task<Menu> GetMenuAsync(int menuId)
         {
             var menu = await _uow.MenuRepository.GetAll().Where(e => e.Id == menuId)
+              .Include(e => e.CreatedBy)
+              .Include(e => e.Group)
+                .Include(m => m.Eats)
+                    .ThenInclude(e => e.EatDishes)
+                      .ThenInclude(d => d.Dish)
+                .Include(m => m.Eats)
+                    .ThenInclude(e => e.EatCompoundDishes)
+                      .ThenInclude(d => d.CompoundDish)
                 .FirstOrDefaultAsync();
 
             if (menu == null)
@@ -120,7 +140,8 @@ namespace MismeAPI.Service.Impls
         public async Task<Menu> GetMenuWithEatsAsync(int menuId)
         {
             var menu = await _uow.MenuRepository.GetAll().Where(e => e.Id == menuId)
-                .Include(m => m.Group)
+              .Include(e => e.CreatedBy)
+              .Include(e => e.Group)
                 .Include(m => m.Eats)
                     .ThenInclude(e => e.EatDishes)
                       .ThenInclude(d => d.Dish)
