@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
 using System.Text;
 
 namespace MismeAPI.Data.Entities
@@ -28,5 +29,50 @@ namespace MismeAPI.Data.Entities
         public DateTime CreatedAt { get; set; }
         public DateTime ModifiedAt { get; set; }
         public virtual ICollection<MenuEat> Eats { get; set; }
+
+        [NotMapped]
+        public double? Calories
+        {
+            get
+            {
+                return Eats.Sum(ed => ed.Calories);
+            }
+        }
+
+        [NotMapped]
+        public double? Proteins
+        {
+            get
+            {
+                return Eats.Sum(ed => ed.Proteins);
+            }
+        }
+
+        [NotMapped]
+        public double? Carbohydrates
+        {
+            get
+            {
+                return Eats.Sum(ed => ed.Carbohydrates);
+            }
+        }
+
+        [NotMapped]
+        public double? Fats
+        {
+            get
+            {
+                return Eats.Sum(ed => ed.Fats);
+            }
+        }
+
+        [NotMapped]
+        public double? Fibers
+        {
+            get
+            {
+                return Eats.Sum(ed => ed.Fibers);
+            }
+        }
     }
 }

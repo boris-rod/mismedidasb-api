@@ -7,7 +7,7 @@ namespace MismeAPI.Service
 {
     public interface IMenuService
     {
-        Task<PaginatedList<Menu>> GetMenuesAsync(int? groupId, int pag, int perPag, bool? active, int currentUser);
+        Task<PaginatedList<Menu>> GetMenuesAsync(int? groupId, int pag, int perPag, bool? active, int currentUser, string sortOrder);
 
         Task<Menu> GetMenuAsync(int menuId);
 

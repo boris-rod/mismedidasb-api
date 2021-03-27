@@ -157,7 +157,7 @@ namespace MismeAPI.Service.Utils
 
                         var dishCals = dishCompoundDish.Dish.Calories.HasValue ? dishCompoundDish.Dish.Calories.Value : 0;
                         var calories = dishCals * factor * eatCompoundDish.Qty * dishCompoundDish.DishQty;
-                        eatTypeCalories = calories;
+                        eatTypeCalories += calories;
 
                         var dishProteins = dishCompoundDish.Dish.Proteins.HasValue ? dishCompoundDish.Dish.Proteins.Value : 0;
                         var proteins = dishProteins * factor * eatCompoundDish.Qty * dishCompoundDish.DishQty;
