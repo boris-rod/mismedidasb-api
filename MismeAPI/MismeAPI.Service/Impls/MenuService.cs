@@ -265,6 +265,8 @@ namespace MismeAPI.Service.Impls
             }
 
             await _uow.CommitAsync();
+            menu = await GetMenuWithEatsAsync(menuId);
+
             return menu;
         }
 
