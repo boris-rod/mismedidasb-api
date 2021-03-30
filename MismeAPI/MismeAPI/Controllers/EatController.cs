@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using MismeAPI.BasicResponses;
 using MismeAPI.Common.DTO.Request;
 using MismeAPI.Common.DTO.Response;
+using MismeAPI.Data.Entities;
+using MismeAPI.Middlewares.Security;
 using MismeAPI.Service;
 using MismeAPI.Service.Utils;
 using MismeAPI.Services;
@@ -25,8 +27,10 @@ namespace MismeAPI.Controllers
         private readonly IRewardHelper _rewardHelper;
         private readonly IAccountService _accountService;
         private readonly IDishService _dishService;
+        private readonly IAuthorizationService _authorizationService;
 
-        public EatController(IEatService eatService, IUserService userService, IMapper mapper, IRewardHelper rewardHelper, IAccountService accountService, IDishService dishService)
+        public EatController(IEatService eatService, IUserService userService, IMapper mapper, IRewardHelper rewardHelper, IAccountService accountService,
+            IDishService dishService, IAuthorizationService authorizationService)
         {
             _eatService = eatService ?? throw new ArgumentNullException(nameof(eatService));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
@@ -34,6 +38,7 @@ namespace MismeAPI.Controllers
             _rewardHelper = rewardHelper ?? throw new ArgumentNullException(nameof(rewardHelper));
             _accountService = accountService ?? throw new ArgumentNullException(nameof(accountService));
             _dishService = dishService ?? throw new ArgumentNullException(nameof(dishService));
+            _authorizationService = authorizationService ?? throw new ArgumentNullException(nameof(authorizationService));
         }
 
         /// <summary>
@@ -310,6 +315,34 @@ namespace MismeAPI.Controllers
         }
 
         /// <summary>
+        /// Apply menu to user day plan - Add bulk eats by menu. Requires authentication.
+        /// </summary>
+        /// <param name="userId">User to wich the menue will be applied</param>
+        /// <param name="menuId">Menu to be applied</param>
+        /// <param name="dateInUtc">Date in wich the menu will be applied to users plan</param>
+        [HttpPost("users/{userId}/menues/{menuId}/bulk-eats")]
+        [Authorize(Roles = "GROUP_ADMIN,ADMIN")]
+        [ProducesResponseType(typeof(OkResult), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> AddEatsFromMenue([FromRoute] int userId, [FromRoute] int menuId, DateTime dateInUtc)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+            var user = await _userService.GetUserDevicesAsync(userId);
+
+            // Resource permision handler
+            var authorizationResult = await _authorizationService.AuthorizeAsync(User, user, Operations.ManagePlans);
+            if (!authorizationResult.Succeeded)
+            {
+                return Forbid();
+            }
+            // Resource permission handler
+
+            await _eatService.CreateBulkEatFromMenuAsync(loggedUser, userId, menuId, dateInUtc);
+
+            return Ok();
+        }
+
+        /// <summary>
         /// Return is valanced summary of a current user plan on a given date. Requires authentication.
         /// </summary>
         /// <param name="dateInUtc">Date of the plan to evaluate</param>
@@ -326,6 +359,66 @@ namespace MismeAPI.Controllers
 
             IHealthyHelper healthyHelper = new HealthyHelper(userImcKcal.imc, userImcKcal.kcal, _accountService, _dishService);
             var result = healthyHelper.IsBalancedPlan(user, plan);
+
+            return Ok(new ApiOkResponse(result));
+        }
+
+        /// <summary>
+        /// Return is valanced summary of any user on a given date. Requires authentication.
+        /// </summary>
+        /// <param name="userId">Id of the user to know the plan summary</param>
+        /// <param name="dateInUtc">Date of the plan to evaluate</param>
+        [HttpGet("users/{userId}/is-balanced-plan")]
+        [Authorize(Roles = "GROUP_ADMIN,ADMIN")]
+        [ProducesResponseType(typeof(EatBalancedSummaryResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> IsValancedPlanAdmin([FromRoute] int userId, [FromQuery] DateTime dateInUtc)
+        {
+            var user = await _userService.GetUserDevicesAsync(userId);
+
+            // Resource permision handler
+            var authorizationResult = await _authorizationService.AuthorizeAsync(User, user, Operations.ManagePlans);
+            if (!authorizationResult.Succeeded)
+            {
+                return Forbid();
+            }
+            // Resource permission handler
+
+            var plan = await _eatService.GetUserPlanPerDateAsync(userId, dateInUtc);
+            var userImcKcal = await _eatService.GetKCalImcAsync(userId, dateInUtc);
+
+            IHealthyHelper healthyHelper = new HealthyHelper(userImcKcal.imc, userImcKcal.kcal, _accountService, _dishService);
+            var result = healthyHelper.IsBalancedPlan(user, plan);
+
+            return Ok(new ApiOkResponse(result));
+        }
+
+        /// <summary>
+        /// Return is valanced summary of a given plan. Requires authentication.
+        /// </summary>
+        /// <param name="userId">Id of the user to know the plan summary</param>
+        /// <param name="plan">Plan to calculate the is balanced parameters</param>
+        [HttpPut("users/{userId}/is-balanced-plan")]
+        [Authorize(Roles = "GROUP_ADMIN,ADMIN")]
+        [ProducesResponseType(typeof(EatBalancedSummaryResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> IsValancedByPlan([FromRoute] int userId, [FromBody] IEnumerable<EatResponse> plan)
+        {
+            var user = await _userService.GetUserDevicesAsync(userId);
+
+            // Resource permision handler
+            var authorizationResult = await _authorizationService.AuthorizeAsync(User, user, Operations.ManagePlans);
+            if (!authorizationResult.Succeeded)
+            {
+                return Forbid();
+            }
+            // Resource permission handler
+
+            var planMapped = _mapper.Map<IEnumerable<Eat>>(plan);
+            var userImcKcal = await _eatService.GetKCalImcAsync(userId, DateTime.UtcNow);
+
+            IHealthyHelper healthyHelper = new HealthyHelper(userImcKcal.imc, userImcKcal.kcal, _accountService, _dishService);
+            var result = healthyHelper.IsBalancedPlan(user, planMapped);
 
             return Ok(new ApiOkResponse(result));
         }

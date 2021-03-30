@@ -20,6 +20,8 @@ namespace MismeAPI.Service
 
         Task<Eat> UpdateEatAsync(int loggedUser, UpdateEatRequest eat);
 
+        Task CreateBulkEatFromMenuAsync(int loggedUser, int userId, int menuId, DateTime dateInUtc);
+
         Task CreateBulkEatAsync(int loggedUser, CreateBulkEatRequest eat);
 
         Task<(double imc, double kcal)> GetKCalImcAsync(int userId, DateTime date);

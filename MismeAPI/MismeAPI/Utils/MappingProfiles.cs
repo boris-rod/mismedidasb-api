@@ -174,6 +174,22 @@ namespace MismeAPI.Utils
                        .ForMember(d => d.IsBalanced, opts => opts.MapFrom(source => source.IsBalanced))
                        .ForMember(d => d.EatCompoundDishResponse, opts => opts.MapFrom(source => source.EatCompoundDishes));
 
+            CreateMap<EatDishResponse, EatDish>()
+                .ForMember(d => d.Qty, opts => opts.MapFrom(source => source.Qty))
+                .ForMember(d => d.Dish, opts => opts.MapFrom(source => source.Dish));
+
+            CreateMap<EatCompoundDishResponse, EatCompoundDish>()
+                .ForMember(d => d.Qty, opts => opts.MapFrom(source => source.Qty))
+                .ForMember(d => d.CompoundDish, opts => opts.MapFrom(source => source.CompoundDish));
+
+            CreateMap<EatResponse, Eat>()
+                       .ForMember(d => d.EatType, opts => opts.MapFrom(source => source.EatType))
+                       .ForMember(d => d.EatDishes, opts => opts.MapFrom(source => source.EatDishResponse))
+                       .ForMember(d => d.KCalAtThatMoment, opts => opts.MapFrom(source => source.KCal))
+                       .ForMember(d => d.ImcAtThatMoment, opts => opts.MapFrom(source => source.IMC))
+                       .ForMember(d => d.IsBalanced, opts => opts.MapFrom(source => source.IsBalanced))
+                       .ForMember(d => d.EatCompoundDishes, opts => opts.MapFrom(source => source.EatCompoundDishResponse));
+
             CreateMap<UserSetting, BasicSettingResponse>()
                    .ForMember(d => d.Setting, opts => opts.MapFrom(source => source.Setting.Name))
                    .ForMember(d => d.SettingId, opts => opts.MapFrom(source => source.SettingId))
