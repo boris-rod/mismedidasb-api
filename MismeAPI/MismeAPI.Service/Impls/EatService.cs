@@ -234,6 +234,89 @@ namespace MismeAPI.Service.Impls
             return userEats;
         }
 
+        public async Task CreateBulkEatFromMenuAsync(int loggedUser, int userId, int menuId, DateTime dateInUtc)
+        {
+            var menu = await _uow.MenuRepository.GetAll().Where(e => e.Id == menuId)
+              .Include(e => e.CreatedBy)
+              .Include(e => e.Group)
+                .Include(m => m.Eats)
+                    .ThenInclude(e => e.EatDishes)
+                      .ThenInclude(d => d.Dish)
+                .Include(m => m.Eats)
+                    .ThenInclude(e => e.EatCompoundDishes)
+                      .ThenInclude(d => d.CompoundDish)
+                .FirstOrDefaultAsync();
+
+            if (menu == null)
+            {
+                throw new NotFoundException("Menu");
+            }
+
+            var userEats = await _uow.EatRepository.GetAll().Where(e => e.UserId == userId && e.CreatedAt.Date == dateInUtc.Date)
+               .Include(e => e.EatDishes)
+               .Include(e => e.EatCompoundDishes)
+               .Include(e => e.EatSchedule)
+                   .ThenInclude(es => es.Schedule)
+               .ToListAsync();
+
+            var eats = new List<CreateEatRequest>();
+
+            foreach (var eat in menu.Eats)
+            {
+                var userEat = userEats.Where(ue => ue.EatType == eat.EatType).FirstOrDefault();
+                DateTime? eatUtcAt = null;
+                if (userEat != null)
+                    eatUtcAt = userEat.EatUtcAt;
+
+                var createEatRequest = new CreateEatRequest
+                {
+                    CompoundDishes = new BasicDishQtyRequest[eat.EatCompoundDishes.Count()],
+                    Dishes = new BasicDishQtyRequest[eat.EatDishes.Count()],
+                    EatType = (int)eat.EatType,
+                    EatUtcAt = eatUtcAt
+                };
+
+                var i = 0;
+                foreach (var dish in eat.EatCompoundDishes)
+                {
+                    var eatCompoundDishRequest = new BasicDishQtyRequest
+                    {
+                        DishId = dish.CompoundDishId,
+                        Qty = dish.Qty
+                    };
+
+                    createEatRequest.CompoundDishes[i] = eatCompoundDishRequest;
+                    i++;
+                }
+
+                i = 0;
+                foreach (var dish in eat.EatDishes)
+                {
+                    var eatDishRequest = new BasicDishQtyRequest
+                    {
+                        DishId = dish.DishId,
+                        Qty = dish.Qty
+                    };
+
+                    createEatRequest.Dishes[i] = eatDishRequest;
+                    i++;
+                }
+
+                eats.Add(createEatRequest);
+            }
+
+            var request = new CreateBulkEatRequest
+            {
+                DateInUtc = dateInUtc,
+                DateTimeInUserLocalTime = DateTime.UtcNow,
+                IsBalanced = false,
+                Eats = eats
+            };
+
+            await CreateBulkEatAsync(userId, request);
+            await SetIsBalancedPlanAync(userId, dateInUtc);
+        }
+
         public async Task CreateBulkEatAsync(int loggedUser, CreateBulkEatRequest eat)
         {
             var userEats = await _uow.EatRepository.GetAll().Where(e => e.UserId == loggedUser && e.CreatedAt.Date == eat.DateInUtc.Date)

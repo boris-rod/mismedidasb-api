@@ -129,6 +129,7 @@ namespace MismeAPI
 
             services.AddSingleton<IAuthorizationHandler, GroupAuthorizationCrudHandler>();
             services.AddSingleton<IAuthorizationHandler, MenuAuthorizationHandler>();
+            services.AddSingleton<IAuthorizationHandler, UserAuthorizationHandler>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

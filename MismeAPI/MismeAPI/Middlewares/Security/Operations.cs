@@ -19,5 +19,8 @@ namespace MismeAPI.Middlewares.Security
 
         public static OperationAuthorizationRequirement Delete =
             new OperationAuthorizationRequirement { Name = nameof(Delete) };
+
+        public static OperationAuthorizationRequirement ManagePlans =
+            new OperationAuthorizationRequirement { Name = nameof(ManagePlans) };
     }
 }
