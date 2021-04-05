@@ -77,6 +77,8 @@ namespace MismeAPI.Data.Entities
         public int Weight { get; set; }
         public int Height { get; set; }
         public int Age { get; set; }
+        public int Sex { get; set; }
+
         public UserStatistics UserStatistics { get; set; }
         public UserReferral Invitation { get; set; }
         public int? GroupId { get; set; }

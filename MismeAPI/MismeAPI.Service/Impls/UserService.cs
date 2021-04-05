@@ -985,6 +985,13 @@ namespace MismeAPI.Service.Impls
             result.TotalActiveUsers = await _uow.UserRepository.GetAll().Where(u => u.Status == StatusEnum.ACTIVE).CountAsync();
             result.TotalUsers = await _uow.UserRepository.GetAll().CountAsync();
 
+            var ageRange1SexCount = await GetUserBySexInAgeRangeAsync(ageRange1);
+            var ageRange2SexCount = await GetUserBySexInAgeRangeAsync(ageRange2);
+            var ageRange3SexCount = await GetUserBySexInAgeRangeAsync(ageRange3);
+            var ageRange4SexCount = await GetUserBySexInAgeRangeAsync(ageRange4);
+            var ageRange5SexCount = await GetUserBySexInAgeRangeAsync(ageRange5);
+            var ageRange6SexCount = await GetUserBySexInAgeRangeAsync(ageRange6);
+
             result.AgeRange = new AgeRanges
             {
                 CountRange18To24 = countAgeRange1,
@@ -999,6 +1006,18 @@ namespace MismeAPI.Service.Impls
                 PercentageRange45To54 = GetPorciento(result.TotalActiveUsers, countAgeRange4),
                 PercentageRange55To64 = GetPorciento(result.TotalActiveUsers, countAgeRange5),
                 PercentageRangeMin65 = GetPorciento(result.TotalActiveUsers, countAgeRange6),
+                MenCountRange18To24 = ageRange1SexCount.men,
+                WomenCountRange18To24 = ageRange1SexCount.women,
+                MenCountRange25To34 = ageRange2SexCount.men,
+                WomenCountRange25To34 = ageRange2SexCount.women,
+                MenCountRange35To44 = ageRange3SexCount.men,
+                WomenCountRange35To44 = ageRange3SexCount.women,
+                MenCountRange45To54 = ageRange4SexCount.men,
+                WomenCountRange45To54 = ageRange5SexCount.women,
+                MenCountRange55To64 = ageRange5SexCount.men,
+                WomenCountRange55To64 = ageRange5SexCount.women,
+                MenCountRangeMin65 = ageRange6SexCount.men,
+                WomenCountRangeMin65 = ageRange6SexCount.women,
             };
 
             return result;
@@ -1025,6 +1044,17 @@ namespace MismeAPI.Service.Impls
         {
             decimal percentage = part * 100 / total;
             return Math.Round(percentage, 2);
+        }
+
+        private async Task<(int men, int women)> GetUserBySexInAgeRangeAsync(IQueryable<User> query)
+        {
+            int men = 0;
+            int women = 0;
+
+            men = await query.Where(u => u.Sex == 0).CountAsync();
+            women = await query.Where(u => u.Sex == 1).CountAsync();
+
+            return (men, women);
         }
     }
 }
