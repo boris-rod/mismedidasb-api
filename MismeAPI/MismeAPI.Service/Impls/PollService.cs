@@ -3157,6 +3157,7 @@ namespace MismeAPI.Service.Impls
             var user = await _uow.UserRepository.FindAsync(u => u.Id == userId);
 
             user.Age = pollResult.age;
+            user.Sex = pollResult.sex;
             user.Height = pollResult.height;
             user.Weight = pollResult.weight;
 

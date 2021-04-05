@@ -683,7 +683,30 @@ namespace MismeAPI.Utils
                     user.Weight = pollResult.weight;
 
                     await uow.UserRepository.UpdateAsync(user, user.Id);
+                    await uow.CommitAsync();
+                }
+            }
 
+            if (admin != null && admin.Sex == -1)
+            {
+                var users = await uow.UserRepository.GetAll()
+                    .Where(u => u.Status == StatusEnum.ACTIVE)
+                    .ToListAsync();
+
+                foreach (var user in users)
+                {
+                    var pollResult = await pollService.GetUserPollsInfoAsync(user.Id);
+
+                    user.Sex = pollResult.sex;
+                    await uow.UserRepository.UpdateAsync(user, user.Id);
+                    await uow.CommitAsync();
+                }
+
+                if (admin.Sex == -1)
+                {
+                    admin.Sex = 0;
+
+                    await uow.UserRepository.UpdateAsync(admin, admin.Id);
                     await uow.CommitAsync();
                 }
             }

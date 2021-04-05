@@ -102,6 +102,8 @@ namespace MismeAPI.Data
 
             modelBuilder.Entity<User>().HasMany(p => p.CreatedMenues).WithOne(b => b.CreatedBy).OnDelete(DeleteBehavior.SetNull);
             modelBuilder.Entity<Group>().HasMany(p => p.Menues).WithOne(b => b.Group).OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<User>().Property(p => p.Sex).HasDefaultValue(-1);
         }
     }
 }
