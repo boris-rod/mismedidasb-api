@@ -62,73 +62,24 @@ namespace MismeAPI.Controllers
         /// </param>
         /// <param name="search">For searching purposes.</param>
         [HttpGet]
-        [Authorize(Roles = "ADMIN")]
+        [Authorize(Roles = "ADMIN,GROUP_ADMIN")]
         [ProducesResponseType(typeof(ICollection<UserResponse>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
         public async Task<IActionResult> GetUsers(int? page, int? perPage, string sortOrder, string search,
             int? statusFilter, int? minPlannedEats, int? maxPlannedEats, double? minEmotionMedia, double? maxEmotionMedia)
         {
             var loggedUser = User.GetUserIdFromToken();
+            var currentUserGroup = User.GetUserGroupFromToken();
+            int? groupId = null;
+            if (currentUserGroup != 0)
+                groupId = currentUserGroup;
+
             var pag = page ?? 1;
             var perPag = perPage ?? 10;
             var statusF = statusFilter ?? -1;
 
             var result = await _userService.GetUsersAsync(loggedUser, pag, perPag, sortOrder,
-                statusF, search, minPlannedEats, maxPlannedEats, minEmotionMedia, maxEmotionMedia, null);
-
-            HttpContext.Response.Headers.Add("PagingData", JsonConvert.SerializeObject(result.GetPaginationData));
-            HttpContext.Response.Headers["Access-Control-Expose-Headers"] = "PagingData";
-            HttpContext.Response.Headers["Access-Control-Allow-Headers"] = "PagingData";
-
-            var mapped = _mapper.Map<ICollection<UserResponse>>(result);
-            return Ok(new ApiOkResponse(mapped));
-        }
-
-        /// <summary>
-        /// Get all users in a group, it is allowed to use filtering. Requires authentication. Admin
-        /// and GroupAdmin access.
-        /// </summary>
-        /// <param name="id">Group id</param>
-        /// <param name="page">Page for pagination purposes.</param>
-        /// <param name="perPage">How many issues per page.</param>
-        /// <param name="sortOrder">For sortering purposes.</param>
-        /// <param name="statusFilter">For filtering for status.</param>
-        /// <param name="minPlannedEats">
-        /// Filter users by their amount of planned eats. More than or equal
-        /// </param>
-        /// <param name="maxPlannedEats">
-        /// Filter users by their amount of planned eats. Less than or equal
-        /// </param>
-        /// <param name="minEmotionMedia">
-        /// Filter users by their reported emotion media. More than or equal
-        /// </param>
-        /// <param name="maxEmotionMedia">
-        /// Filter users by their reported emotion media. Less than or equal
-        /// </param>
-        /// <param name="search">For searching purposes.</param>
-        [HttpGet("groups/{id}")]
-        [Authorize(Roles = "ADMIN,GROUP_ADMIN")]
-        [ProducesResponseType(typeof(ICollection<UserResponse>), (int)HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
-        public async Task<IActionResult> GetGroupUsers([FromRoute] int id, int? page, int? perPage, string sortOrder, string search,
-            int? statusFilter, int? minPlannedEats, int? maxPlannedEats, double? minEmotionMedia, double? maxEmotionMedia)
-        {
-            var loggedUser = User.GetUserIdFromToken();
-            var pag = page ?? 1;
-            var perPag = perPage ?? 10;
-            var statusF = statusFilter ?? -1;
-            var group = _groupService.GetGroupAsync(id);
-
-            // Resource permision handler
-            var authorizationResult = await _authorizationService.AuthorizeAsync(User, group, Operations.Read);
-            if (!authorizationResult.Succeeded)
-            {
-                return Forbid();
-            }
-            // Resource permission handler
-
-            var result = await _userService.GetUsersAsync(loggedUser, pag, perPag, sortOrder,
-                statusF, search, minPlannedEats, maxPlannedEats, minEmotionMedia, maxEmotionMedia, id);
+                statusF, search, minPlannedEats, maxPlannedEats, minEmotionMedia, maxEmotionMedia, groupId);
 
             HttpContext.Response.Headers.Add("PagingData", JsonConvert.SerializeObject(result.GetPaginationData));
             HttpContext.Response.Headers["Access-Control-Expose-Headers"] = "PagingData";
