@@ -106,18 +106,18 @@ namespace MismeAPI.Controllers
         /// Filter users by their reported emotion media. Less than or equal
         /// </param>
         /// <param name="search">For searching purposes.</param>
-        [HttpGet("groups/{id}")]
-        [Authorize(Roles = "ADMIN,GROUP_ADMIN")]
+        [HttpGet("currentuser-group")]
+        [Authorize(Roles = "GROUP_ADMIN")]
         [ProducesResponseType(typeof(ICollection<UserResponse>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Forbidden)]
-        public async Task<IActionResult> GetGroupUsers([FromRoute] int id, int? page, int? perPage, string sortOrder, string search,
+        public async Task<IActionResult> GetGroupUsers(int? page, int? perPage, string sortOrder, string search,
             int? statusFilter, int? minPlannedEats, int? maxPlannedEats, double? minEmotionMedia, double? maxEmotionMedia)
         {
             var loggedUser = User.GetUserIdFromToken();
             var pag = page ?? 1;
             var perPag = perPage ?? 10;
             var statusF = statusFilter ?? -1;
-            var group = _groupService.GetGroupAsync(id);
+            var group = await _groupService.GetCurrentUserGroupAsync(loggedUser);
 
             // Resource permision handler
             var authorizationResult = await _authorizationService.AuthorizeAsync(User, group, Operations.Read);
@@ -128,7 +128,7 @@ namespace MismeAPI.Controllers
             // Resource permission handler
 
             var result = await _userService.GetUsersAsync(loggedUser, pag, perPag, sortOrder,
-                statusF, search, minPlannedEats, maxPlannedEats, minEmotionMedia, maxEmotionMedia, id);
+                statusF, search, minPlannedEats, maxPlannedEats, minEmotionMedia, maxEmotionMedia, group.Id);
 
             HttpContext.Response.Headers.Add("PagingData", JsonConvert.SerializeObject(result.GetPaginationData));
             HttpContext.Response.Headers["Access-Control-Expose-Headers"] = "PagingData";
