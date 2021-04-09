@@ -88,7 +88,6 @@ namespace MismeAPI.Controllers
         /// Get all users in a group, it is allowed to use filtering. Requires authentication. Admin
         /// and GroupAdmin access.
         /// </summary>
-        /// <param name="id">Group id</param>
         /// <param name="page">Page for pagination purposes.</param>
         /// <param name="perPage">How many issues per page.</param>
         /// <param name="sortOrder">For sortering purposes.</param>
