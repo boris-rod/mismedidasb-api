@@ -21,17 +21,13 @@ namespace MismeAPI.Service.Impls
     public class GroupService : IGroupService
     {
         private readonly IUnitOfWork _uow;
-        private readonly IUserService _userService;
         private readonly IConfiguration _config;
-        private readonly INotificationService _notificationService;
         private readonly IAccountService _accountService;
 
-        public GroupService(IUnitOfWork uow, IUserService userService, IConfiguration config, INotificationService notificationService, IAccountService accountService)
+        public GroupService(IUnitOfWork uow, IConfiguration config, IAccountService accountService)
         {
             _uow = uow ?? throw new ArgumentNullException(nameof(uow));
-            _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _config = config ?? throw new ArgumentNullException(nameof(config));
-            _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
             _accountService = accountService ?? throw new ArgumentNullException(nameof(accountService));
         }
 

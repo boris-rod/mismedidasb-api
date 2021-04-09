@@ -34,7 +34,7 @@ namespace MismeAPI.Service.Impls
         }
 
         public async Task<PaginatedList<User>> GetUsersAsync(int loggedUser, int pag, int perPag, string sortOrder, int statusFilter,
-            string search, int? minPlannedEats, int? maxPlannedEats, double? minEmotionMedia, double? maxEmotionMedia)
+            string search, int? minPlannedEats, int? maxPlannedEats, double? minEmotionMedia, double? maxEmotionMedia, int? groupId)
         {
             var user = await _uow.UserRepository.GetAsync(loggedUser);
             if (user.Role == RoleEnum.NORMAL)
@@ -86,6 +86,11 @@ namespace MismeAPI.Service.Impls
                     .Where(u => u.UserSoloAnswers
                         .Where(usa => usa.QuestionCode == "SQ-2" && usa.AnswerCode == "SQ-2-SA-1" && !string.IsNullOrEmpty(usa.AnswerValue))
                         .Average(usa => Convert.ToInt32(usa.AnswerValue)) <= maxEmotionMedia.Value);
+            }
+
+            if (groupId.HasValue)
+            {
+                result = result.Where(u => u.GroupId == groupId.Value);
             }
 
             // define sort order
@@ -1051,8 +1056,8 @@ namespace MismeAPI.Service.Impls
             int men = 0;
             int women = 0;
 
-            men = await query.Where(u => u.Sex == 0).CountAsync();
-            women = await query.Where(u => u.Sex == 1).CountAsync();
+            men = await query.Where(u => u.Sex == 1).CountAsync();
+            women = await query.Where(u => u.Sex == 2).CountAsync();
 
             return (men, women);
         }
