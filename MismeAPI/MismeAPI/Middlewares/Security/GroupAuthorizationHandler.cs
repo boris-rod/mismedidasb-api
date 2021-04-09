@@ -25,7 +25,7 @@ namespace MismeAPI.Middlewares.Security
             {
                 if (role == RoleEnum.GROUP_ADMIN.ToString())
                 {
-                    if (resource.Users.Any(u => u.Id == userId) && (requirement.Name == Operations.Update.Name || requirement.Name == Operations.Delete.Name))
+                    if (resource.Users.Any(u => u.Id == userId) && (requirement.Name == Operations.Read.Name || requirement.Name == Operations.Update.Name || requirement.Name == Operations.Delete.Name))
                     {
                         context.Succeed(requirement);
                     }
