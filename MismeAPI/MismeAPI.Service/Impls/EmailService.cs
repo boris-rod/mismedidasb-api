@@ -81,8 +81,11 @@ namespace MismeAPI.Services.Impls
                         {
                             scheduledEmail.Sent = true;
                         }
+                        else
+                        {
+                            scheduledEmail.RetryCount++;
+                        }
 
-                        scheduledEmail.RetryCount++;
                         scheduledEmail.ExceptionMessage = e.Message;
                         scheduledEmail.ModifiedAt = DateTime.UtcNow;
 
