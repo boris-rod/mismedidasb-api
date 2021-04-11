@@ -392,12 +392,11 @@ namespace MismeAPI.Utils
             handsCodes.Add(18, "D:/Projects/Mismes/BD Alimentos Saira/Alimentos 100x100/18.jpg");
 
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-            //using (var package = new ExcelPackage(new FileInfo("D:/Projects/Mismes/BD Alimentos Saira/Envido  nuevos solo y para eliminar.xlsx")))
-            using (var package = new ExcelPackage(new FileInfo("D:/Projects/Mismes/BD Alimentos Saira/Poner en produccion/Enviar Yoandy10102020.xlsx")))
+            using (var package = new ExcelPackage(new FileInfo("D:/Projects/Mismes/BD Alimentos Saira/ENVIADA YOANDY 10042021.xlsx")))
             {
                 var sheetCount = package.Workbook.Worksheets.Count;
-                var firstSheet = package.Workbook.Worksheets["Incluido 2da etapa"];
-                for (int i = 701; i <= 781; i++)
+                var firstSheet = package.Workbook.Worksheets["hoja1"];
+                for (int i = 2; i <= 50; i++)
                 {
                     var code = firstSheet.Cells[i, 2].Text.Trim();
                     var dishName = firstSheet.Cells[i, 3].Text.Trim();
@@ -408,8 +407,10 @@ namespace MismeAPI.Utils
                     var dishClasifi = firstSheet.Cells[i, 7].Text.Trim();
                     var category = firstSheet.Cells[i, 8].Text.Trim();
                     var calories = double.Parse(firstSheet.Cells[i, 9].Text.Trim());
-                    var proteins = double.Parse(firstSheet.Cells[i, 10].Text.Trim());
-                    var carbohidrates = double.Parse(firstSheet.Cells[i, 11].Text.Trim());
+
+                    var carbohidrates = double.Parse(firstSheet.Cells[i, 10].Text.Trim());
+                    var proteins = double.Parse(firstSheet.Cells[i, 11].Text.Trim());
+
                     var fiber = double.Parse(firstSheet.Cells[i, 12].Text.Trim());
                     var fat = double.Parse(firstSheet.Cells[i, 13].Text.Trim());
                     var staurated = double.Parse(firstSheet.Cells[i, 14].Text.Trim());
