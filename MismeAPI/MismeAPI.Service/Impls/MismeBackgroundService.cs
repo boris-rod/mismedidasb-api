@@ -6,11 +6,13 @@ using MismeAPI.Common;
 using MismeAPI.Data.Entities.Enums;
 using MismeAPI.Data.UoW;
 using MismeAPI.Service.Utils;
+using MismeAPI.Services;
 using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Z.EntityFramework.Plus;
 
 namespace MismeAPI.Service.Impls
 {
@@ -23,10 +25,12 @@ namespace MismeAPI.Service.Impls
         private readonly ISubscriptionService _subscriptionService;
         private readonly INotificationService _notificationService;
         private readonly IReportService _reportService;
+        private readonly IEmailService _emailService;
         private readonly List<int> STREAK_REWARDS = new List<int> { 7, 30, 60, 90, 120 };
 
         public MismeBackgroundService(IUnitOfWork uow, IConfiguration config, IUserStatisticsService userStatisticsService,
-            IRewardHelper rewardHelper, ISubscriptionService subscriptionService, INotificationService notificationService, IReportService reportService)
+            IRewardHelper rewardHelper, ISubscriptionService subscriptionService, INotificationService notificationService,
+            IReportService reportService, IEmailService emailService)
         {
             _uow = uow ?? throw new ArgumentNullException(nameof(uow));
             _config = config ?? throw new ArgumentNullException(nameof(config));
@@ -35,6 +39,7 @@ namespace MismeAPI.Service.Impls
             _subscriptionService = subscriptionService ?? throw new ArgumentNullException(nameof(subscriptionService));
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
             _reportService = reportService ?? throw new ArgumentNullException(nameof(reportService));
+            _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
         }
 
         public async Task CleanExpiredTokensAsync()
@@ -302,6 +307,23 @@ namespace MismeAPI.Service.Impls
         public async Task SendReportsAsync()
         {
             await _reportService.SendReportsAsync();
+        }
+
+        public async Task ProcessStoredEmailsAsync()
+        {
+            var cachePrefix = _config.GetSection("AWS")["CachePrefix"];
+
+            var scheduledEmails = await _uow.ScheduledEmailsRepository.GetAll()
+                .Where(se => se.Sent == false)
+                .FromCacheAsync(cachePrefix + CacheEntries.ALL_SCHEDULED_EMAILS);
+
+            foreach (var scheduledEmail in scheduledEmails)
+            {
+                await _emailService.ProcessScheduledEmailAsync(scheduledEmail);
+            }
+
+            if (scheduledEmails.Count() > 0)
+                QueryCacheManager.ExpireTag(cachePrefix + CacheEntries.ALL_SCHEDULED_EMAILS);
         }
 
         private DateTime UtcToLocalTime(DateTime dateUtc, int userOffset = 0)

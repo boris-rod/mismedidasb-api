@@ -61,6 +61,7 @@ namespace MismeAPI.Data.UoW
         IGenericRepository<MenuEat> MenuEatRepository { get; set; }
         IGenericRepository<MenuEatDish> MenuEatDishRepository { get; set; }
         IGenericRepository<MenuEatCompoundDish> MenuEatCompoundDishRepository { get; set; }
+        IGenericRepository<ScheduledEmail> ScheduledEmailsRepository { get; set; }
 
         Task<int> CommitAsync();
     }

@@ -63,6 +63,7 @@ namespace MismeAPI.Data
         public DbSet<MenuEat> MenuEat { get; set; }
         public DbSet<MenuEatDish> MenuEatDish { get; set; }
         public DbSet<MenuEatCompoundDish> MenuEatCompoundDish { get; set; }
+        public DbSet<ScheduledEmail> ScheduledEmails { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -104,6 +105,8 @@ namespace MismeAPI.Data
             modelBuilder.Entity<Group>().HasMany(p => p.Menues).WithOne(b => b.Group).OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<User>().Property(p => p.Sex).HasDefaultValue(-1);
+
+            modelBuilder.Entity<ScheduledEmail>().Property(p => p.Message).HasColumnType("text");
         }
     }
 }

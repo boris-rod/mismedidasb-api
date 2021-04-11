@@ -68,6 +68,7 @@ namespace MismeAPI.Data.UoW
             MenuEatRepository = MenuEatRepository ?? new GenericRepository<MenuEat>(_context);
             MenuEatDishRepository = MenuEatDishRepository ?? new GenericRepository<MenuEatDish>(_context);
             MenuEatCompoundDishRepository = MenuEatCompoundDishRepository ?? new GenericRepository<MenuEatCompoundDish>(_context);
+            ScheduledEmailsRepository = ScheduledEmailsRepository ?? new GenericRepository<ScheduledEmail>(_context);
         }
 
         public IGenericRepository<User> UserRepository { get; set; }
@@ -125,6 +126,7 @@ namespace MismeAPI.Data.UoW
         public IGenericRepository<MenuEat> MenuEatRepository { get; set; }
         public IGenericRepository<MenuEatDish> MenuEatDishRepository { get; set; }
         public IGenericRepository<MenuEatCompoundDish> MenuEatCompoundDishRepository { get; set; }
+        public IGenericRepository<ScheduledEmail> ScheduledEmailsRepository { get; set; }
 
         public async Task<int> CommitAsync()
         {

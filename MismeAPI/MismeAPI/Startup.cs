@@ -147,6 +147,7 @@ namespace MismeAPI
             //recurringJobs.AddOrUpdate<IMismeBackgroundService>("SendPlanifyEventNotificationAsync", (e) => e.SendPlanifyEventNotificationAsync(), "0 12 ? * 3,6", TimeZoneInfo.Utc);
 
             recurringJobs.AddOrUpdate<IMismeBackgroundService>("SendReportsAsync", (e) => e.SendReportsAsync(), "0 7 * * 0", TimeZoneInfo.Utc);
+            recurringJobs.AddOrUpdate<IMismeBackgroundService>("ProcessStoredEmailsAsync", (e) => e.ProcessStoredEmailsAsync(), Cron.Minutely, TimeZoneInfo.Utc);
 
             if (env.IsDevelopment())
             {

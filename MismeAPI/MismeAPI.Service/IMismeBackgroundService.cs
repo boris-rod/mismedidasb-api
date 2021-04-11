@@ -30,5 +30,9 @@ namespace MismeAPI.Service
         [DisableConcurrentExecution(timeoutInSeconds: 10 * 60)]
         [AutomaticRetry(Attempts = 0, LogEvents = false, OnAttemptsExceeded = AttemptsExceededAction.Delete)]
         Task SendReportsAsync();
+
+        [DisableConcurrentExecution(timeoutInSeconds: 1 * 60)]
+        [AutomaticRetry(Attempts = 0, LogEvents = false, OnAttemptsExceeded = AttemptsExceededAction.Delete)]
+        Task ProcessStoredEmailsAsync();
     }
 }
