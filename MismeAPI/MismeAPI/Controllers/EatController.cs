@@ -166,6 +166,35 @@ namespace MismeAPI.Controllers
         }
 
         /// <summary>
+        /// Get user eats by date. Requires authentication. Only group admins and admins can access
+        /// </summary>
+        /// <param name="id">Id of the user to get the plan summaries</param>
+        /// <param name="date">Specific date to filter. Must be in UTC format.</param>
+        /// <param name="endDate">Specific end date to filter. Must be in UTC format.</param>
+        [HttpGet("users/{id}/plan-summaries")]
+        [Authorize(Roles = "GROUP_ADMIN,ADMIN")]
+        [ProducesResponseType(typeof(IEnumerable<PlanSummaryResponse>), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetUserPlanSummariesByDateRange([FromRoute] int id, DateTime date, DateTime endDate)
+        {
+            var user = await _userService.GetUserAsync(id);
+
+            // Resource permision handler
+            var authorizationResult = await _authorizationService.AuthorizeAsync(User, user, Operations.ManagePlans);
+            if (!authorizationResult.Succeeded)
+            {
+                return Forbid();
+            }
+            // Resource permission handler
+
+            var eatTyp = -1;
+            var eats = await _eatService.GetAllUserEatsByDateAsync(id, date, endDate, eatTyp);
+
+            var planSummaries = await _eatService.GetPlanSummaryAsync(eats);
+
+            return Ok(new ApiOkResponse(planSummaries));
+        }
+
+        /// <summary>
         /// Get all user eats. Only an admin can do this operation. Requires authentication.
         /// </summary>
         /// <param name="userId">Specific user id to filter.</param>
