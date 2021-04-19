@@ -312,6 +312,7 @@ namespace MismeAPI.Service.Impls
         public async Task ProcessStoredEmailsAsync()
         {
             var cachePrefix = _config.GetSection("AWS")["CachePrefix"];
+            QueryCacheManager.ExpireTag(cachePrefix + CacheEntries.ALL_SCHEDULED_EMAILS);
 
             var scheduledEmails = await _uow.ScheduledEmailsRepository.GetAll()
                 .Where(se => se.Sent == false)

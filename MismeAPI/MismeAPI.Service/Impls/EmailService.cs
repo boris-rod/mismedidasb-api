@@ -7,7 +7,9 @@ using MismeAPI.Data.Entities;
 using MismeAPI.Data.UoW;
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using Z.EntityFramework.Plus;
@@ -113,6 +115,15 @@ namespace MismeAPI.Services.Impls
             {
                 try
                 {
+                    if (emails.Count() == 1)
+                    {
+                        var cancelEmails = await GetUseCancelEmailNotificationsAsync(emails.FirstOrDefault());
+                        if (cancelEmails)
+                            return;
+
+                        message = await ReplaceFooterPersonalDataAsync(message, emails.FirstOrDefault());
+                    }
+
                     using (var client = new SmtpClient())
                     {
                         client.ServerCertificateValidationCallback = (s, c, h, e) => true;
@@ -165,6 +176,15 @@ namespace MismeAPI.Services.Impls
                 {
                     using (var client = new SmtpClient())
                     {
+                        if (emails.Count() == 1)
+                        {
+                            var cancelEmails = await GetUseCancelEmailNotificationsAsync(emails.FirstOrDefault());
+                            if (cancelEmails)
+                                return;
+
+                            message = await ReplaceFooterPersonalDataAsync(message, emails.FirstOrDefault());
+                        }
+
                         client.ServerCertificateValidationCallback = (s, c, h, e) => true;
                         await client.ConnectAsync(_configuration.GetValue<string>("SMTP:Server"), int.Parse(_configuration.GetValue<string>("SMTP:Port")), false);
 
@@ -218,6 +238,47 @@ namespace MismeAPI.Services.Impls
             var emails = text.Split(" ");
 
             return emails.ToList();
+        }
+
+        private async Task<string> GetTokenAsync(string email)
+        {
+            var user = await _uow.UserRepository.GetAll()
+                .Where(u => u.Email == email)
+                .FirstOrDefaultAsync();
+
+            return user?.GuidId;
+        }
+
+        private async Task<string> ReplaceFooterPersonalDataAsync(string message, string email)
+        {
+            var url = _configuration.GetSection("CustomSetting")["AdminUrl"];
+            var token = await GetTokenAsync(email);
+
+            url += "/email-unsuscribe/" + token;
+
+            return message.Replace("#UNSUSCRIBEURL#", url);
+        }
+
+        private async Task<bool> GetUseCancelEmailNotificationsAsync(string email)
+        {
+            var user = await _uow.UserRepository.GetAll()
+                .Where(u => u.Email == email)
+                .FirstOrDefaultAsync();
+
+            if (user == null)
+                return false;
+
+            var setting = await _uow.SettingRepository.GetAll().Where(s => s.Name == SettingsConstants.EMAIL_NOTIFICATION).FirstOrDefaultAsync();
+            if (setting != null)
+            {
+                var us = await _uow.UserSettingRepository.GetAll().Where(us => us.SettingId == setting.Id && us.UserId == user.Id).FirstOrDefaultAsync();
+                if (us != null && !string.IsNullOrWhiteSpace(us.Value))
+                {
+                    return us.Value == "false";
+                }
+            }
+
+            return false;
         }
     }
 }

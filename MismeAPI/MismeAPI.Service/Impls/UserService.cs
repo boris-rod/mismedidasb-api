@@ -848,9 +848,6 @@ namespace MismeAPI.Service.Impls
 
         public async Task<bool> GetUserOptInNotificationAsync(int userId, string settingConstant)
         {
-            if (settingConstant != SettingsConstants.PREPARE_EAT_REMINDER && settingConstant != SettingsConstants.DRINK_WATER_REMINDER)
-                return false;
-
             var setting = await _uow.SettingRepository.GetAll().Where(s => s.Name == settingConstant).FirstOrDefaultAsync();
             if (setting != null)
             {
@@ -877,9 +874,9 @@ namespace MismeAPI.Service.Impls
                 .Where(u => u.Status == StatusEnum.ACTIVE)
                 .AsQueryable();
 
-            if (request.UserIds.Count() > 1 && request.UserIds.FirstOrDefault() != -1)
+            if (request.UserIds.Count() > 0 && request.UserIds.FirstOrDefault() != -1)
                 query = query.Where(u => request.UserIds.Contains(u.Id));
-            else if (request.GroupIds.Count() > 1)
+            else if (request.GroupIds.Count() > 0)
                 query = query.Where(u => u.GroupId.HasValue && request.GroupIds.Contains(u.GroupId.Value));
 
             var users = await query.ToListAsync();
