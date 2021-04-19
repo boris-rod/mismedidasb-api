@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MismeAPI.Data.Entities;
+using System;
 
 namespace MismeAPI.Data
 {
@@ -107,6 +108,8 @@ namespace MismeAPI.Data
             modelBuilder.Entity<User>().Property(p => p.Sex).HasDefaultValue(-1);
 
             modelBuilder.Entity<ScheduledEmail>().Property(p => p.Message).HasColumnType("text");
+
+            modelBuilder.Entity<User>().HasIndex(p => p.GuidId).IsUnique();
         }
     }
 }

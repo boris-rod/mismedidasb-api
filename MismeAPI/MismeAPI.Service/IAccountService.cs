@@ -61,5 +61,7 @@ namespace MismeAPI.Services
         Task<int> GetSexAsync(int userId);
 
         Task<bool> ValidateGroupAdminFirstLoginAsync(User user);
+
+        Task UnsubscribeEmailsAsync(string token);
     }
 }

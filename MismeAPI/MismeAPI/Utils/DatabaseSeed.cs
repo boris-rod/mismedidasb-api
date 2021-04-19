@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using MismeAPI.Common;
 using MismeAPI.Data.Entities;
 using MismeAPI.Data.Entities.Enums;
 using MismeAPI.Data.UoW;
@@ -36,6 +37,9 @@ namespace MismeAPI.Utils
             await _productService.SeedProductsAsync();
 
             await SeedPersonalDataAsync(_uow, _personalDataService, _pollService);
+            await SeedSettings(_uow);
+            await SeedUserGuidId(_uow);
+
             //try
             //{
             //    //ImportDishesAsync(_uow, serviceProvider).Wait();
@@ -707,6 +711,42 @@ namespace MismeAPI.Utils
                     admin.Sex = 0;
 
                     await uow.UserRepository.UpdateAsync(admin, admin.Id);
+                    await uow.CommitAsync();
+                }
+            }
+        }
+
+        private static async Task SeedSettings(IUnitOfWork uow)
+        {
+            var setting = await uow.SettingRepository.GetAll().Where(s => s.Name == SettingsConstants.EMAIL_NOTIFICATION).FirstOrDefaultAsync();
+            if (setting == null)
+            {
+                var sett = new Setting
+                {
+                    Name = SettingsConstants.EMAIL_NOTIFICATION,
+                    Description = "Opt in/out to receive email notifications"
+                };
+                await uow.SettingRepository.AddAsync(sett);
+                await uow.CommitAsync();
+            }
+        }
+
+        private static async Task SeedUserGuidId(IUnitOfWork uow)
+        {
+            var admin = await uow.UserRepository.GetAll()
+                .Include(u => u.PersonalDatas)
+                .FirstOrDefaultAsync(u => u.Email == "admin@mismedidas.com");
+
+            if (string.IsNullOrEmpty(admin.GuidId))
+            {
+                var users = await uow.UserRepository.GetAll()
+                    .ToListAsync();
+
+                foreach (var user in users)
+                {
+                    user.GuidId = Guid.NewGuid().ToString();
+
+                    await uow.UserRepository.UpdateAsync(user, user.Id);
                     await uow.CommitAsync();
                 }
             }

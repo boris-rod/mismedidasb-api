@@ -444,5 +444,18 @@ namespace MismeAPI.Controllers
 
             return Ok(new ApiOkResponse(mapped));
         }
+
+        /// <summary>
+        /// Unsuscribe users from email notifications.
+        /// </summary>
+        /// <param name="token">Unique token of the user to be unsuscribed from email notifications</param>
+        [HttpGet("email-unsuscribe/{token}")]
+        [ProducesResponseType(typeof(IEnumerable<UsernameValidationResponse>), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> Unsuscribe([FromRoute] string token)
+        {
+            await _accountService.UnsubscribeEmailsAsync(token);
+
+            return Ok();
+        }
     }
 }

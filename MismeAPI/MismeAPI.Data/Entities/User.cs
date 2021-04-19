@@ -34,6 +34,7 @@ namespace MismeAPI.Data.Entities
         }
 
         public int Id { get; set; }
+        public string GuidId { get; set; }
         public string StripeCustomerId { get; set; }
         public string PaypalCustomerId { get; set; }
 

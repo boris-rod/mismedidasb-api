@@ -444,6 +444,7 @@ namespace MismeAPI.Services.Impls
                 ModifiedAt = DateTime.UtcNow,
                 Username = await GetUserNameAsync(suRequest.Email),
                 VerificationCode = number,
+                GuidId = Guid.NewGuid().ToString(),
 
                 Status = StatusEnum.PENDING
             };
@@ -1109,6 +1110,43 @@ namespace MismeAPI.Services.Impls
             }
 
             return false;
+        }
+
+        public async Task UnsubscribeEmailsAsync(string token)
+        {
+            var user = await _uow.UserRepository.GetAll()
+                .Include(u => u.UserSettings)
+                .Where(u => u.GuidId == token)
+                .FirstOrDefaultAsync();
+
+            if (user == null)
+                throw new NotFoundException("User");
+
+            var setting = await _uow.SettingRepository.GetAll().Where(s => s.Name == SettingsConstants.EMAIL_NOTIFICATION).FirstOrDefaultAsync();
+            if (setting != null)
+            {
+                var us = await _uow.UserSettingRepository.GetAll().Where(us => us.SettingId == setting.Id && us.UserId == user.Id).FirstOrDefaultAsync();
+
+                if (us == null)
+                {
+                    var usNew = new UserSetting
+                    {
+                        SettingId = setting.Id,
+                        UserId = user.Id,
+                        Value = "false"
+                    };
+
+                    await _uow.UserSettingRepository.AddAsync(usNew);
+                }
+                else
+                {
+                    us.Value = "false";
+
+                    await _uow.UserSettingRepository.UpdateAsync(us, us.Id);
+                }
+
+                await _uow.CommitAsync();
+            }
         }
     }
 }
