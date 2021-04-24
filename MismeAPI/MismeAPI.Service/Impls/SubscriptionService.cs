@@ -235,14 +235,14 @@ namespace MismeAPI.Service.Impls
         public async Task<IEnumerable<UserSubscription>> BuySubscriptionPackageAsync(int loggedUser)
         {
             var bulkSubscriptions = new List<SubscriptionEnum> { SubscriptionEnum.VIRTUAL_ASESSOR, SubscriptionEnum.FOOD_REPORT, SubscriptionEnum.NUTRITION_REPORT };
-            var unitPrice = 2500;
+            var unitPrice = 3000;
 
             var user = await _userService.GetUserAsync(loggedUser);
             var subscriptions = await _uow.SubscriptionRepository.GetAll()
                 .Where(s => bulkSubscriptions.Contains(s.Product))
                 .ToListAsync();
 
-            if (subscriptions.Where(s => s.IsActive).Count() != 3)
+            if (subscriptions.Where(s => s.IsActive).Count() != 4)
             {
                 throw new InvalidDataException(ExceptionConstants.INVALID_DATA, "subscriptions.");
             }
@@ -356,6 +356,14 @@ namespace MismeAPI.Service.Impls
                 IsActive = true
             };
 
+            var subscriptionReques4 = new CreateSubscriptionRequest
+            {
+                Name = "Planes pre-elaborados (Menues)",
+                Product = (int)SubscriptionEnum.MENUES,
+                ValueCoins = 1000,
+                IsActive = true
+            };
+
             var subscriptions = await _uow.SubscriptionRepository.GetAll().ToListAsync();
 
             var subscription1 = subscriptions.FirstOrDefault(c => c.Product == SubscriptionEnum.VIRTUAL_ASESSOR);
@@ -369,6 +377,10 @@ namespace MismeAPI.Service.Impls
             var subscription3 = subscriptions.FirstOrDefault(c => c.Product == SubscriptionEnum.NUTRITION_REPORT);
             if (subscription3 == null)
                 await CreateSubscriptionAsync(subscriptionReques3);
+
+            var subscription4 = subscriptions.FirstOrDefault(c => c.Product == SubscriptionEnum.MENUES);
+            if (subscription4 == null)
+                await CreateSubscriptionAsync(subscriptionReques4);
 
             var admin = await _uow.UserRepository.GetAll()
                 .Include(u => u.Subscriptions)
