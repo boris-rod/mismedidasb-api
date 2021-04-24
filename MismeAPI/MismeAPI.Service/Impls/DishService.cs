@@ -788,6 +788,14 @@ namespace MismeAPI.Service.Impls
                 {
                     return factor.ConversionFactor11Code;
                 }
+                else if (code == 19)
+                {
+                    return factor.ConversionFactor19Code;
+                }
+                else if (code == 4)
+                {
+                    return factor.ConversionFactor4Code;
+                }
                 else
                 {
                     return 1.0;

@@ -128,6 +128,14 @@ namespace MismeAPI.Controllers
                                 factor = await _dishService.GetConversionFactorAsync(height, sex, 11);
                                 break;
 
+                            case 19:
+                                factor = await _dishService.GetConversionFactorAsync(height, sex, 19);
+                                break;
+
+                            case 4:
+                                factor = await _dishService.GetConversionFactorAsync(height, sex, 4);
+                                break;
+
                             default:
                                 break;
                         }

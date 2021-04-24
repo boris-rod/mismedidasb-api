@@ -103,6 +103,14 @@ namespace MismeAPI.Service.Utils
                             factor = _dishService.GetConversionFactorAsync(height, sex, 11).Result;
                             break;
 
+                        case 19:
+                            factor = _dishService.GetConversionFactorAsync(height, sex, 19).Result;
+                            break;
+
+                        case 4:
+                            factor = _dishService.GetConversionFactorAsync(height, sex, 4).Result;
+                            break;
+
                         default:
                             break;
                     }
@@ -149,6 +157,14 @@ namespace MismeAPI.Service.Utils
 
                             case 11:
                                 factor = _dishService.GetConversionFactorAsync(height, sex, 11).Result;
+                                break;
+
+                            case 19:
+                                factor = _dishService.GetConversionFactorAsync(height, sex, 19).Result;
+                                break;
+
+                            case 4:
+                                factor = _dishService.GetConversionFactorAsync(height, sex, 4).Result;
                                 break;
 
                             default:

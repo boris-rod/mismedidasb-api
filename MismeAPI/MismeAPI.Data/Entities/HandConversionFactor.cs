@@ -14,5 +14,7 @@ namespace MismeAPI.Data.Entities
         public double ConversionFactor6Code { get; set; }
         public double ConversionFactor10Code { get; set; }
         public double ConversionFactor11Code { get; set; }
+        public double ConversionFactor19Code { get; set; }
+        public double ConversionFactor4Code { get; set; }
     }
 }
