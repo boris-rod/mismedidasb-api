@@ -24,7 +24,7 @@ namespace MismeAPI.Middlewares.Security
             }
             else
             {
-                if (requirement.Name == Operations.ManagePlans.Name)
+                if (requirement.Name == Operations.ManagePlans.Name || requirement.Name == Operations.Read.Name)
                 {
                     // user and group admin are in the same group
                     if (resource.GroupId.HasValue && resource.GroupId.Value == groupId)
