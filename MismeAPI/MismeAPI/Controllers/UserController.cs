@@ -28,10 +28,11 @@ namespace MismeAPI.Controllers
         private readonly IAccountService _accountService;
         private readonly IDishService _dishService;
         private readonly IAuthorizationService _authorizationService;
-        private readonly IGroupService _groupService;
+        private readonly IProfileHelthHelper _profileHelthHelper;
+        private readonly IPollService _pollService;
 
         public UserController(IUserService userService, IMapper mapper, IEatService eatService, IAccountService accountService,
-            IDishService dishService, IAuthorizationService authorizationService)
+            IDishService dishService, IAuthorizationService authorizationService, IProfileHelthHelper profileHelthHelper, IPollService pollService)
         {
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
@@ -39,6 +40,8 @@ namespace MismeAPI.Controllers
             _accountService = accountService ?? throw new ArgumentNullException(nameof(accountService));
             _dishService = dishService ?? throw new ArgumentNullException(nameof(dishService));
             _authorizationService = authorizationService ?? throw new ArgumentNullException(nameof(authorizationService));
+            _profileHelthHelper = profileHelthHelper ?? throw new ArgumentNullException(nameof(profileHelthHelper));
+            _pollService = pollService ?? throw new ArgumentNullException(nameof(pollService));
         }
 
         /// <summary>
@@ -221,6 +224,44 @@ namespace MismeAPI.Controllers
             var result = healthyHelper.GetUserEatHealtParameters(user);
 
             return Ok(new ApiOkResponse(result));
+        }
+
+        /// <summary>
+        /// Get user. Requires Admin or GroupAdmin authentication. Includes subscriptions
+        /// </summary>
+        /// <param name="id">User's id</param>
+        /// <returns></returns>
+        [HttpGet("{id}")]
+        [Authorize(Roles = "ADMIN,GROUP_ADMIN")]
+        [ProducesResponseType(typeof(UserAdminResponse), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetUserProfile(int id)
+        {
+            var result = await _profileHelthHelper.GetUserProfileUseAsync(id);
+
+            // Resource permision handler
+            var authorizationResult = await _authorizationService.AuthorizeAsync(User, result.user, Operations.Read);
+            if (!authorizationResult.Succeeded)
+            {
+                return Forbid();
+            }
+            // Resource permission handler
+
+            var info = await _pollService.GetUserPollsInfoAsync(id);
+
+            var user = _mapper.Map<UserAdminResponse>(result.user);
+            user.KCal = result.kcal;
+            user.IMC = result.IMC;
+
+            user.Age = info.age;
+            user.Sex = info.sex;
+            user.Height = info.height;
+            user.Weight = info.weight;
+            user.HealthMeasuresLastUpdate = info.HealthMeasuresLastUpdate;
+            user.ValueMeasuresLastUpdate = info.ValueMeasuresLastUpdate;
+            user.WellnessMeasuresLastUpdate = info.WellnessMeasuresLastUpdate;
+            user.LastPlanedEat = info.LastPlanedEat;
+
+            return Ok(new ApiOkResponse(user));
         }
     }
 }

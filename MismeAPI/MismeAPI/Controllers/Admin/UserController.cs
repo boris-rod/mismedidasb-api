@@ -9,7 +9,6 @@ using MismeAPI.Common.DTO.Response;
 using MismeAPI.Common.DTO.Response.PersonalData;
 using MismeAPI.Common.DTO.Response.User;
 using MismeAPI.Data.Entities.Enums;
-using MismeAPI.Middlewares.Security;
 using MismeAPI.Service;
 using MismeAPI.Service.Utils;
 using MismeAPI.Utils;
@@ -33,11 +32,10 @@ namespace MismeAPI.Controllers.Admin
         private readonly IUserStatisticsService _userStatisticsService;
         private readonly IPersonalDataService _personalDataService;
         private IWebHostEnvironment _env;
-        private readonly IAuthorizationService _authorizationService;
 
         public UserController(IUserService userService, IMapper mapper, IProfileHelthHelper profileHelthHelper, IPollService pollService,
             INotificationService notificationService, IUserStatisticsService userStatisticsService, IWebHostEnvironment env,
-            IPersonalDataService personalDataService, IAuthorizationService authorizationService)
+            IPersonalDataService personalDataService)
         {
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
@@ -46,7 +44,6 @@ namespace MismeAPI.Controllers.Admin
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
             _userStatisticsService = userStatisticsService ?? throw new ArgumentNullException(nameof(userStatisticsService));
             _env = env ?? throw new ArgumentNullException(nameof(env));
-            _authorizationService = authorizationService ?? throw new ArgumentNullException(nameof(authorizationService));
             _personalDataService = personalDataService ?? throw new ArgumentNullException(nameof(personalDataService));
         }
 
@@ -56,20 +53,10 @@ namespace MismeAPI.Controllers.Admin
         /// <param name="id">User's id</param>
         /// <returns></returns>
         [HttpGet("{id}")]
-        [Authorize(Roles = "ADMIN,GROUP_ADMIN")]
         [ProducesResponseType(typeof(UserAdminResponse), (int)HttpStatusCode.OK)]
         public async Task<IActionResult> GetUserProfile(int id)
         {
             var result = await _profileHelthHelper.GetUserProfileUseAsync(id);
-
-            // Resource permision handler
-            var authorizationResult = await _authorizationService.AuthorizeAsync(User, result.user, Operations.Read);
-            if (!authorizationResult.Succeeded)
-            {
-                return Forbid();
-            }
-            // Resource permission handler
-
             var info = await _pollService.GetUserPollsInfoAsync(id);
 
             var user = _mapper.Map<UserAdminResponse>(result.user);
