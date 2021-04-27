@@ -14,7 +14,7 @@ namespace MismeAPI.Service
 
         Task<List<Eat>> GetAllUserEatsByDateAsync(int userId, DateTime date, DateTime endDate, int eatTyp);
 
-        Task<PaginatedList<Eat>> GetAdminAllUserEatsAsync(int adminId, int pag, int perPag, int userId, DateTime? date, int eatTyp);
+        Task<PaginatedList<Eat>> GetAdminAllUserEatsAsync(int pag, int perPag, int userId, DateTime? date, int eatTyp);
 
         Task<Eat> CreateEatAsync(int loggedUser, CreateEatRequest eat);
 

@@ -65,13 +65,8 @@ namespace MismeAPI.Service.Impls
             return e;
         }
 
-        public async Task<PaginatedList<Eat>> GetAdminAllUserEatsAsync(int adminId, int pag, int perPag, int userId, DateTime? date, int eatTyp)
+        public async Task<PaginatedList<Eat>> GetAdminAllUserEatsAsync(int pag, int perPag, int userId, DateTime? date, int eatTyp)
         {
-            var isAdmin = await _uow.UserRepository.GetAll().Where(u => u.Id == adminId && u.Role == RoleEnum.ADMIN).FirstOrDefaultAsync();
-            if (isAdmin == null)
-            {
-                throw new NotAllowedException(ExceptionConstants.NOT_ALLOWED);
-            }
             var userExists = await _uow.UserRepository.GetAll().Where(u => u.Id == userId).FirstOrDefaultAsync();
             if (userExists == null)
             {

@@ -203,7 +203,7 @@ namespace MismeAPI.Controllers
         }
 
         /// <summary>
-        /// Get all user eats. Only an admin can do this operation. Requires authentication.
+        /// Get all user eats. Only an admin or group admin can do this operation. Requires authentication.
         /// </summary>
         /// <param name="userId">Specific user id to filter.</param>
         /// <param name="date">Specific date to filter. Must be in UTC format.</param>
@@ -213,18 +213,27 @@ namespace MismeAPI.Controllers
         /// <param name="page">The page to be displayed. 1 by default.</param>
         /// <param name="perPage">The number of eats to be displayed per page. 10 by default.</param>
         [HttpGet("user-eats")]
-        [Authorize]
+        [Authorize(Roles = "GROUP_ADMIN,ADMIN")]
         [ProducesResponseType(typeof(IEnumerable<EatResponse>), (int)HttpStatusCode.OK)]
         public async Task<IActionResult> GetAllEatsByDate(int userId, DateTime? date, int? page, int? perPage, int? eatType)
         {
+            var user = await _userService.GetUserAsync(userId);
+
+            // Resource permision handler
+            var authorizationResult = await _authorizationService.AuthorizeAsync(User, user, Operations.ManagePlans);
+            if (!authorizationResult.Succeeded)
+            {
+                return Forbid();
+            }
+            // Resource permission handler
+
             var adminId = User.GetUserIdFromToken();
             var language = await _userService.GetUserLanguageFromUserIdAsync(adminId);
-
             var eatTyp = eatType ?? -1;
             var pag = page ?? 1;
             var perPag = perPage ?? 10;
 
-            var result = await _eatService.GetAdminAllUserEatsAsync(adminId, pag, perPag, userId, date, eatTyp);
+            var result = await _eatService.GetAdminAllUserEatsAsync(pag, perPag, userId, date, eatTyp);
             HttpContext.Response.Headers.Add("PagingData", JsonConvert.SerializeObject(result.GetPaginationData));
             HttpContext.Response.Headers["Access-Control-Expose-Headers"] = "PagingData";
             HttpContext.Response.Headers["Access-Control-Allow-Headers"] = "PagingData";
