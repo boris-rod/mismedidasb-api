@@ -119,7 +119,7 @@ namespace MismeAPI.Controllers
             var fullName = currentUser.FullName;
             var iOSLink = _configuration.GetValue<string>("CustomSetting:ApkLinkIOS");
             var androidLink = _configuration.GetValue<string>("CustomSetting:ApkLinkAndroid");
-            var adminUrl = _configuration.GetValue<string>("CustomSetting:ApkLinkAndroid");
+            var adminUrl = _configuration.GetValue<string>("CustomSetting:AdminUrl");
             var acceptPath = _configuration.GetValue<string>("CustomSetting:AcceptGroupInvitationPath");
             var declinePath = _configuration.GetValue<string>("CustomSetting:DeclineInvitationPath");
             var acceptUrl = adminUrl + acceptPath + "?token=";
