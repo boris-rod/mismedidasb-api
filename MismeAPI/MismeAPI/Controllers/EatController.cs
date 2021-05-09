@@ -361,6 +361,33 @@ namespace MismeAPI.Controllers
         }
 
         /// <summary>
+        /// Add or update bulk eats to an user. Requires authentication. Only admin or group admin
+        /// of the target user can do this operation
+        /// </summary>
+        /// <param name="userId">User id to update plan</param>
+        /// <param name="eat">Eat request object.</param>
+        [HttpPost("users/{userId}/bulk-eats")]
+        [Authorize]
+        [ProducesResponseType(typeof(EatResponse), (int)HttpStatusCode.Created)]
+        [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> AddEatsToUser([FromRoute] int userId, [FromBody] CreateBulkEatRequest eat)
+        {
+            var user = await _userService.GetUserDevicesAsync(userId);
+
+            // Resource permision handler
+            var authorizationResult = await _authorizationService.AuthorizeAsync(User, user, Operations.ManagePlans);
+            if (!authorizationResult.Succeeded)
+            {
+                return Forbid();
+            }
+            // Resource permission handler
+
+            await _eatService.CreateBulkEatAsync(userId, eat);
+
+            return Ok();
+        }
+
+        /// <summary>
         /// Apply menu to user day plan - Add bulk eats by menu. Requires authentication.
         /// </summary>
         /// <param name="userId">User to wich the menue will be applied</param>

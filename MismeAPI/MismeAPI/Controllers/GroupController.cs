@@ -122,8 +122,8 @@ namespace MismeAPI.Controllers
             var adminUrl = _configuration.GetValue<string>("CustomSetting:AdminUrl");
             var acceptPath = _configuration.GetValue<string>("CustomSetting:AcceptGroupInvitationPath");
             var declinePath = _configuration.GetValue<string>("CustomSetting:DeclineInvitationPath");
-            var acceptUrl = adminUrl + acceptPath + "?token=";
-            var declineUrl = adminUrl + declinePath + "?token=";
+            var acceptUrl = adminUrl + acceptPath + "/";
+            var declineUrl = adminUrl + declinePath + "/";
 
             List<string> to;
 
