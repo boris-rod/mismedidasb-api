@@ -102,6 +102,8 @@ namespace MismeAPI.Utils
                 .ForMember(d => d.Image, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Image) ? "" : _amazonS3Service.GetPublicUrl(source.Image)));
 
             CreateMap<Tag, TagResponse>();
+            CreateMap<TagResponse, Tag>();
+
             CreateMap<Tip, TipResponse>()
                 .ForMember(d => d.Content, opts => opts.MapFrom((src, dest, destMember, context) => GetTipContent(src, context.Items["lang"].ToString())))
                 .ForMember(d => d.TipPosition, opts => opts.MapFrom(source => (int)source.TipPosition))
@@ -147,6 +149,8 @@ namespace MismeAPI.Utils
                  .ForMember(d => d.LackSelfControlDishIntensity, opts => opts.MapFrom(source => LackSelfControlIntensity(source)))
                  .ForMember(d => d.Tags, opts => opts.MapFrom(source => source.DishTags))
                  .ForMember(d => d.Image, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Image) ? "" : _amazonS3Service.GetPublicUrl(source.Image)));
+
+            CreateMap<DishResponse, Dish>();
 
             CreateMap<Dish, DishAdminResponse>();
             //.ForMember(d => d.Image, opts => opts.MapFrom(source => string.IsNullOrWhiteSpace(source.Image) ? "" : _amazonS3Service.GetPublicUrl(source.Image)));
@@ -257,6 +261,8 @@ namespace MismeAPI.Utils
                 .ForMember(d => d.IsFavorite, opts => opts.MapFrom(source => IsFavorite(source)))
                 .ForMember(d => d.IsLackSelfControlDish, opts => opts.MapFrom(source => IsLackSelfControl(source)))
                 .ForMember(d => d.LackSelfControlDishIntensity, opts => opts.MapFrom(source => LackSelfControlIntensity(source)));
+
+            CreateMap<CompoundDishResponse, CompoundDish>();
 
             CreateMap<CompoundDish, AdminCompoundDishResponse>()
                 .ForMember(d => d.Username, opts => opts.MapFrom(source => source.CreatedBy.Username))

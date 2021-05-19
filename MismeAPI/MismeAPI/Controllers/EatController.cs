@@ -467,7 +467,7 @@ namespace MismeAPI.Controllers
         }
 
         /// <summary>
-        /// Return is valanced summary of a given plan. Requires authentication.
+        /// Return is valanced summary of a given plan and user. Requires authentication.
         /// </summary>
         /// <param name="userId">Id of the user to know the plan summary</param>
         /// <param name="plan">Plan to calculate the is balanced parameters</param>
