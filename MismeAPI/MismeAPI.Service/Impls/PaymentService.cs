@@ -346,49 +346,26 @@ namespace MismeAPI.Services.Impls
 
             if (misme_service == null)
             {
+                var productStripeID = _configuration.GetSection("Stripe")["GroupServiceID"];
+                var productPriceStripeID = _configuration.GetSection("Stripe")["GroupServicePriceID"];
+
                 misme_service = new Data.Entities.Service
                 {
-                    Name = ServicesConstants.MONTHLY_GROUP_SERVICE
-                };
-
-                var options = new ProductCreateOptions
-                {
                     Name = ServicesConstants.MONTHLY_GROUP_SERVICE,
-                    Type = "service",
+                    StripeId = productStripeID
                 };
-
-                var service = new Stripe.ProductService();
-                var product = await service.CreateAsync(options);
-
-                misme_service.StripeId = product.Id;
 
                 await _uow.ServiceRepository.AddAsync(misme_service);
 
                 var priceInt = 10000;
                 var currency = "eur";
 
-                var priceOptions = new PriceCreateOptions
-                {
-                    Nickname = "Mensual",
-                    Product = misme_service.StripeId,
-                    UnitAmount = priceInt,
-                    Currency = currency,
-                    Recurring = new PriceRecurringOptions
-                    {
-                        Interval = "month",
-                        UsageType = "licensed",
-                    },
-                };
-
-                var priceService = new PriceService();
-                var price = await priceService.CreateAsync(priceOptions);
-
                 var misme_price = new ServicePrice
                 {
-                    PriceId = price.Id,
+                    PriceId = productPriceStripeID,
                     Interval = "month",
                     Name = "Mensual",
-                    ServiceId = misme_service.Id,
+                    Service = misme_service,
                     Price = priceInt,
                     Currency = currency
                 };
