@@ -297,7 +297,7 @@ namespace MismeAPI.Service.Impls
                 {
                     // TODO: Internationalization on this msgs.
                     var title = "Participa en el Grupo PlaniFive";
-                    var body = "Ver mas detalles";
+                    var body = "Ver más detalles";
                     var externalUrl = "https://metriri.com/blog/te-invitamos-a-participar-en-el-grupo-planifive";
                     await _notificationService.SendFirebaseNotificationAsync(title, body, user.Devices, externalUrl);
                 }

@@ -2755,7 +2755,7 @@ namespace MismeAPI.Service.Impls
                         tips.AddSimpleRow(
                                 (cellData, properties) =>
                                 {
-                                    cellData.Value = "- Trate de combinar en la dieta varios tipos de proteínas, eso permitirá que sea mas completa y equilibrada. Las carnes , los pescado , el huevo y los lácteos aportan proteínas de gran calidad biológica y contienen aminoácidos esenciales.";
+                                    cellData.Value = "- Trate de combinar en la dieta varios tipos de proteínas, eso permitirá que sea más completa y equilibrada. Las carnes , los pescado , el huevo y los lácteos aportan proteínas de gran calidad biológica y contienen aminoácidos esenciales.";
 
                                     properties.PdfFont = args.PdfFont;
                                     properties.RunDirection = PdfRunDirection.LeftToRight;

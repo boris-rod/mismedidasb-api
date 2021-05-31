@@ -58,7 +58,7 @@ namespace MismeAPI.Controllers
             {
                 var to = new List<string>();
                 var fullName = result.First().User.FullName;
-                var subject = "Invitación para unirte a Planifive";
+                var subject = "Invitación para unirte a PlaniFive";
 
                 foreach (var item in result)
                 {
