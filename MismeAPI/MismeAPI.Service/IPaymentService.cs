@@ -1,4 +1,5 @@
-﻿using MismeAPI.Common.DTO.Response.Payment;
+﻿using MismeAPI.Common.DTO;
+using MismeAPI.Common.DTO.Response.Payment;
 using Stripe;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -20,5 +21,9 @@ namespace MismeAPI.Services
         Task DeleteStripeCustomerPaymentMethod(int userId, string paymentMethodId);
 
         Task<IEnumerable<Data.Entities.Order>> ValidateAppleReceiptAsync(int userId, string receiptData);
+
+        Task<string> StripeCreateCheckoutSessionForSubscriptionAync(int loggedUser, CreateCheckoutSessionRequest req);
+
+        Task<Stripe.BillingPortal.Session> CustomerPortalAsync(int loggedUser, string returnUrl);
     }
 }

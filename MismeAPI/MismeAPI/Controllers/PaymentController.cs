@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using MismeAPI.BasicResponses;
+using MismeAPI.Common.DTO;
 using MismeAPI.Common.DTO.Response.Order;
 using MismeAPI.Common.DTO.Response.Payment;
 using MismeAPI.Services;
@@ -69,27 +70,70 @@ namespace MismeAPI.Controllers
                 var signatureHeader = Request.Headers["Stripe-Signature"];
                 stripeEvent = EventUtility.ConstructEvent(json, signatureHeader, endpointSecret);
 
-                // Handle the event
-                if (stripeEvent.Type == Events.PaymentIntentSucceeded)
+                Console.WriteLine($"Webhook notification with type: {stripeEvent.Type} found for {stripeEvent.Id}");
+
+                //// Handle the event
+                //if (stripeEvent.Type == Events.PaymentIntentSucceeded)
+                //{
+                //    var paymentIntent = stripeEvent.Data.Object as PaymentIntent;
+                //    // Then define and call a method to handle the successful payment intent. handlePaymentIntentSucceeded(paymentIntent);
+                //    await _paymentService.HandlePaymentIntentSucceeded(paymentIntent);
+                //}
+                //else if (stripeEvent.Type == Events.PaymentIntentPaymentFailed)
+                //{
+                //    var paymentIntent = stripeEvent.Data.Object as PaymentIntent;
+                //    await _paymentService.HandlePaymentIntentFailed(paymentIntent);
+                //}
+                //else if (stripeEvent.Type == Events.PaymentIntentCanceled)
+                //{
+                //    var paymentIntent = stripeEvent.Data.Object as PaymentIntent;
+                //    await _paymentService.HandlePaymentIntentCanceled(paymentIntent);
+                //}
+                //else
+                //{
+                //    // Unexpected event type
+                //    Console.WriteLine("Unhandled event type: {0}", stripeEvent.Type);
+                //}
+
+                switch (stripeEvent.Type)
                 {
-                    var paymentIntent = stripeEvent.Data.Object as PaymentIntent;
-                    // Then define and call a method to handle the successful payment intent. handlePaymentIntentSucceeded(paymentIntent);
-                    await _paymentService.HandlePaymentIntentSucceeded(paymentIntent);
-                }
-                else if (stripeEvent.Type == Events.PaymentIntentPaymentFailed)
-                {
-                    var paymentIntent = stripeEvent.Data.Object as PaymentIntent;
-                    await _paymentService.HandlePaymentIntentFailed(paymentIntent);
-                }
-                else if (stripeEvent.Type == Events.PaymentIntentCanceled)
-                {
-                    var paymentIntent = stripeEvent.Data.Object as PaymentIntent;
-                    await _paymentService.HandlePaymentIntentCanceled(paymentIntent);
-                }
-                else
-                {
-                    // Unexpected event type
-                    Console.WriteLine("Unhandled event type: {0}", stripeEvent.Type);
+                    case Events.PaymentIntentSucceeded:
+                        var paymentIntent = stripeEvent.Data.Object as PaymentIntent;
+                        // Then define and call a method to handle the successful payment intent. handlePaymentIntentSucceeded(paymentIntent);
+                        await _paymentService.HandlePaymentIntentSucceeded(paymentIntent);
+                        break;
+
+                    case Events.PaymentIntentPaymentFailed:
+                        var paymentIntent1 = stripeEvent.Data.Object as PaymentIntent;
+                        await _paymentService.HandlePaymentIntentFailed(paymentIntent1);
+                        break;
+
+                    case Events.PaymentIntentCanceled:
+                        var paymentIntent2 = stripeEvent.Data.Object as PaymentIntent;
+                        await _paymentService.HandlePaymentIntentCanceled(paymentIntent2);
+                        break;
+
+                    case Events.CheckoutSessionCompleted:
+                        // Payment is successful and the subscription is created. You should
+                        // provision the subscription and save the customer ID to your database.
+                        break;
+
+                    case Events.InvoicePaid:
+                        // Continue to provision the subscription as payments continue to be made.
+                        // Store the status in your database and check when a user accesses your
+                        // service. This approach helps you avoid hitting rate limits.
+                        break;
+
+                    case Events.InvoicePaymentFailed:
+                        // The payment failed or the customer does not have a valid payment method.
+                        // The subscription becomes past_due. Notify your customer and send them to
+                        // the customer portal to update their payment information.
+                        break;
+
+                    default:
+                        // Unhandled event type Unexpected event type
+                        Console.WriteLine("Unhandled event type: {0}", stripeEvent.Type);
+                        break;
                 }
                 return Ok();
             }
@@ -158,6 +202,42 @@ namespace MismeAPI.Controllers
             var mapped = _mapper.Map<IEnumerable<OrderResponse>>(orders);
 
             return Created("Verified", new ApiOkResponse(mapped));
+        }
+
+        /// <summary>
+        /// Create a checkout session in stripe for subscriptions
+        /// </summary>
+        /// <param name="req">Create checkout request object</param>
+        /// <returns>Session ID string</returns>
+        [Authorize(Roles = "GROUP_ADMIN,ADMIN")]
+        [HttpPost("create-checkout-session/stripe-subscription")]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.Created)]
+        public async Task<ActionResult> CreateCheckoutSession([FromBody] CreateCheckoutSessionRequest req)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+
+            var sessionId = await _paymentService.StripeCreateCheckoutSessionForSubscriptionAync(loggedUser, req);
+
+            return Created("SessionId", new ApiOkResponse(sessionId));
+        }
+
+        /// <summary>
+        /// Create a customer portal session to allow access stripe dashboard to manage his subscriptions
+        /// </summary>
+        /// <param name="returnUrl">
+        /// URL where the user will be redirected after ending in the Stripe dashboard
+        /// </param>
+        /// <returns>Session ID string</returns>
+        [Authorize(Roles = "GROUP_ADMIN,ADMIN")]
+        [HttpPost("create-checkout-session/stripe-subscription")]
+        [ProducesResponseType(typeof(Stripe.BillingPortal.Session), (int)HttpStatusCode.Created)]
+        public async Task<ActionResult> CreateCheckoutSession([FromBody] string returnUrl)
+        {
+            var loggedUser = User.GetUserIdFromToken();
+
+            var session = await _paymentService.CustomerPortalAsync(loggedUser, returnUrl);
+
+            return Created("Session", new ApiOkResponse(session));
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using MismeAPI.Common.DTO;
 using MismeAPI.Common.DTO.Response.Payment;
 using MismeAPI.Common.Exceptions;
 using MismeAPI.Data.Entities;
@@ -7,6 +8,7 @@ using MismeAPI.Data.Entities.Enums;
 using MismeAPI.Data.UoW;
 using MismeAPI.Service;
 using Stripe;
+using Stripe.Checkout;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -276,6 +278,63 @@ namespace MismeAPI.Services.Impls
             }
 
             return orders;
+        }
+
+        public async Task<string> StripeCreateCheckoutSessionForSubscriptionAync(int loggedUser, CreateCheckoutSessionRequest req)
+        {
+            var user = await _userService.GetUserAsync(loggedUser);
+            if (string.IsNullOrEmpty(user.StripeCustomerId))
+            {
+                await CreateStripeCustomerAsync(user);
+            }
+
+            var options = new SessionCreateOptions
+            {
+                // See https://stripe.com/docs/api/checkout/sessions/create for additional
+                // parameters to pass. {CHECKOUT_SESSION_ID} is a string literal; do not change it!
+                // the actual Session ID is returned in the query parameter when your customer is
+                // redirected to the success page.
+                Customer = user.StripeCustomerId,
+                SuccessUrl = req.SuccessUrl,
+                CancelUrl = req.CancelUrl,
+                PaymentMethodTypes = new List<string> { "card", },
+                Mode = "subscription",
+                LineItems = new List<SessionLineItemOptions>
+                {
+                    new SessionLineItemOptions
+                    {
+                        Price = req.PriceId,
+                        // For metered billing, do not pass quantity
+                        Quantity = 1,
+                    },
+                },
+            };
+
+            var service = new SessionService();
+            var session = await service.CreateAsync(options);
+
+            return session.Id;
+        }
+
+        public async Task<Stripe.BillingPortal.Session> CustomerPortalAsync(int loggedUser, string returnUrl)
+        {
+            var user = await _userService.GetUserAsync(loggedUser);
+            if (string.IsNullOrEmpty(user.StripeCustomerId))
+            {
+                await CreateStripeCustomerAsync(user);
+            }
+
+            // This is the URL to which your customer will return after they are done managing
+            // billing in the Customer Portal.
+            var options = new Stripe.BillingPortal.SessionCreateOptions
+            {
+                Customer = user.StripeCustomerId,
+                ReturnUrl = returnUrl,
+            };
+            var service = new Stripe.BillingPortal.SessionService();
+            var session = await service.CreateAsync(options);
+
+            return session;
         }
 
         private async Task CreateStripeCustomerAsync(User user)
