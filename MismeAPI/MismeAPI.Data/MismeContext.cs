@@ -67,6 +67,7 @@ namespace MismeAPI.Data
         public DbSet<ScheduledEmail> ScheduledEmails { get; set; }
         public DbSet<Service> Services { get; set; }
         public DbSet<ServicePrice> ServicePrices { get; set; }
+        public DbSet<GroupServicePrice> GroupServicePrices { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -103,6 +104,8 @@ namespace MismeAPI.Data
             modelBuilder.Entity<Group>().HasMany(p => p.Invitations).WithOne(b => b.Group).OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<User>().HasMany(p => p.PersonalDatas).WithOne(b => b.User).OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<User>().HasMany(p => p.GroupServicePrices).WithOne(b => b.User).OnDelete(DeleteBehavior.SetNull);
 
             modelBuilder.Entity<User>().HasMany(p => p.CreatedMenues).WithOne(b => b.CreatedBy).OnDelete(DeleteBehavior.SetNull);
             modelBuilder.Entity<Group>().HasMany(p => p.Menues).WithOne(b => b.Group).OnDelete(DeleteBehavior.Cascade);

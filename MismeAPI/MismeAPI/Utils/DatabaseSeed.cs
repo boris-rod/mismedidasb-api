@@ -28,6 +28,7 @@ namespace MismeAPI.Utils
             var _productService = serviceProvider.GetRequiredService<IProductService>();
             var _personalDataService = serviceProvider.GetRequiredService<IPersonalDataService>();
             var _pollService = serviceProvider.GetRequiredService<IPollService>();
+            var _paymentService = serviceProvider.GetRequiredService<IPaymentService>();
 
             await CreateAdminUserAsync(_uow);
 
@@ -35,6 +36,7 @@ namespace MismeAPI.Utils
             await _soloQuestionService.SeedSoloQuestionsAsync();
             await _subscriptionService.SeedSubscriptionAsync();
             await _productService.SeedProductsAsync();
+            await _paymentService.SeedStripeServicesAsync();
 
             await SeedPersonalDataAsync(_uow, _personalDataService, _pollService);
             await SeedSettings(_uow);

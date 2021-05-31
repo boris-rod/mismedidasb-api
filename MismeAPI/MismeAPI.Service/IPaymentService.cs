@@ -25,5 +25,7 @@ namespace MismeAPI.Services
         Task<string> StripeCreateCheckoutSessionForSubscriptionAync(int loggedUser, CreateCheckoutSessionRequest req);
 
         Task<Stripe.BillingPortal.Session> CustomerPortalAsync(int loggedUser, string returnUrl);
+
+        Task SeedStripeServicesAsync();
     }
 }

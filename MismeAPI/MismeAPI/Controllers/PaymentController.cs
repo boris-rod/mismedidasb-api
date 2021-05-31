@@ -9,6 +9,7 @@ using MismeAPI.Common.DTO.Response.Payment;
 using MismeAPI.Services;
 using MismeAPI.Utils;
 using Stripe;
+using Stripe.BillingPortal;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -227,10 +228,10 @@ namespace MismeAPI.Controllers
         /// <param name="returnUrl">
         /// URL where the user will be redirected after ending in the Stripe dashboard
         /// </param>
-        /// <returns>Session ID string</returns>
+        /// <returns>Stripe Session Object</returns>
         [Authorize(Roles = "GROUP_ADMIN,ADMIN")]
-        [HttpPost("create-checkout-session/stripe-subscription")]
-        [ProducesResponseType(typeof(Stripe.BillingPortal.Session), (int)HttpStatusCode.Created)]
+        [HttpPost("create-portal-session/stripe-subscription")]
+        [ProducesResponseType(typeof(Session), (int)HttpStatusCode.Created)]
         public async Task<ActionResult> CreateCheckoutSession([FromBody] string returnUrl)
         {
             var loggedUser = User.GetUserIdFromToken();

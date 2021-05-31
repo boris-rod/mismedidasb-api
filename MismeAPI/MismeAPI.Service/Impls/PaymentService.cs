@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using MismeAPI.Common;
 using MismeAPI.Common.DTO;
 using MismeAPI.Common.DTO.Response.Payment;
 using MismeAPI.Common.Exceptions;
@@ -335,6 +336,66 @@ namespace MismeAPI.Services.Impls
             var session = await service.CreateAsync(options);
 
             return session;
+        }
+
+        public async Task SeedStripeServicesAsync()
+        {
+            var misme_service = await _uow.ServiceRepository.GetAll()
+                .Where(s => s.Name == ServicesConstants.MONTHLY_GROUP_SERVICE)
+                .FirstOrDefaultAsync();
+
+            if (misme_service == null)
+            {
+                misme_service = new Data.Entities.Service
+                {
+                    Name = ServicesConstants.MONTHLY_GROUP_SERVICE
+                };
+
+                var options = new ProductCreateOptions
+                {
+                    Name = ServicesConstants.MONTHLY_GROUP_SERVICE,
+                    Type = "service",
+                };
+
+                var service = new Stripe.ProductService();
+                var product = await service.CreateAsync(options);
+
+                misme_service.StripeId = product.Id;
+
+                await _uow.ServiceRepository.AddAsync(misme_service);
+
+                var priceInt = 10000;
+                var currency = "eur";
+
+                var priceOptions = new PriceCreateOptions
+                {
+                    Nickname = "Mensual",
+                    Product = misme_service.StripeId,
+                    UnitAmount = priceInt,
+                    Currency = currency,
+                    Recurring = new PriceRecurringOptions
+                    {
+                        Interval = "month",
+                        UsageType = "licensed",
+                    },
+                };
+
+                var priceService = new PriceService();
+                var price = await priceService.CreateAsync(priceOptions);
+
+                var misme_price = new ServicePrice
+                {
+                    PriceId = price.Id,
+                    Interval = "month",
+                    Name = "Mensual",
+                    ServiceId = misme_service.Id,
+                    Price = priceInt,
+                    Currency = currency
+                };
+
+                await _uow.ServicePriceRepository.AddAsync(misme_price);
+                await _uow.CommitAsync();
+            }
         }
 
         private async Task CreateStripeCustomerAsync(User user)

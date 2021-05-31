@@ -12,7 +12,7 @@ namespace MismeAPI.Data.Entities
         public int ServiceId { get; set; }
         public Service Service { get; set; }
         public string Name { get; set; }
-        public string StripeId { get; set; }
+        public string PriceId { get; set; }
         public int Price { get; set; }
         public string Currency { get; set; }
         public string Interval { get; set; }
