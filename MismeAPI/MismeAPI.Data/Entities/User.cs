@@ -40,7 +40,11 @@ namespace MismeAPI.Data.Entities
         public string PaypalCustomerId { get; set; }
 
         [Required]
-        public string FullName { get; set; }
+        public string FullName
+        {
+            get { return FullName == "" ? Username : FullName; }
+            set { FullName = value; }
+        }
 
         [Required]
         public string Password { get; set; }
