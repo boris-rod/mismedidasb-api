@@ -39,11 +39,13 @@ namespace MismeAPI.Data.Entities
         public string StripeCustomerId { get; set; }
         public string PaypalCustomerId { get; set; }
 
+        private string _FullName;
+
         [Required]
         public string FullName
         {
-            get { return FullName == "" ? Username : FullName; }
-            set { FullName = value; }
+            get { return string.IsNullOrEmpty(_FullName) ? Username : _FullName; }
+            set { _FullName = value; }
         }
 
         [Required]
