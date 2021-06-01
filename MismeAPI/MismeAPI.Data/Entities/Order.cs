@@ -26,5 +26,6 @@ namespace MismeAPI.Data.Entities
         public PaymentMethodEnum PaymentMethod { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime ModifiedAt { get; set; }
+        public string ObjectType { get; set; }
     }
 }

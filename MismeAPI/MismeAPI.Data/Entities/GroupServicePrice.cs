@@ -18,6 +18,6 @@ namespace MismeAPI.Data.Entities
         public bool IsValid { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
-        public DateTime ValidAt { get; set; }
+        public DateTime? ValidAt { get; set; }
     }
 }

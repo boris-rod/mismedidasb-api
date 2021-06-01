@@ -95,6 +95,7 @@ namespace MismeAPI.Controllers
                 //    // Unexpected event type
                 //    Console.WriteLine("Unhandled event type: {0}", stripeEvent.Type);
                 //}
+                Subscription subscription;
 
                 switch (stripeEvent.Type)
                 {
@@ -120,6 +121,7 @@ namespace MismeAPI.Controllers
                         break;
 
                     case Events.InvoicePaid:
+                        subscription = stripeEvent.Data.Object as Subscription;
                         // Continue to provision the subscription as payments continue to be made.
                         // Store the status in your database and check when a user accesses your
                         // service. This approach helps you avoid hitting rate limits.

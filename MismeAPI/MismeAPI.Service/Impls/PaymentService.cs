@@ -73,7 +73,7 @@ namespace MismeAPI.Services.Impls
             var paymentIntent = await service.CreateAsync(options);
 
             var statusInfo = "Stripe Payment Intent Requested";
-            await CreateOrderAsync(paymentIntent.ClientSecret, user, product, amount, statusInfo);
+            await CreateOrderAsync(paymentIntent.ClientSecret, user, product, amount, paymentIntent.Object, statusInfo);
 
             return paymentIntent.ClientSecret;
         }
@@ -86,36 +86,14 @@ namespace MismeAPI.Services.Impls
         public async Task HandlePaymentIntentSucceeded(PaymentIntent paymentIntent)
         {
             var clientSecret = paymentIntent.ClientSecret;
+            var customerId = paymentIntent.CustomerId;
+            var user = await GetUserByCustomerId(customerId);
 
-            var order = await GetOrderAsync(clientSecret);
+            var result = await CreateOrUpdateOrderAsync(clientSecret, paymentIntent.Amount, OrderStatusEnum.SUCCED, paymentIntent.Description, PaymentMethodEnum.STRIPE, paymentIntent.Object, user);
 
-            if (order == null)
+            if (result.handled)
             {
-                order = new Data.Entities.Order
-                {
-                    ExternalId = clientSecret,
-                    Amount = paymentIntent.Amount / 100m,
-                    Status = OrderStatusEnum.SUCCED,
-                    StatusInformation = paymentIntent.ToString(),
-                    PaymentMethod = PaymentMethodEnum.STRIPE,
-                    CreatedAt = DateTime.UtcNow,
-                    ModifiedAt = DateTime.UtcNow
-                };
-
-                await _uow.OrderRepository.AddAsync(order);
-                await _uow.CommitAsync();
-            }
-            else
-            {
-                if (order.Status == OrderStatusEnum.SUCCED)
-                    return;
-
-                order.Status = OrderStatusEnum.SUCCED;
-                order.StatusInformation = paymentIntent.Description;
-                order.ModifiedAt = DateTime.UtcNow;
-                await _uow.OrderRepository.UpdateAsync(order, order.Id);
-
-                await HandleCoinsIncrementActionAsync(order);
+                await HandleCoinsIncrementActionAsync(result.order);
                 await _uow.CommitAsync();
             }
         }
@@ -259,14 +237,14 @@ namespace MismeAPI.Services.Impls
                         if (product == null)
                         {
                             statusInfo = "Product not found in the server (" + applProductId + ")";
-                            await CreateOrderAsync(item.TransactionId, user, product, 0, statusInfo, PaymentMethodEnum.IN_APP_PURSHASE_APPLE, OrderStatusEnum.FAILED);
+                            await CreateOrderAsync(item.TransactionId, user, product, 0, "InAppPurshase", statusInfo, PaymentMethodEnum.IN_APP_PURSHASE_APPLE, OrderStatusEnum.FAILED);
 
                             Console.WriteLine(statusInfo);
                         }
                         else
                         {
                             var amount = GetProductPriceInteger(product);
-                            order = await CreateOrderAsync(item.TransactionId, user, product, amount, statusInfo, PaymentMethodEnum.IN_APP_PURSHASE_APPLE, OrderStatusEnum.SUCCED);
+                            order = await CreateOrderAsync(item.TransactionId, user, product, amount, "InAppPurshase", statusInfo, PaymentMethodEnum.IN_APP_PURSHASE_APPLE, OrderStatusEnum.SUCCED);
 
                             // give coins to the user
                             await HandleCoinsIncrementActionAsync(order);
@@ -346,13 +324,11 @@ namespace MismeAPI.Services.Impls
 
             if (misme_service == null)
             {
-                var productStripeID = _configuration.GetSection("Stripe")["GroupServiceID"];
                 var productPriceStripeID = _configuration.GetSection("Stripe")["GroupServicePriceID"];
 
                 misme_service = new Data.Entities.Service
                 {
-                    Name = ServicesConstants.MONTHLY_GROUP_SERVICE,
-                    StripeId = productStripeID
+                    Name = ServicesConstants.MONTHLY_GROUP_SERVICE
                 };
 
                 await _uow.ServiceRepository.AddAsync(misme_service);
@@ -373,6 +349,112 @@ namespace MismeAPI.Services.Impls
                 await _uow.ServicePriceRepository.AddAsync(misme_price);
                 await _uow.CommitAsync();
             }
+        }
+
+        /// <summary>
+        /// Stripe Webhook
+        /// </summary>
+        /// <param name="subscription"></param>
+        /// <returns></returns>
+        public async Task HandleSubscriptionSucceeded(Stripe.Subscription subscription)
+        {
+            var id = subscription.Id;
+
+            var user = await GetUserByCustomerId(subscription.CustomerId);
+            if (user == null)
+            {
+                throw new NotFoundException("User");
+            }
+
+            if (!user.GroupId.HasValue)
+            {
+                throw new Exception("El usuario pagando esta subscription no puede ser asociado a ningun grupo.");
+            }
+
+            var result = await CreateOrUpdateOrderAsync(id, subscription.LatestInvoice.AmountPaid, OrderStatusEnum.SUCCED, subscription.ToString(),
+                PaymentMethodEnum.STRIPE, subscription.Object, user);
+
+            if (result.handled)
+            {
+                var subscriptionItem = subscription.Items.FirstOrDefault();
+                if (subscriptionItem != null)
+                {
+                    var price = await GetServicePriceIdByStripePriceId(subscriptionItem.Price.Id);
+                    if (price == null)
+                    {
+                        throw new NotFoundException("Price ID");
+                    }
+
+                    var groupService = new GroupServicePrice
+                    {
+                        ServicePriceId = price.Id,
+                        GroupId = user.GroupId.Value,
+                        IsValid = true,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow,
+                        UserId = user.Id,
+                        ValidAt = subscription.EndedAt
+                    };
+
+                    await _uow.GroupServicePriceRepository.AddAsync(groupService);
+                    await _uow.CommitAsync();
+                }
+            }
+        }
+
+        private async Task<(bool handled, Data.Entities.Order order)> CreateOrUpdateOrderAsync(string externalId,
+            long amount, OrderStatusEnum status, string information, PaymentMethodEnum paymentMethod, string objectType, User user)
+        {
+            var order = await GetOrderAsync(externalId);
+
+            if (order == null)
+            {
+                order = new Data.Entities.Order
+                {
+                    UserEmail = user.Email,
+                    UserFullName = user.FullName,
+                    UserId = user.Id,
+                    ExternalId = externalId,
+                    Amount = amount / 100m,
+                    Status = status,
+                    StatusInformation = information,
+                    PaymentMethod = paymentMethod,
+                    CreatedAt = DateTime.UtcNow,
+                    ModifiedAt = DateTime.UtcNow,
+                    ObjectType = objectType,
+                    ProductName = "Service"
+                };
+
+                await _uow.OrderRepository.AddAsync(order);
+                await _uow.CommitAsync();
+            }
+            else
+            {
+                if (order.Status == OrderStatusEnum.SUCCED)
+                    return (false, order);
+
+                order.Status = status;
+                order.StatusInformation = information;
+                order.ModifiedAt = DateTime.UtcNow;
+                await _uow.OrderRepository.UpdateAsync(order, order.Id);
+                await _uow.CommitAsync();
+            }
+
+            return (true, order);
+        }
+
+        private async Task<User> GetUserByCustomerId(string customerId)
+        {
+            var user = await _uow.UserRepository.GetAll().FirstOrDefaultAsync(u => u.StripeCustomerId == customerId);
+
+            return user;
+        }
+
+        private async Task<ServicePrice> GetServicePriceIdByStripePriceId(string priceId)
+        {
+            var price = await _uow.ServicePriceRepository.GetAll().FirstOrDefaultAsync(u => u.PriceId == priceId);
+
+            return price;
         }
 
         private async Task CreateStripeCustomerAsync(User user)
@@ -399,31 +481,10 @@ namespace MismeAPI.Services.Impls
         private async Task HandlePaymentIntentNotSuccess(PaymentIntent paymentIntent, Data.Entities.Order order, OrderStatusEnum orderStatus)
         {
             var statusInformation = orderStatus == OrderStatusEnum.CANCELED ? paymentIntent.CancellationReason : paymentIntent.LastPaymentError?.Message;
-            if (order == null)
-            {
-                order = new Data.Entities.Order
-                {
-                    ExternalId = paymentIntent.ClientSecret,
-                    Amount = paymentIntent.Amount / 100m,
-                    Status = orderStatus,
-                    StatusInformation = statusInformation,
-                    PaymentMethod = PaymentMethodEnum.STRIPE,
-                    CreatedAt = DateTime.UtcNow,
-                    ModifiedAt = DateTime.UtcNow
-                };
+            var customerId = paymentIntent.CustomerId;
+            var user = await GetUserByCustomerId(customerId);
 
-                await _uow.OrderRepository.AddAsync(order);
-                await _uow.CommitAsync();
-            }
-            else
-            {
-                order.Status = orderStatus;
-                order.StatusInformation = statusInformation;
-                order.ModifiedAt = DateTime.UtcNow;
-
-                await _uow.OrderRepository.UpdateAsync(order, order.Id);
-                await _uow.CommitAsync();
-            }
+            await CreateOrUpdateOrderAsync(order.ExternalId, paymentIntent.Amount, orderStatus, statusInformation, PaymentMethodEnum.STRIPE, paymentIntent.Object, user);
         }
 
         private async Task HandleCoinsIncrementActionAsync(Data.Entities.Order order)
@@ -462,7 +523,7 @@ namespace MismeAPI.Services.Impls
             return order;
         }
 
-        private async Task<Data.Entities.Order> CreateOrderAsync(string externalId, User user, Data.Entities.Product product, int amount,
+        private async Task<Data.Entities.Order> CreateOrderAsync(string externalId, User user, Data.Entities.Product product, int amount, string objectType,
             string statusInformation = "", PaymentMethodEnum paymentMethod = PaymentMethodEnum.STRIPE, OrderStatusEnum status = OrderStatusEnum.PROCESING)
         {
             var order = new Data.Entities.Order
@@ -479,7 +540,8 @@ namespace MismeAPI.Services.Impls
                 StatusInformation = statusInformation,
                 PaymentMethod = paymentMethod,
                 CreatedAt = DateTime.UtcNow,
-                ModifiedAt = DateTime.UtcNow
+                ModifiedAt = DateTime.UtcNow,
+                ObjectType = objectType
             };
 
             await _uow.OrderRepository.AddAsync(order);
