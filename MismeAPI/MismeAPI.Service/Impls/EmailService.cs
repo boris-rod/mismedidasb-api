@@ -133,7 +133,10 @@ namespace MismeAPI.Services.Impls
 
                         var mess = new MimeMessage();
 
-                        mess.From.Add(new MailboxAddress(_configuration.GetValue<string>("SMTP:From")));
+                        var from = _configuration.GetValue<string>("SMTP:From");
+                        var fromName = _configuration.GetValue<string>("SMTP:FromName");
+
+                        mess.From.Add(new MailboxAddress(fromName, from));
 
                         foreach (var email in emails)
                         {
@@ -192,7 +195,11 @@ namespace MismeAPI.Services.Impls
 
                         var mess = new MimeMessage();
 
-                        mess.From.Add(new MailboxAddress(_configuration.GetValue<string>("SMTP:From")));
+                        var from = _configuration.GetValue<string>("SMTP:From");
+                        var fromName = _configuration.GetValue<string>("SMTP:FromName");
+
+                        mess.From.Add(new MailboxAddress(fromName, from));
+
                         foreach (var email in emails)
                         {
                             mess.To.Add(new MailboxAddress(email));
