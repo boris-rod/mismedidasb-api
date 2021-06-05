@@ -349,6 +349,26 @@ namespace MismeAPI.Service.Impls
                 invitation.ModifiedAt = DateTime.UtcNow;
 
                 await _uow.GroupInvitationRepository.UpdateAsync(invitation, invitation.Id);
+
+                if (status == StatusInvitationEnum.ACCEPTED)
+                {
+                    User user;
+                    if (invitation.UserId.HasValue)
+                    {
+                        user = invitation.User;
+                    }
+                    else
+                    {
+                        user = await _uow.UserRepository.GetAll().FirstOrDefaultAsync(u => u.Email == invitation.UserEmail);
+                    }
+
+                    if (user != null && invitation.GroupId.HasValue)
+                    {
+                        user.GroupId = invitation.GroupId.Value;
+                        await _uow.UserRepository.UpdateAsync(user, user.Id);
+                    }
+                }
+
                 await _uow.CommitAsync();
             }
             else

@@ -367,7 +367,7 @@ namespace MismeAPI.Controllers
         /// <param name="userId">User id to update plan</param>
         /// <param name="eat">Eat request object.</param>
         [HttpPost("users/{userId}/bulk-eats")]
-        [Authorize]
+        [Authorize(Roles = "GROUP_ADMIN,ADMIN")]
         [ProducesResponseType(typeof(EatResponse), (int)HttpStatusCode.Created)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
         public async Task<IActionResult> AddEatsToUser([FromRoute] int userId, [FromBody] CreateBulkEatRequest eat)

@@ -1095,7 +1095,7 @@ namespace MismeAPI.Services.Impls
 
             if (invitation != null)
             {
-                var group = await _uow.GroupRepository.GetAll().FirstOrDefaultAsync(g => g.Id == invitation.GroupId);
+                var group = await _uow.GroupRepository.GetAll().FirstOrDefaultAsync(g => g.Id == invitation.GroupId.Value);
                 invitation.Status = StatusInvitationEnum.ACCEPTED;
                 invitation.ModifiedAt = DateTime.UtcNow;
                 await _uow.GroupInvitationRepository.UpdateAsync(invitation, invitation.Id);
