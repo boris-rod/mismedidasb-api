@@ -281,6 +281,7 @@ namespace MismeAPI.Services.Impls
                 var us = await _uow.UserSettingRepository.GetAll().Where(us => us.SettingId == setting.Id && us.UserId == user.Id).FirstOrDefaultAsync();
                 if (us != null && !string.IsNullOrWhiteSpace(us.Value))
                 {
+                    // The setting is set to false when user opt for not receiving more email notifications
                     return us.Value == "false";
                 }
             }

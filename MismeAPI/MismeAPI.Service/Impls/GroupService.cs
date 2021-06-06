@@ -360,6 +360,11 @@ namespace MismeAPI.Service.Impls
                     else
                     {
                         user = await _uow.UserRepository.GetAll().FirstOrDefaultAsync(u => u.Email == invitation.UserEmail);
+                        if (user != null)
+                        {
+                            invitation.UserId = user.Id;
+                            await _uow.GroupInvitationRepository.UpdateAsync(invitation, invitation.Id);
+                        }
                     }
 
                     if (user != null && invitation.GroupId.HasValue)
