@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using MismeAPI.BasicResponses;
 using MismeAPI.Common.DTO.Request;
 using MismeAPI.Common.DTO.Request.Poll;
@@ -8,6 +9,7 @@ using MismeAPI.Common.DTO.Request.Tip;
 using MismeAPI.Common.DTO.Response;
 using MismeAPI.Common.DTO.Response.Reward;
 using MismeAPI.Data.Entities.Enums;
+using MismeAPI.Data.UoW;
 using MismeAPI.Service;
 using MismeAPI.Service.Utils;
 using MismeAPI.Utils;
@@ -22,17 +24,21 @@ namespace MismeAPI.Controllers
     [Route("api/poll")]
     public class PollController : Controller
     {
+        private readonly IUnitOfWork _uow;
+        private readonly IPersonalDataService _personalDataService;
         private readonly IPollService _pollService;
         private readonly IMapper _mapper;
         private readonly IUserService _userService;
         private readonly IRewardHelper _rewardHelper;
 
-        public PollController(IPollService pollService, IMapper mapper, IUserService userService, IRewardHelper rewardHelper)
+        public PollController(IPollService pollService, IMapper mapper, IUserService userService, IRewardHelper rewardHelper, IUnitOfWork uow, IPersonalDataService personalDataService)
         {
             _pollService = pollService ?? throw new ArgumentNullException(nameof(pollService));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _rewardHelper = rewardHelper ?? throw new ArgumentNullException(nameof(rewardHelper));
+            _uow = uow ?? throw new ArgumentNullException(nameof(uow));
+            _personalDataService = personalDataService ?? throw new ArgumentNullException(nameof(personalDataService));
         }
 
         /// <summary>
@@ -348,6 +354,79 @@ namespace MismeAPI.Controllers
             var loggedUser = User.GetUserIdFromToken();
             await _pollService.ChangePollTranslationAsync(loggedUser, pollTranslationRequest, id);
             return Ok();
+        }
+
+        [Authorize(Roles = "ADMIN")]
+        [HttpPatch("local-test")]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> localTest()
+        {
+            var countPersonalData = 0;
+            var count = 0;
+            var saveCount = 0;
+
+            var users1 = await _uow.UserRepository.GetAll()
+                .Include(u => u.PersonalDatas)
+                .Where(u => u.Status == StatusEnum.ACTIVE && u.PersonalDatas.Count() == 0)
+                .Take(2000)
+                .ToListAsync();
+
+            foreach (var user in users1)
+            {
+                var pollResult = await _pollService.GetUserPollsInfoAsync(user.Id);
+
+                await _personalDataService.AddPersonalDataAsync(user.Id, PersonalDataEnum.WEIGHT, pollResult.weight.ToString());
+                await _personalDataService.AddPersonalDataAsync(user.Id, PersonalDataEnum.HEIGHT, pollResult.height.ToString());
+                await _personalDataService.AddPersonalDataAsync(user.Id, PersonalDataEnum.AGE, pollResult.age.ToString());
+
+                user.Age = pollResult.age;
+                user.Height = pollResult.height;
+                user.Weight = pollResult.weight;
+
+                await _uow.UserRepository.UpdateAsync(user, user.Id);
+
+                saveCount++;
+                if (saveCount == 200)
+                {
+                    await _uow.CommitAsync();
+                    saveCount = 0;
+                }
+
+                countPersonalData++;
+            }
+
+            await _uow.CommitAsync();
+
+            if (countPersonalData == 0)
+            {
+                var users = await _uow.UserRepository.GetAll()
+                        .Where(u => u.Status == StatusEnum.ACTIVE && u.Sex == -1)
+                        .Take(2000)
+                        .ToListAsync();
+
+                foreach (var user in users)
+                {
+                    var pollResult = await _pollService.GetUserPollsInfoAsync(user.Id);
+
+                    user.Sex = pollResult.sex;
+                    await _uow.UserRepository.UpdateAsync(user, user.Id);
+
+                    saveCount++;
+                    if (saveCount == 200)
+                    {
+                        await _uow.CommitAsync();
+                        saveCount = 0;
+                    }
+
+                    count++;
+                }
+
+                await _uow.CommitAsync();
+
+                return Ok("Sex: " + count);
+            }
+
+            return Ok("PersonalData: " + countPersonalData);
         }
     }
 }
