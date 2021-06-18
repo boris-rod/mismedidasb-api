@@ -368,7 +368,7 @@ namespace MismeAPI.Controllers
             var users1 = await _uow.UserRepository.GetAll()
                 .Include(u => u.PersonalDatas)
                 .Where(u => u.Status == StatusEnum.ACTIVE && u.PersonalDatas.Count() == 0)
-                .Take(2000)
+                .Take(200)
                 .ToListAsync();
 
             foreach (var user in users1)
@@ -386,7 +386,7 @@ namespace MismeAPI.Controllers
                 await _uow.UserRepository.UpdateAsync(user, user.Id);
 
                 saveCount++;
-                if (saveCount == 200)
+                if (saveCount == 100)
                 {
                     await _uow.CommitAsync();
                     saveCount = 0;
@@ -401,7 +401,7 @@ namespace MismeAPI.Controllers
             {
                 var users = await _uow.UserRepository.GetAll()
                         .Where(u => u.Status == StatusEnum.ACTIVE && u.Sex == -1)
-                        .Take(2000)
+                        .Take(200)
                         .ToListAsync();
 
                 foreach (var user in users)
@@ -412,7 +412,7 @@ namespace MismeAPI.Controllers
                     await _uow.UserRepository.UpdateAsync(user, user.Id);
 
                     saveCount++;
-                    if (saveCount == 200)
+                    if (saveCount == 100)
                     {
                         await _uow.CommitAsync();
                         saveCount = 0;
