@@ -77,6 +77,7 @@ namespace MismeAPI.Utils
                 .ForMember(d => d.Name, opts => opts.MapFrom((src, dest, destMember, context) => GetPollName(src, context.Items["lang"].ToString())))
                 .ForMember(d => d.Questions, opts => opts.MapFrom(source => source.Questions.OrderBy(q => q.Order)))
                 .ForMember(d => d.Tips, opts => opts.MapFrom(source => source.Tips));
+
             CreateMap<Poll, PollAdminResponse>();
 
             CreateMap<Question, QuestionResponse>()

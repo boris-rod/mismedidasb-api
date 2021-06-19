@@ -331,9 +331,10 @@ namespace MismeAPI.Controllers
 
             var language = await _userService.GetUserLanguageFromUserIdAsync(loggedUser);
 
-            //var mapped = _mapper.Map<IEnumerable<PollAdminResponse>>(result);
-
-            var mapped = _mapper.Map<IEnumerable<PollAdminResponse>>(result);
+            var mapped = _mapper.Map<IEnumerable<PollAdminResponse>>(result, opt =>
+            {
+                opt.Items["lang"] = "ES";
+            });
 
             mapped = mapped.OrderBy(m => m.Order);
             return Ok(new ApiOkResponse(mapped));
