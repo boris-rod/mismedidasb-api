@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Hangfire;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -362,72 +363,25 @@ namespace MismeAPI.Controllers
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.OK)]
         public async Task<IActionResult> localTest()
         {
-            var countPersonalData = 0;
-            var count = 0;
-            var saveCount = 0;
-
-            var users1 = await _uow.UserRepository.GetAll()
+            var count = await _uow.UserRepository.GetAll()
                 .Include(u => u.PersonalDatas)
                 .Where(u => u.Status == StatusEnum.ACTIVE && u.PersonalDatas.Count() == 0)
-                .Take(200)
-                .ToListAsync();
+                .Take(2000)
+                .CountAsync();
 
-            foreach (var user in users1)
+            BackgroundJob.Schedule<IPollService>(x => x.TestMethod(), DateTime.UtcNow.AddSeconds(10));
+
+            if (count == 0)
             {
-                var pollResult = await _pollService.GetUserPollsInfoAsync(user.Id);
-
-                await _personalDataService.AddPersonalDataAsync(user.Id, PersonalDataEnum.WEIGHT, pollResult.weight.ToString());
-                await _personalDataService.AddPersonalDataAsync(user.Id, PersonalDataEnum.HEIGHT, pollResult.height.ToString());
-                await _personalDataService.AddPersonalDataAsync(user.Id, PersonalDataEnum.AGE, pollResult.age.ToString());
-
-                user.Age = pollResult.age;
-                user.Height = pollResult.height;
-                user.Weight = pollResult.weight;
-
-                await _uow.UserRepository.UpdateAsync(user, user.Id);
-
-                saveCount++;
-                if (saveCount == 100)
-                {
-                    await _uow.CommitAsync();
-                    saveCount = 0;
-                }
-
-                countPersonalData++;
-            }
-
-            await _uow.CommitAsync();
-
-            if (countPersonalData == 0)
-            {
-                var users = await _uow.UserRepository.GetAll()
+                count = await _uow.UserRepository.GetAll()
                         .Where(u => u.Status == StatusEnum.ACTIVE && u.Sex == -1)
-                        .Take(200)
-                        .ToListAsync();
-
-                foreach (var user in users)
-                {
-                    var pollResult = await _pollService.GetUserPollsInfoAsync(user.Id);
-
-                    user.Sex = pollResult.sex;
-                    await _uow.UserRepository.UpdateAsync(user, user.Id);
-
-                    saveCount++;
-                    if (saveCount == 100)
-                    {
-                        await _uow.CommitAsync();
-                        saveCount = 0;
-                    }
-
-                    count++;
-                }
-
-                await _uow.CommitAsync();
+                        .Take(2000)
+                        .CountAsync();
 
                 return Ok("Sex: " + count);
             }
 
-            return Ok("PersonalData: " + countPersonalData);
+            return Ok("PersonalData: " + count);
         }
     }
 }

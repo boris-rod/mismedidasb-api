@@ -1,4 +1,5 @@
-﻿using MismeAPI.Common.DTO.Request;
+﻿using Hangfire;
+using MismeAPI.Common.DTO.Request;
 using MismeAPI.Common.DTO.Request.Poll;
 using MismeAPI.Common.DTO.Request.Tip;
 using MismeAPI.Data.Entities;
@@ -51,6 +52,10 @@ namespace MismeAPI.Service
         IEnumerable<int> GetAnsweredPolls(ListOfPollResultsRequest result);
 
         Task<IEnumerable<Question>> GetLatestPollAnswerByUser(string conceptCode, int userId);
+
+        [DisableConcurrentExecution(timeoutInSeconds: 10 * 60)]
+        [AutomaticRetry(Attempts = 0, LogEvents = false, OnAttemptsExceeded = AttemptsExceededAction.Delete)]
+        Task TestMethod();
 
         Task<(int age, int weight, int height, int sex, DateTime? HealthMeasuresLastUpdate, DateTime? ValueMeasuresLastUpdate, DateTime? WellnessMeasuresLastUpdate, DateTime? LastPlanedEat)> GetUserPollsInfoAsync(int userId);
     }
