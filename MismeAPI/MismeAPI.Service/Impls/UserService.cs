@@ -1015,7 +1015,7 @@ namespace MismeAPI.Service.Impls
                 MenCountRange35To44 = ageRange3SexCount.men,
                 WomenCountRange35To44 = ageRange3SexCount.women,
                 MenCountRange45To54 = ageRange4SexCount.men,
-                WomenCountRange45To54 = ageRange5SexCount.women,
+                WomenCountRange45To54 = ageRange4SexCount.women,
                 MenCountRange55To64 = ageRange5SexCount.men,
                 WomenCountRange55To64 = ageRange5SexCount.women,
                 MenCountRangeMin65 = ageRange6SexCount.men,
@@ -1036,7 +1036,7 @@ namespace MismeAPI.Service.Impls
 
             if (maxAge.HasValue)
             {
-                query = query.Where(u => u.Age < maxAge.Value);
+                query = query.Where(u => u.Age <= maxAge.Value);
             }
 
             return query;

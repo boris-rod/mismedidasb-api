@@ -1,8 +1,6 @@
 ﻿using AutoMapper;
-using Hangfire;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using MismeAPI.BasicResponses;
 using MismeAPI.Common.DTO.Request;
 using MismeAPI.Common.DTO.Request.Poll;
@@ -10,7 +8,6 @@ using MismeAPI.Common.DTO.Request.Tip;
 using MismeAPI.Common.DTO.Response;
 using MismeAPI.Common.DTO.Response.Reward;
 using MismeAPI.Data.Entities.Enums;
-using MismeAPI.Data.UoW;
 using MismeAPI.Service;
 using MismeAPI.Service.Utils;
 using MismeAPI.Utils;
@@ -25,21 +22,17 @@ namespace MismeAPI.Controllers
     [Route("api/poll")]
     public class PollController : Controller
     {
-        private readonly IUnitOfWork _uow;
-        private readonly IPersonalDataService _personalDataService;
         private readonly IPollService _pollService;
         private readonly IMapper _mapper;
         private readonly IUserService _userService;
         private readonly IRewardHelper _rewardHelper;
 
-        public PollController(IPollService pollService, IMapper mapper, IUserService userService, IRewardHelper rewardHelper, IUnitOfWork uow, IPersonalDataService personalDataService)
+        public PollController(IPollService pollService, IMapper mapper, IUserService userService, IRewardHelper rewardHelper)
         {
             _pollService = pollService ?? throw new ArgumentNullException(nameof(pollService));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _rewardHelper = rewardHelper ?? throw new ArgumentNullException(nameof(rewardHelper));
-            _uow = uow ?? throw new ArgumentNullException(nameof(uow));
-            _personalDataService = personalDataService ?? throw new ArgumentNullException(nameof(personalDataService));
         }
 
         /// <summary>
@@ -356,32 +349,6 @@ namespace MismeAPI.Controllers
             var loggedUser = User.GetUserIdFromToken();
             await _pollService.ChangePollTranslationAsync(loggedUser, pollTranslationRequest, id);
             return Ok();
-        }
-
-        [Authorize(Roles = "ADMIN")]
-        [HttpPatch("local-test")]
-        [ProducesResponseType(typeof(string), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> localTest()
-        {
-            var count = await _uow.UserRepository.GetAll()
-                .Include(u => u.PersonalDatas)
-                .Where(u => u.Status == StatusEnum.ACTIVE && u.PersonalDatas.Count() == 0)
-                .Take(2000)
-                .CountAsync();
-
-            BackgroundJob.Schedule<IPollService>(x => x.TestMethod(), DateTime.UtcNow.AddSeconds(10));
-
-            if (count == 0)
-            {
-                count = await _uow.UserRepository.GetAll()
-                        .Where(u => u.Status == StatusEnum.ACTIVE && u.Sex == -1)
-                        .Take(2000)
-                        .CountAsync();
-
-                return Ok("Sex: " + count);
-            }
-
-            return Ok("PersonalData: " + count);
         }
     }
 }
